@@ -1,8 +1,34 @@
 import { test, expect } from '@playwright/test';
 
+const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
+
+async function setupPage(page) {
+  await page.route('/api/**', (route) => {
+    if (route.request().method() === 'GET') {
+      route.abort();
+    } else {
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    }
+  });
+  await page.route('/api/auth/me', (route) =>
+    route.fulfill({ status: 401, body: '{}' })
+  );
+  await page.route('/api/auth/login', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: adminUser })
+    })
+  );
+  await page.route('/api/auth/logout', (route) =>
+    route.fulfill({ status: 200, body: '{}' })
+  );
+  await page.goto('/');
+}
+
 test.describe('S-02 ダッシュボード', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await setupPage(page);
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();

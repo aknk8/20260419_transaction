@@ -1,0 +1,2240 @@
+<testsuites id="" name="" tests="542" failures="0" skipped="542" errors="0" time="1.4421619999999993">
+<testsuite name="approval-drilldown.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="S-12 承認一覧 行ドリルダウン › should show 詳細 button in each approval row" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should navigate to quotation detail when 詳細 button is clicked for 見積" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should show 承認一覧に戻る button on quotation detail when navigated from approval list" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should return to approval list when 承認一覧に戻る is clicked from quotation detail" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should navigate to purchase order detail when 詳細 button is clicked for 発注" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should show 承認一覧に戻る button on purchase order detail when navigated from approval list" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should return to approval list when 承認一覧に戻る is clicked from purchase order detail" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should show quotation code in detail after drilldown" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 行ドリルダウン › should not show 承認一覧に戻る when navigating to quotation detail directly" classname="approval-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="approval-history.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="P0-10 承認ステップ表示＋承認履歴テーブル › should show approval history section on order detail with 承認依頼中 status" classname="approval-history.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-10 承認ステップ表示＋承認履歴テーブル › should show 承認依頼中 status badge in approval history section" classname="approval-history.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-10 承認ステップ表示＋承認履歴テーブル › should record history entry when order approval is submitted" classname="approval-history.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-10 承認ステップ表示＋承認履歴テーブル › should record 承認 history entry after approving from approval list" classname="approval-history.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-10 承認ステップ表示＋承認履歴テーブル › should record 却下 history entry with reason after rejecting" classname="approval-history.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-10 承認ステップ表示＋承認履歴テーブル › should show approval history section on invoice detail with 承認依頼中 status" classname="approval-history.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-10 承認ステップ表示＋承認履歴テーブル › should show approval history section on purchase order detail with 承認依頼中 status" classname="approval-history.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="approval-operations.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="S-12 承認操作（承認/却下+コメント） › should show 承認する button on quotation detail when status is 承認依頼中" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should show 却下 button on quotation detail when status is 承認依頼中" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should expand comment panel when 承認する is clicked" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should expand comment panel when 却下 is clicked" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should show error when 却下を確定 is clicked without comment" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should return to approval list after approving quotation" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should return to approval list after rejecting quotation with reason" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should hide action panel when キャンセル is clicked" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should show 承認する button on purchase order detail when status is 承認依頼中" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should show 却下 button on purchase order detail when status is 承認依頼中" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認操作（承認/却下+コメント） › should return to approval list after approving purchase order" classname="approval-operations.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="approval-route-settings.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="P0-11 S-15 承認ルート設定タブ › should show 承認ルート設定 tab in settings screen" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-11 S-15 承認ルート設定タブ › should show approval route settings panel when tab is clicked" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-11 S-15 承認ルート設定タブ › should show document type selector in approval route tab" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-11 S-15 承認ルート設定タブ › should show default quotation routes when tab is first opened" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-11 S-15 承認ルート設定タブ › should show AND condition hint text" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-11 S-15 承認ルート設定タブ › should switch routes when document type is changed" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-11 S-15 承認ルート設定タブ › should add a new step when approver is selected and button clicked" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-11 S-15 承認ルート設定タブ › should remove a step when 削除 button is clicked" classname="approval-route-settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="approval.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="S-12 承認一覧 › should show approval list from navigation" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show pending quotation in list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show type 見積 in approval list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show pending purchase order in list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show type 発注 in approval list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show amount in approval list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show customer name for quotation in list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show supplier name for purchase order in list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show submitter name in list" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should filter by type 見積" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should filter by type 発注" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-12 承認一覧 › should show approval list for finance01 who has approval:view" classname="approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="check_errors.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="1" failures="0" skipped="1" time="0" errors="0">
+<testcase name="check console errors after login" classname="check_errors.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="customer-master.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="S-11 顧客マスタ › should display all 9 customers when default page size is 20" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should filter customer list when keyword is entered in search box" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should show new registration form when new customer button is clicked" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should auto-fill customer code with next sequential value when form opens" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should register new customer and show it in list when valid form is submitted" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should show edit button per row for admin user" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should pre-fill form with existing customer data when edit button is clicked" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should update customer and show changes in list when edit form is saved" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 顧客マスタ › should return to list when cancel button is clicked on registration form" classname="customer-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="S-02 ダッシュボード › should show dashboard on login" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 承認待ち metric card" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 未請求 metric card" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 未収 metric card" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 未払 metric card" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 承認待ち count as 02" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 未請求 count as 01" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 未収 count as 01" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show 未払 count as 01" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show QUO-00003 in pending approvals panel" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show POD-00006 in pending approvals panel" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-02 ダッシュボード › should show dashboard nav item for finance01" classname="dashboard.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="delivery.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="23" failures="0" skipped="23" time="0" errors="0">
+<testcase name="S-07 納品登録 › should show 納品登録 button for 発注済 purchase order" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should not show 納品登録 button for 下書き purchase order" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should show delivery form when 納品登録 button clicked" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should show generated delivery code in form" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should show purchase order code in form" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should show validation error when deliveryDate is empty" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should register delivery and return to detail when form submitted" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should update purchase order status to 納品済 after delivery registration" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should show registered delivery in 納品実績 section" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should return to detail screen when cancel button clicked" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 納品登録 › should show existing deliveries in POD-00003 detail" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 検収結果登録 › should show 検収済にする button for 検収待ち delivery" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 検収結果登録 › should show 検収NG button for 検収待ち delivery" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 検収結果登録 › should update delivery status to 検収済 when 検収済にする is clicked" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 検収結果登録 › should update delivery status to 検収NG when 検収NG is clicked" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 検収結果登録 › should not show 検収済にする button after delivery is accepted" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 検収結果登録 › should show 検収済 status for DLV-00001 which is already accepted" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 検収結果登録 › should not show inspection buttons for already accepted delivery" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 一部納品対応 › should show delivery quantity input for each PO detail line" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 一部納品対応 › should set status to 一部納品 when partial quantities delivered" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 一部納品対応 › should set status to 納品済 when all quantities delivered" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 一部納品対応 › should show 納品登録 button when status is 一部納品" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-07 一部納品対応 › should accumulate deliveries and reach 納品済 after second delivery" classname="delivery.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="explore-et01-login-permissions.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="ET-01: ログインと権限制御 › 不正パスワードでログインできないこと" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › ユーザーIDが空のままログインできないこと" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › admin（システム管理者） でログインしメニューを記録する" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › sales01（営業担当者） でログインしメニューを記録する" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › finance01（経理課長） でログインしメニューを記録する" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › admin はマスタ管理が表示される" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › admin はレポートが表示される" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › sales01 にはレポートが表示されない" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › finance01 は見積・案件メニューが表示されない" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › ログアウト後に戻るボタンで保護画面に戻れないこと" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-01: ログインと権限制御 › sales01 のマスタ管理ページで編集ボタンの表示を確認" classname="explore-et01-login-permissions.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="explore-et02-04-07.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="23" failures="0" skipped="23" time="0" errors="0">
+<testcase name="ET-02: 見積フロー探索 › 見積一覧の行数を確認（.data-table-body-row）" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › 見積ステータスフィルターに「却下」が存在することを確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › QUO-00001（承認済み）の詳細を開いて金額を確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › QUO-00003（承認依頼中）詳細での承認依頼ボタン状態確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › 新規見積フォームのフィールド数と自動採番を確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › finance01が見積URLへ直接アクセスしたときダッシュボードへリダイレクトされるか" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › 受注一覧の行数と全件表示を確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › ORD-00001の詳細で顧客・金額が正しいか確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › ORD-00002の詳細でデータ修正後の顧客(CUS-005)が表示されるか確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › 発注一覧の行数とステータス値を確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › POD-00001の詳細で金額・仕入先・発注書出力を確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 顧客マスタ一覧 表示件数（PAGE_SIZE=5）の確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › ページング（次へ/前へ）の動作確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › キーワード検索「青葉」で絞り込み確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 新規顧客登録で自動採番コード(CUS-010)と保存後の一覧反映を確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 商品マスタで単価の表示形式（文字列 vs 数値）を確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › sales01のマスタ管理: 閲覧可能・新規登録/編集ボタン非表示の確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 顧客名を空のまま保存したときのエラーメッセージ確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 既存コード(CUS-001)を入力して保存したとき重複エラーが出るか確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 空IDでログインしたときのエラー確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 空パスワードでログインしたときのエラー確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › CSV出力ボタンが各一覧に存在するか確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 請求・入金・支払・承認・レポート画面がプレースホルダーか確認" classname="explore-et02-04-07.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="explore-et02-quotation.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="ET-02: 見積フロー探索 › 見積一覧が表示され、既存件数を確認する" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › 見積一覧でステータス絞り込みが機能するか確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › 新規見積ボタンが存在し、フォームが開くか確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › 承認済み見積(QUO-00001)の詳細を開いて金額確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › 見積(QUO-00002)で改版ボタンの有無を確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › QUO-00003(承認依頼中)で承認依頼ボタンの状態を確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › 見積書PDF出力ボタンの有無を確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › sales01は見積の編集・承認依頼ができるか確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-02: 見積フロー探索 › finance01は見積メニューにアクセスできないか確認" classname="explore-et02-quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="explore-et03-order-purchase.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › 受注一覧が表示され、件数を確認する" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › ORD-00001の詳細で顧客名がCUS-001(株式会社青葉システム)と一致するか確認" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › ORD-00002の詳細で修正後の顧客(CUS-005)が表示されるか確認" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › 発注一覧が表示され、既存件数を確認する" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › POD-00001の詳細で金額がORD-00001と整合するか確認" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › 発注の discount 値の解釈を確認（発注書プレビューで金額チェック）" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › 受注詳細から発注起票ボタンの有無を確認" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-03: 受注→発注引き継ぎ探索 › POD-00002のステータス&quot;承認済・発注待ち&quot;が正しく表示されるか確認" classname="explore-et03-order-purchase.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="explore-et04-master.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="ET-04: マスタ管理探索 › 顧客マスタ一覧が表示され、ページあたり5件以下か確認" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › ページングで2ページ目に遷移できるか確認" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 顧客名でキーワード検索が機能するか確認" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 新規顧客登録フォームが開き、自動採番がCUS-010になるか確認" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 顧客を新規登録して一覧に追加されるか確認" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 仕入先タブへの切り替えを確認" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › 商品マスタで単価フィールドの入力値の型を確認" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-04: マスタ管理探索 › sales01 はマスタを閲覧できるが編集ボタンがない（またはマスタ自体非表示）" classname="explore-et04-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="explore-et07-validation.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="ET-07: バリデーション探索 › 顧客名を空で送信したときエラーメッセージが表示されるか確認" classname="explore-et07-validation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 重複する顧客コードで登録したときエラーが出るか確認" classname="explore-et07-validation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 複数フィールドが空のとき全フィールドのエラーが同時表示されるか確認" classname="explore-et07-validation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › ログインフォームで空IDを送信したときのエラー確認" classname="explore-et07-validation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › ログインフォームで空パスワードを送信したときのエラー確認" classname="explore-et07-validation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › 見積明細の数量に0を入力したとき金額がどうなるか確認" classname="explore-et07-validation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ET-07: バリデーション探索 › エラー後に正しい値を入力すると保存できるかを確認" classname="explore-et07-validation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="invoice-approval.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="P0-09 請求承認フロー（3段階） › should show 承認依頼 button on invoice detail when status is 下書き" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should change status to 承認依頼中 when 承認依頼 is clicked" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should show 承認する and 却下 buttons on invoice detail when status is 承認依頼中" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should expand comment panel when 承認する is clicked on invoice detail" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should approve invoice and return to approval list" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should show 確定する button after approval (stage 3)" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should expand comment panel when 却下 is clicked" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should show error when 却下 confirmed without comment" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should reject invoice with comment and return to approval list" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-09 請求承認フロー（3段階） › should show 承認一覧に戻る button when navigating from approval list" classname="invoice-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="invoice.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="31" failures="0" skipped="31" time="0" errors="0">
+<testcase name="S-08 請求一覧 › should display invoice list with 4 rows" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求一覧 › should show invoice code in list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求一覧 › should show customer name (not code) in list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求一覧 › should show total amount formatted with yen in list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求一覧 › should show status badge in list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求一覧 › should filter invoice list by status" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求一覧 › should filter invoice list when keyword is entered in search box" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求一覧 › should show invoice nav item for finance01 who has invoice:view" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should show 請求対象抽出 button on invoice list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should show billable orders screen when 請求対象抽出 is clicked" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should show billable order in extraction list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should show 請求起票 button for each billable order" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should pre-fill invoiceDate with today in billable list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should pre-fill dueDate with end of current month in billable list" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should create invoice from billable list and remain on billable screen" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should show new invoice in list after creation" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should not show invoiced order in billable list after invoice creation" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should allow editing invoiceDate before creating invoice" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求対象抽出 › should return to invoice list when 一覧に戻る is clicked" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show invoice detail when detail button is clicked" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show invoice code in detail" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show customer name in detail" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show line items in detail" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show 確定する button for 下書き invoice" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should update status to 確定 when 確定する is clicked" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show 送付済にする button when status is 確定" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should update status to 送付済 when 送付済にする is clicked" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should not show 確定する button when status is 送付済" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show キャンセル button for 下書き invoice" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should return to invoice list when 一覧に戻る is clicked" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-08 請求詳細 › should show 印刷 button in invoice detail" classname="invoice.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="login.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="S-01 ログイン › should navigate to dashboard when valid admin credentials are submitted" classname="login.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-01 ログイン › should display all permitted menu items for admin user after login" classname="login.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-01 ログイン › should return to login screen when logout button is clicked" classname="login.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-01 ログイン › should show error message when credentials are invalid" classname="login.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-01 ログイン › should show login form on initial load before authentication" classname="login.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="master-permission.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="3" failures="0" skipped="3" time="0" errors="0">
+<testcase name="S-11 マスタ管理 権限制御 › should show master menu and customer list for sales01 user" classname="master-permission.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 マスタ管理 権限制御 › should not show edit button or new registration button for sales01 user" classname="master-permission.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 マスタ管理 権限制御 › should show master menu and customer list for finance01 user" classname="master-permission.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="notification.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="S-14 通知一覧 › should show notification list from navigation" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show approval request notification in list" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show 承認依頼 type badge in notification list" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show notification message in list" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show purchase order notification in list" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show payment notification in list" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show 未読 badge for unread notifications" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show 既読 badge for read notifications" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show notification date in list" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should filter by type 承認依頼" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-14 通知一覧 › should show notification list for finance01 who has notification:view" classname="notification.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="order-approval.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="P0-08 受注承認フロー › should show 承認する and 却下 buttons on order detail when status is 承認依頼中" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should expand comment panel when 承認する is clicked on order detail" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should approve order and return to approval list" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should expand comment panel when 却下 is clicked on order detail" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should show error when 却下 is confirmed without comment" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should reject order with comment and return to approval list" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should show 承認依頼 button on order detail when status is 受注済み" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should show error when submitting approval without attachment" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="P0-08 受注承認フロー › should show 承認一覧に戻る button when navigating from approval list" classname="order-approval.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="order.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="32" failures="0" skipped="32" time="0" errors="0">
+<testcase name="S-05 受注一覧 › should display order list with 5 rows" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注一覧 › should show project name (not code) in order list" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注一覧 › should show customer name (not code) in order list" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注一覧 › should show total amount formatted with yen in order list" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注一覧 › should filter order list when keyword is entered in search box" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注一覧 › should filter order list by status" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注作成 › should show 受注作成 button on detail screen for 承認済み quotation" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注作成 › should not show 受注作成 button for 下書き quotation" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注作成 › should open order form pre-filled with quotation data when 受注作成 is clicked" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注作成 › should auto-fill order code with next sequential value when form opens" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注作成 › should show validation error when order date is empty" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注作成 › should save order and show it in order list when 受注登録 is clicked" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注作成 › should return to quotation detail when キャンセル is clicked" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注添付 › should show file input on order form" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注添付 › should show uploaded file name in attachment list after file is selected" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注添付 › should remove attachment when 削除 is clicked" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注添付 › should save order with attachments after registration" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should show order code in detail view" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should show project name (not code) in detail view" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should show customer name (not code) in detail view" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should show status badge in detail view" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should return to order list when 一覧に戻る is clicked" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should show 完了 status badge for order completed by full payment" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should update status to キャンセル when キャンセル button is clicked" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注詳細 › should not show 完了にする button" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 発注起票・請求対象化 › should show 発注起票 button when order status is 受注済み" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 発注起票・請求対象化 › should not show 発注起票 button when order status is 完了" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 発注起票・請求対象化 › should show 請求対象化 button when order status is 受注済み and not yet billing target" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 発注起票・請求対象化 › should show 請求対象 badge and hide 請求対象化 button after clicking 請求対象化" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 発注起票・請求対象化 › should not show 請求対象化 button when order is already billing target" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注 権限制御 › should show 受注一覧 nav item for sales01" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-05 受注 権限制御 › should not show 受注 nav item for finance01 who lacks sales-order:view" classname="order.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="page-size.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="表示件数選択 › should show page size selector in list screen" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should show 20件 as default page size" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should show all 7 quotations by default with page size 20" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should show 5 rows when page size 5 is selected" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should update summary text when page size is changed to 5" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should reset to page 1 when page size is changed" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should show 5件 as option in page size selector" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should show 20件 as option in page size selector" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="表示件数選択 › should show 50件 as option in page size selector" classname="page-size.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="payment.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="39" failures="0" skipped="39" time="0" errors="0">
+<testcase name="S-10 支払依頼作成 › should show 支払依頼作成 button for user with payment:edit" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show payable purchase orders when 支払依頼作成 is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show payable PO in extraction list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show payment form when 依頼作成 is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show purchase order code in payment form" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show default amount from purchase order in form" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show validation error when paymentDate is empty" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show validation error when amount is empty" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should create payment and return to list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should show new payment code in list after creation" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should not show paid PO in payable list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should return to payable list when cancel is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼作成 › should return to payment list when 一覧に戻る is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼一覧 › should show payment list from navigation" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼一覧 › should show payment code in list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼一覧 › should show purchase order code in list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼一覧 › should show supplier name in list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼一覧 › should show payment status badge in list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼一覧 › should filter by status" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払依頼一覧 › should show payment list for finance01 who has payment:view" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should show 詳細 button in payment list" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should show payment detail when 詳細 is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should show payment code in detail" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should show status badge in detail" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should show 承認依頼 button for 下書き payment with payment:edit" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should update status to 承認待ち when 承認依頼 is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should show 承認 button for 承認待ち payment with approval:act" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should update status to 承認済 when 承認 is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should update status to 差戻し when 差戻し is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払承認 › should return to payment list when 一覧に戻る is clicked from detail" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should show 支払登録 button for 承認済 payment" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should show payment registration form when 支払登録 is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should show payment code in registration form" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should prefill amount from payment request" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should show validation error when paidDate is empty" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should update status to 支払済 after registration" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should return to detail after registration" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should not show 支払登録 button after payment is registered" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-10 支払登録 › should return to detail when cancel is clicked" classname="payment.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="product-master.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="S-11 商品マスタ › should display product list with 5 rows on product tab" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should filter product list when keyword is entered in search box" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should show new registration form when new product button is clicked" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should auto-fill product code with next sequential value when form opens" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should register new product and show it in list when valid form is submitted" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should show edit button per row for admin user" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should pre-fill form with existing product data when edit button is clicked" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should update product and show changes in list when edit form is saved" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should return to list when cancel button is clicked on registration form" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ › should show all three tabs on master screen" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ 権限制御 › should show product list for sales01 user on product tab" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 商品マスタ 権限制御 › should not show edit button or new registration button for sales01 user on product tab" classname="product-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="project.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="16" failures="0" skipped="16" time="0" errors="0">
+<testcase name="S-03 案件一覧・詳細 › should display project list with 5 rows" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件一覧・詳細 › should show customer name (not code) in project list" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件一覧・詳細 › should filter project list when keyword is entered in search box" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件一覧・詳細 › should filter project list by status" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件一覧・詳細 › should show project detail when detail button is clicked" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件一覧・詳細 › should return to list when back button is clicked on detail screen" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should show new registration form when new project button is clicked" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should auto-fill project code with next sequential value when form opens" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should show customer dropdown when typing in customer search field" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should select customer from dropdown and close it" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should register new project and show it in list when valid form is submitted" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should pre-fill form with existing project data when edit button is clicked" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should update project and show changes in list when edit form is saved" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件登録・編集 › should return to list when cancel button is clicked on registration form" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件 権限制御 › should show project list and new-project button for sales01" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-03 案件 権限制御 › should not show project nav item for finance01 who lacks project:view" classname="project.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="purchaseOrder.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="49" failures="0" skipped="49" time="0" errors="0">
+<testcase name="S-06 発注一覧 › should display purchase order list with correct row count" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注一覧 › should show supplier name (not code) in purchase order list" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注一覧 › should show order code in purchase order list" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注一覧 › should show total amount formatted with yen in purchase order list" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注一覧 › should filter purchase order list when keyword is entered in search box" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注一覧 › should filter purchase order list by status" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注起票 › should open purchase order form pre-filled with order data" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注起票 › should auto-fill purchase order code with next sequential value" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注起票 › should show validation error when supplier is not selected" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注起票 › should show validation error when order date is empty" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注起票 › should save purchase order and show it in purchase order list" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注起票 › should return to order detail when キャンセル is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注新規作成 › should show 新規発注 button on purchase order list" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注新規作成 › should open empty purchase order form when 新規発注 is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注新規作成 › should save standalone purchase order and show it in list" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注添付 › should show file input on purchase order form" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注添付 › should show uploaded file name in attachment list after file is selected" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注添付 › should remove attachment when 削除 is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 仕入先別分割 › should show order detail lines with checkboxes in purchase order form" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 仕入先別分割 › should have all lines checked by default" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 仕入先別分割 › should update total when a line is unchecked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 仕入先別分割 › should save purchase order with only selected lines" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should show purchase order code in detail view" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should show supplier name (not code) in detail view" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should show status badge 下書き in detail view" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should return to purchase order list when 一覧に戻る is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should update status to 取下げ when 取下げ is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should show 納品済 status for already delivered order" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should not show 発注確定 button when status is 下書き" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should not show 取下げ button when status is 承認依頼中" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should show 発注書出力 button in purchase order detail" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注詳細 › should show 発注書出力 button regardless of status" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should show 下書き as initial status when purchase order is created" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should update status to 承認依頼中 when 承認依頼 button is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should show 却下 button when status is 承認依頼中" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should update status to 却下 when 却下 is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should show 発注確定 button when status is 承認済・発注待ち" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should update status to 発注済 when 発注確定 is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should show 納品登録 button when status is 発注済" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注承認依頼 › should update status to 納品済 after 発注確定 and 納品登録" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 契約書類出力 › should show 契約書類出力 button when status is 承認済・発注待ち" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 契約書類出力 › should not show 契約書類出力 button when status is 下書き" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 契約書類出力 › should not show 契約書類出力 button when status is 納品済" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 契約書類出力 › should open print window with purchase order content when 契約書類出力 is clicked" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 契約処理方法 › should show contract method select on purchase order form" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 契約処理方法 › should have 注文請書 as selectable option" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 契約処理方法 › should save contract method and show in detail view" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注 権限制御 › should show 発注一覧 nav item for sales01" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-06 発注 権限制御 › should not show 発注 nav item for finance01 who lacks purchase-order:view" classname="purchaseOrder.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="quotation.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="48" failures="0" skipped="48" time="0" errors="0">
+<testcase name="S-04 見積一覧 › should display all 7 quotations when default page size is 20" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積一覧 › should show project name (not code) in quotation list" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積一覧 › should show customer name (not code) in quotation list" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積一覧 › should show total amount formatted with yen in quotation list" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積一覧 › should filter quotation list when keyword is entered in search box" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積一覧 › should filter quotation list by status" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積一覧 › should show new-quotation button for admin" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should auto-fill quotation code with next sequential value when form opens" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should show only 商談中 projects in project search dropdown" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should show customer name when project is selected from dropdown" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should show 下書き保存 and 承認依頼 buttons on new registration form" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should save as 下書き and return to list when 下書き保存 is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should save as 承認依頼中 and return to list when 承認依頼 is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should return to list when cancel button is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ヘッダ登録 › should show validation error when required fields are empty" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積明細登録 › should show detail section with add-line button on registration form" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積明細登録 › should add a new detail line when add-line button is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積明細登録 › should auto-fill product name and unit price when product is selected" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積明細登録 › should remove detail line when delete button is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積明細登録 › should show subtotal and total in detail totals section" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積明細登録 › should save quotation with detail lines when 下書き保存 is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積明細登録 › should show existing detail lines when editing a quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積詳細表示 › should show quotation detail when detail button is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積詳細表示 › should show project name and customer name in detail view" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積詳細表示 › should show detail lines in detail view" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積詳細表示 › should show totals in detail view" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積詳細表示 › should return to list when back button is clicked on detail screen" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積詳細表示 › should show edit button on detail screen for 下書き quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積詳細表示 › should not show edit button on detail screen for 承認依頼中 quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should show 承認する and 却下する buttons when opening 承認依頼中 quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should update status to 承認済み when 承認する is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should show 失注に変更 button when opening 承認済み quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should update status to 失注 when 失注に変更 is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should show reject reason textarea when 承認依頼中 quotation is opened" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should show validation error when 却下する is clicked without reject reason" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should update status to 取消 when reject reason is entered and 却下する is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積ワークフロー › should show reject reason on detail view after rejection" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積改版 › should show 改版 button on detail screen for 承認済み quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積改版 › should not show 改版 button on detail screen for 下書き quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積改版 › should open edit form with incremented version when 改版 is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積改版 › should assign new quotation code to revised quotation" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積改版 › should save revised quotation and show it in list" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積PDF出力 › should show PDF出力 button on quotation detail screen" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積PDF出力 › should open print window containing quotation title when PDF出力 is clicked" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積PDF出力 › should include customer name in print window" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積PDF出力 › should include total amount in print window" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積 権限制御 › should show quotation list and new-quotation button for sales01" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-04 見積 権限制御 › should not show quotation nav item for finance01 who lacks quotation:view" classname="quotation.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="receipt.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="19" failures="0" skipped="19" time="0" errors="0">
+<testcase name="S-09 入金登録 › should show 入金登録 button for 送付済 invoice" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should not show 入金登録 button for 下書き invoice" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should not show 入金登録 button for 入金済 invoice" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should show receipt form when 入金登録 is clicked" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should show invoice code in receipt form" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should show remaining balance in receipt form" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should show validation error when receiptDate is empty" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should show validation error when amount is empty" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should register receipt and return to invoice detail" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should update invoice status to 入金済 when fully paid" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should update invoice status to 一部入金 when partially paid" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should show receipt in 入金履歴 after registration" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金登録 › should return to invoice detail when cancel is clicked" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金一覧 › should show receipt list from navigation" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金一覧 › should show receipt code in list" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金一覧 › should show invoice code in list" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金一覧 › should show customer code in list" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金一覧 › should show customer name in list" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-09 入金一覧 › should show receipt for finance01 who has receipt:view" classname="receipt.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="report-drilldown.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show 顧客別集計 section" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show 案件別 button for each customer row" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show customer name in customer table" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show sales total in customer table" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show 案件別集計 section when customer drill button is clicked" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show customer name in 案件別集計 section title" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show project rows in project table" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should highlight selected customer row" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show 閉じる button on active customer row" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should hide 案件別集計 section when 閉じる is clicked" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should reset drilldown when year filter changes" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="レポート ドリルダウン（顧客別→案件別） › should show project code chip in project table" classname="report-drilldown.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="report.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="34" failures="0" skipped="34" time="0" errors="0">
+<testcase name="S-13 レポート画面 › should show report screen from navigation" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 年月 column header" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 売上合計 column header" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 2026-01 in sales summary" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 2026-03 in sales summary" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 528,000 yen for 2026-01" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 2,200,000 yen for 2026-03" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should not show 下書き invoice amount in summary" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show report nav item for finance01 who has report:view" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 原価合計 column header" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 粗利 column header" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 2026-04 row for paid payment cost" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 110,000 yen cost for 2026-04" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show gross profit for 2026-01" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 未収一覧 section" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show INV-00001 in uncollected list" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show uncollected invoice total amount" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 送付済 status badge in uncollected list" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 未払一覧 section" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show PMT-00002 in unpaid list" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show unpaid payment amount" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 承認済 status badge in unpaid list" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should not show 支払済 payment in unpaid list" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show year filter dropdown" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 2026 as year option in filter" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should filter summary table when year is selected" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show CSV 出力 button for uncollected list" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show CSV 出力 button for unpaid list" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show totals row in summary table" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show 合計 label in totals row" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show total sales in totals row" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show total cost in totals row" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should show total gross profit in totals row" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-13 レポート画面 › should update totals row when year filter is applied" classname="report.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="settings.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="13" failures="0" skipped="13" time="0" errors="0">
+<testcase name="システム設定 › should show settings screen with two tabs" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show company info tab as default" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show company name input with default value" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show company address input" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show company phone input" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should save company info when form is submitted" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show error when company name is empty" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should switch to fiscal year tab when clicked" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show December as default fiscal end month" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should save fiscal end month when form is submitted" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show all 12 month options in fiscal end month selector" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should show 8月 as selectable option" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="システム設定 › should switch back to company tab when clicked" classname="settings.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="sidebar-collapse.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="サイドバー折りたたみ › should show sidebar toggle button" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="サイドバー折りたたみ › should collapse sidebar when toggle is clicked" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="サイドバー折りたたみ › should hide sidebar header text when collapsed" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="サイドバー折りたたみ › should hide user identity info when collapsed" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="サイドバー折りたたみ › should still show nav tags when collapsed" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="サイドバー折りたたみ › should expand sidebar when toggle is clicked again" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="サイドバー折りたたみ › should navigate to screen when collapsed menu item is clicked" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="サイドバー折りたたみ › should preserve collapsed state after navigation" classname="sidebar-collapse.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="supplier-master.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="S-11 仕入先マスタ › should display supplier list with 5 rows on supplier tab" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should filter supplier list when keyword is entered in search box" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should switch between customer and supplier tabs" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should show new registration form when new supplier button is clicked" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should auto-fill supplier code with next sequential value when form opens" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should register new supplier and show it in list when valid form is submitted" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should show edit button per row for admin user" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should pre-fill form with existing supplier data when edit button is clicked" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should update supplier and show changes in list when edit form is saved" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ › should return to list when cancel button is clicked on registration form" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ 権限制御 › should show supplier list for sales01 user on supplier tab" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 仕入先マスタ 権限制御 › should not show edit button or new registration button for sales01 user on supplier tab" classname="supplier-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="user-master.spec.js" timestamp="2026-05-05T10:59:29.649Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="S-11 ユーザ管理 › should display user list with 3 rows on user tab" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 › should filter user list when keyword is entered in search box" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 › should show new registration form when new user button is clicked" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 › should register new user and show it in list when valid form is submitted" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 › should show edit button per row for admin user" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 › should pre-fill form with existing user data when edit button is clicked" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 › should update user and show changes in list when edit form is saved" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 › should return to list when cancel button is clicked" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 支払条件・税率マスタ › should display payment term list on payment-term tab" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 支払条件・税率マスタ › should display tax rate list on tax-rate tab" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 権限制御 › should not show user tab for sales01 user" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="S-11 ユーザ管理 権限制御 › should prevent login for stopped user" classname="user-master.spec.js">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

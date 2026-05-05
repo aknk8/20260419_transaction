@@ -179,3 +179,159 @@ describe('getDashboardMetrics', () => {
     expect(result.unpaid).toBe(0);
   });
 });
+
+describe('getDashboardMetrics pendingApprovalsByType', () => {
+  it('should return zero for each type when all inputs are empty', () => {
+    // Arrange & Act
+    const result = getDashboardMetrics([], [], [], [], []);
+
+    // Assert
+    expect(result.pendingApprovalsByType.quotations).toBe(0);
+    expect(result.pendingApprovalsByType.purchaseOrders).toBe(0);
+    expect(result.pendingApprovalsByType.payments).toBe(0);
+  });
+
+  it('should count only 承認依頼中 quotations in pendingApprovalsByType.quotations', () => {
+    // Arrange
+    const quotations = [
+      { code: 'QUO-00001', status: '承認依頼中' },
+      { code: 'QUO-00002', status: '承認依頼中' },
+      { code: 'QUO-00003', status: '下書き' }
+    ];
+
+    // Act
+    const result = getDashboardMetrics(quotations, [], [], [], []);
+
+    // Assert
+    expect(result.pendingApprovalsByType.quotations).toBe(2);
+  });
+
+  it('should count only 承認依頼中 purchase orders in pendingApprovalsByType.purchaseOrders', () => {
+    // Arrange
+    const purchaseOrders = [
+      { code: 'POD-00001', status: '承認依頼中' },
+      { code: 'POD-00002', status: '発注済' }
+    ];
+
+    // Act
+    const result = getDashboardMetrics([], purchaseOrders, [], [], []);
+
+    // Assert
+    expect(result.pendingApprovalsByType.purchaseOrders).toBe(1);
+  });
+
+  it('should count only 承認待ち payments in pendingApprovalsByType.payments', () => {
+    // Arrange
+    const payments = [
+      { code: 'PMT-00001', status: '承認待ち' },
+      { code: 'PMT-00002', status: '支払済' }
+    ];
+
+    // Act
+    const result = getDashboardMetrics([], [], payments, [], []);
+
+    // Assert
+    expect(result.pendingApprovalsByType.payments).toBe(1);
+  });
+
+  it('should count each type independently', () => {
+    // Arrange
+    const quotations = [
+      { code: 'QUO-00001', status: '承認依頼中' },
+      { code: 'QUO-00002', status: '承認依頼中' }
+    ];
+    const purchaseOrders = [
+      { code: 'POD-00001', status: '承認依頼中' }
+    ];
+    const payments = [
+      { code: 'PMT-00001', status: '承認待ち' },
+      { code: 'PMT-00002', status: '承認待ち' },
+      { code: 'PMT-00003', status: '承認待ち' }
+    ];
+
+    // Act
+    const result = getDashboardMetrics(quotations, purchaseOrders, payments, [], []);
+
+    // Assert
+    expect(result.pendingApprovalsByType.quotations).toBe(2);
+    expect(result.pendingApprovalsByType.purchaseOrders).toBe(1);
+    expect(result.pendingApprovalsByType.payments).toBe(3);
+  });
+
+  it('should keep pendingApprovals as total across all types', () => {
+    // Arrange
+    const quotations = [{ code: 'QUO-00001', status: '承認依頼中' }];
+    const purchaseOrders = [{ code: 'POD-00001', status: '承認依頼中' }];
+    const payments = [{ code: 'PMT-00001', status: '承認待ち' }];
+
+    // Act
+    const result = getDashboardMetrics(quotations, purchaseOrders, payments, [], []);
+
+    // Assert
+    expect(result.pendingApprovals).toBe(3);
+    expect(result.pendingApprovalsByType.quotations +
+           result.pendingApprovalsByType.purchaseOrders +
+           result.pendingApprovalsByType.payments).toBe(result.pendingApprovals);
+  });
+
+  it('should count orders with status 承認依頼中 in pendingApprovalsByType.orders', () => {
+    // Arrange
+    const orders = [
+      { code: 'ORD-00001', status: '承認依頼中' },
+      { code: 'ORD-00002', status: '受注済み' }
+    ];
+
+    // Act
+    const result = getDashboardMetrics([], [], [], orders, []);
+
+    // Assert
+    expect(result.pendingApprovalsByType.orders).toBe(1);
+  });
+
+  it('should count invoices with status 承認依頼中 in pendingApprovalsByType.invoices', () => {
+    // Arrange
+    const invoices = [
+      { code: 'INV-00001', status: '承認依頼中' },
+      { code: 'INV-00002', status: '下書き' }
+    ];
+
+    // Act
+    const result = getDashboardMetrics([], [], [], [], invoices);
+
+    // Assert
+    expect(result.pendingApprovalsByType.invoices).toBe(1);
+  });
+
+  it('should include orders and invoices in pendingApprovals total', () => {
+    // Arrange
+    const orders = [{ code: 'ORD-00001', status: '承認依頼中' }];
+    const invoices = [{ code: 'INV-00001', status: '承認依頼中' }];
+
+    // Act
+    const result = getDashboardMetrics([], [], [], orders, invoices);
+
+    // Assert
+    expect(result.pendingApprovals).toBe(2);
+  });
+
+  it('should sum all five types in pendingApprovals', () => {
+    // Arrange
+    const quotations = [{ code: 'QUO-00001', status: '承認依頼中' }];
+    const purchaseOrders = [{ code: 'POD-00001', status: '承認依頼中' }];
+    const payments = [{ code: 'PMT-00001', status: '承認待ち' }];
+    const orders = [{ code: 'ORD-00001', status: '承認依頼中' }];
+    const invoices = [{ code: 'INV-00001', status: '承認依頼中' }];
+
+    // Act
+    const result = getDashboardMetrics(quotations, purchaseOrders, payments, orders, invoices);
+
+    // Assert
+    expect(result.pendingApprovals).toBe(5);
+    const total = result.pendingApprovalsByType.quotations +
+                  result.pendingApprovalsByType.purchaseOrders +
+                  result.pendingApprovalsByType.payments +
+                  result.pendingApprovalsByType.orders +
+                  result.pendingApprovalsByType.invoices;
+    expect(total).toBe(result.pendingApprovals);
+  });
+});

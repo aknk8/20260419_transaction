@@ -27,6 +27,19 @@ export function rejectDelivery(delivery) {
   return Object.assign({}, delivery, { status: '検収NG' });
 }
 
+export function getAcceptedQuantity(lineNo, deliveries) {
+  return deliveries
+    .filter(function(d) { return d.status === '検収済'; })
+    .reduce(function(sum, dlv) {
+      var line = (dlv.details || []).find(function(d) { return d.lineNo === lineNo; });
+      return sum + (line ? line.deliveredQuantity || 0 : 0);
+    }, 0);
+}
+
+export function getRemainingQuantity(lineNo, orderedQuantity, deliveries) {
+  return orderedQuantity - getAcceptedQuantity(lineNo, deliveries);
+}
+
 export function isFullyDelivered(purchaseOrder, deliveries) {
   const lines = purchaseOrder.details || [];
   if (lines.length === 0) return true;
@@ -34,10 +47,6 @@ export function isFullyDelivered(purchaseOrder, deliveries) {
     return d.purchaseOrderCode === purchaseOrder.code;
   });
   return lines.every(function(line) {
-    const totalDelivered = podDeliveries.reduce(function(sum, dlv) {
-      const dlvLine = (dlv.details || []).find(function(d) { return d.lineNo === line.lineNo; });
-      return sum + (dlvLine ? dlvLine.deliveredQuantity || 0 : 0);
-    }, 0);
-    return totalDelivered >= line.quantity;
+    return getAcceptedQuantity(line.lineNo, podDeliveries) >= line.quantity;
   });
 }

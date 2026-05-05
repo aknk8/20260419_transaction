@@ -1,4 +1,4 @@
-export function getPendingApprovals(quotations, purchaseOrders, payments) {
+export function getPendingApprovals(quotations, purchaseOrders, payments, orders, invoices) {
   var pending = [];
 
   quotations.forEach(function(q) {
@@ -10,6 +10,19 @@ export function getPendingApprovals(quotations, purchaseOrders, payments) {
         amount: q.total,
         submittedAt: q.issueDate,
         submittedBy: q.submittedBy || ''
+      });
+    }
+  });
+
+  (orders || []).forEach(function(o) {
+    if (o.status === '承認依頼中') {
+      pending.push({
+        type: '受注',
+        code: o.code,
+        title: o.title,
+        amount: o.total,
+        submittedAt: o.orderDate,
+        submittedBy: o.submittedBy || ''
       });
     }
   });
@@ -40,5 +53,41 @@ export function getPendingApprovals(quotations, purchaseOrders, payments) {
     }
   });
 
+  (invoices || []).forEach(function(inv) {
+    if (inv.status === '承認依頼中') {
+      pending.push({
+        type: '請求',
+        code: inv.code,
+        title: inv.title,
+        amount: inv.total,
+        submittedAt: inv.invoiceDate,
+        submittedBy: inv.submittedBy || ''
+      });
+    }
+  });
+
   return pending;
+}
+
+var APPROVAL_SCREEN_MAP = {
+  '見積': 'quotation',
+  '受注': 'order',
+  '発注': 'purchaseOrder',
+  '支払依頼': 'payment',
+  '請求': 'invoice'
+};
+
+export function getApprovalDetailRoute(item) {
+  var screen = APPROVAL_SCREEN_MAP[item.type] || null;
+  if (!screen) return null;
+  return { screen: screen, code: item.code };
+}
+
+export function buildApprovalHistoryEntry(action, operatorName, comment, timestamp) {
+  return { action: action, operatorName: operatorName, comment: comment, timestamp: timestamp };
+}
+
+export function addApprovalHistoryEntry(doc, entry) {
+  var history = (doc.approvalHistory || []).concat([entry]);
+  return Object.assign({}, doc, { approvalHistory: history });
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateDeliveryCode, createDelivery, acceptDelivery, rejectDelivery, isFullyDelivered } from './delivery.js';
+import { generateDeliveryCode, createDelivery, acceptDelivery, rejectDelivery, isFullyDelivered, getAcceptedQuantity, getRemainingQuantity } from './delivery.js';
 
 describe('generateDeliveryCode', () => {
   it('should return DLV-00001 when no existing codes', () => {
@@ -158,6 +158,7 @@ describe('isFullyDelivered', () => {
     const deliveries = [
       {
         purchaseOrderCode: 'POD-00001',
+        status: '検収済',
         details: [
           { lineNo: 1, deliveredQuantity: 10 },
           { lineNo: 2, deliveredQuantity: 5 }
@@ -177,6 +178,7 @@ describe('isFullyDelivered', () => {
     const deliveries = [
       {
         purchaseOrderCode: 'POD-00001',
+        status: '検収済',
         details: [
           { lineNo: 1, deliveredQuantity: 5 },
           { lineNo: 2, deliveredQuantity: 5 }
@@ -204,10 +206,12 @@ describe('isFullyDelivered', () => {
     const deliveries = [
       {
         purchaseOrderCode: 'POD-00001',
+        status: '検収済',
         details: [{ lineNo: 1, deliveredQuantity: 6 }]
       },
       {
         purchaseOrderCode: 'POD-00001',
+        status: '検収済',
         details: [
           { lineNo: 1, deliveredQuantity: 4 },
           { lineNo: 2, deliveredQuantity: 5 }
@@ -250,5 +254,167 @@ describe('isFullyDelivered', () => {
 
     // Assert
     expect(result).toBe(false);
+  });
+
+  it('should return false when deliveries cover quantity but are 検収NG', () => {
+    // Arrange — 検収NGの納品は発注残として継続計上するため未完了扱い
+    const deliveries = [
+      {
+        purchaseOrderCode: 'POD-00001',
+        status: '検収NG',
+        details: [
+          { lineNo: 1, deliveredQuantity: 10 },
+          { lineNo: 2, deliveredQuantity: 5 }
+        ]
+      }
+    ];
+
+    // Act
+    const result = isFullyDelivered(purchaseOrder, deliveries);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('should return true only when all lines are covered by 検収済 deliveries', () => {
+    // Arrange
+    const deliveries = [
+      {
+        purchaseOrderCode: 'POD-00001',
+        status: '検収NG',
+        details: [{ lineNo: 1, deliveredQuantity: 10 }, { lineNo: 2, deliveredQuantity: 5 }]
+      },
+      {
+        purchaseOrderCode: 'POD-00001',
+        status: '検収済',
+        details: [{ lineNo: 1, deliveredQuantity: 10 }, { lineNo: 2, deliveredQuantity: 5 }]
+      }
+    ];
+
+    // Act
+    const result = isFullyDelivered(purchaseOrder, deliveries);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+});
+
+describe('getAcceptedQuantity', () => {
+  const deliveries = [
+    {
+      purchaseOrderCode: 'POD-00001',
+      status: '検収済',
+      details: [{ lineNo: 1, deliveredQuantity: 6 }]
+    },
+    {
+      purchaseOrderCode: 'POD-00001',
+      status: '検収NG',
+      details: [{ lineNo: 1, deliveredQuantity: 4 }]
+    },
+    {
+      purchaseOrderCode: 'POD-00001',
+      status: '検収待ち',
+      details: [{ lineNo: 2, deliveredQuantity: 3 }]
+    }
+  ];
+
+  it('should return only quantity from 検収済 deliveries for the given line', () => {
+    // Arrange & Act
+    const result = getAcceptedQuantity(1, deliveries);
+
+    // Assert
+    expect(result).toBe(6);
+  });
+
+  it('should not count 検収NG deliveries', () => {
+    // Arrange
+    const ngOnly = [
+      { purchaseOrderCode: 'POD-00001', status: '検収NG', details: [{ lineNo: 1, deliveredQuantity: 10 }] }
+    ];
+
+    // Act
+    const result = getAcceptedQuantity(1, ngOnly);
+
+    // Assert
+    expect(result).toBe(0);
+  });
+
+  it('should not count 検収待ち deliveries', () => {
+    // Arrange & Act
+    const result = getAcceptedQuantity(2, deliveries);
+
+    // Assert
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 when no deliveries have the given lineNo', () => {
+    // Arrange & Act
+    const result = getAcceptedQuantity(99, deliveries);
+
+    // Assert
+    expect(result).toBe(0);
+  });
+
+  it('should sum quantities across multiple 検収済 deliveries for the same line', () => {
+    // Arrange
+    const multipleAccepted = [
+      { purchaseOrderCode: 'POD-00001', status: '検収済', details: [{ lineNo: 1, deliveredQuantity: 3 }] },
+      { purchaseOrderCode: 'POD-00001', status: '検収済', details: [{ lineNo: 1, deliveredQuantity: 7 }] }
+    ];
+
+    // Act
+    const result = getAcceptedQuantity(1, multipleAccepted);
+
+    // Assert
+    expect(result).toBe(10);
+  });
+});
+
+describe('getRemainingQuantity', () => {
+  it('should return full ordered quantity when no deliveries exist', () => {
+    // Arrange & Act
+    const result = getRemainingQuantity(1, 10, []);
+
+    // Assert
+    expect(result).toBe(10);
+  });
+
+  it('should return remaining quantity after accepted deliveries', () => {
+    // Arrange
+    const deliveries = [
+      { status: '検収済', details: [{ lineNo: 1, deliveredQuantity: 6 }] }
+    ];
+
+    // Act
+    const result = getRemainingQuantity(1, 10, deliveries);
+
+    // Assert
+    expect(result).toBe(4);
+  });
+
+  it('should count 検収NG delivery as remaining', () => {
+    // Arrange — 検収NG分は再納品が必要なため発注残として継続計上する
+    const deliveries = [
+      { status: '検収NG', details: [{ lineNo: 1, deliveredQuantity: 10 }] }
+    ];
+
+    // Act
+    const result = getRemainingQuantity(1, 10, deliveries);
+
+    // Assert
+    expect(result).toBe(10);
+  });
+
+  it('should return 0 when all ordered quantity is accepted', () => {
+    // Arrange
+    const deliveries = [
+      { status: '検収済', details: [{ lineNo: 1, deliveredQuantity: 10 }] }
+    ];
+
+    // Act
+    const result = getRemainingQuantity(1, 10, deliveries);
+
+    // Assert
+    expect(result).toBe(0);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateQuotationCode, createQuotation, findQuotationByCode, addDetailLine, removeDetailLine, updateDetailLine, createRevision, rejectQuotation, buildQuotationPrintHtml } from './quotation.js';
+import { generateQuotationCode, createQuotation, findQuotationByCode, addDetailLine, removeDetailLine, updateDetailLine, createRevision, rejectQuotation, returnQuotationToDraft, requiresPresidentApproval, buildQuotationPrintHtml, approveQuotation } from './quotation.js';
 
 describe('generateQuotationCode', () => {
   it('should return QUO-00001 when no existing codes', () => {
@@ -442,7 +442,7 @@ describe('createRevision', () => {
 });
 
 describe('rejectQuotation', () => {
-  it('should set status to 取消', () => {
+  it('should set status to 却下 when quotation is rejected', () => {
     // Arrange
     const quotation = { code: 'QUO-00003', status: '承認依頼中', title: '見積' };
 
@@ -450,7 +450,7 @@ describe('rejectQuotation', () => {
     const result = rejectQuotation(quotation, '金額が予算を超過しています。');
 
     // Assert
-    expect(result.status).toBe('取消');
+    expect(result.status).toBe('却下');
   });
 
   it('should save reject reason', () => {
@@ -474,6 +474,30 @@ describe('rejectQuotation', () => {
     // Assert
     expect(quotation.status).toBe('承認依頼中');
     expect(quotation.rejectReason).toBeUndefined();
+  });
+});
+
+describe('returnQuotationToDraft', () => {
+  it('should set status to 下書き when quotation is returned from 却下', () => {
+    // Arrange
+    const quotation = { code: 'QUO-00003', status: '却下', title: '見積', rejectReason: '予算超過' };
+
+    // Act
+    const result = returnQuotationToDraft(quotation);
+
+    // Assert
+    expect(result.status).toBe('下書き');
+  });
+
+  it('should not mutate original quotation', () => {
+    // Arrange
+    const quotation = { code: 'QUO-00003', status: '却下', title: '見積' };
+
+    // Act
+    returnQuotationToDraft(quotation);
+
+    // Assert
+    expect(quotation.status).toBe('却下');
   });
 });
 
@@ -550,5 +574,170 @@ describe('buildQuotationPrintHtml', () => {
 
     // Assert
     expect(result).toContain('別途交通費実費');
+  });
+});
+
+describe('requiresPresidentApproval', () => {
+  const baseSettings = {
+    presidentApprovalProfitRateThreshold: 0.25,   // 利益率25%未満で発動
+    presidentApprovalAmountThreshold: 100000000,  // 見積金額1億円超で発動
+  };
+
+  it('should return true when profit rate is below threshold', () => {
+    // Arrange: 利益率20% < 25%閾値 → 発動
+    const quotation = { total: 1000000, grossProfit: 200000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it('should return false when profit rate equals threshold', () => {
+    // Arrange: 利益率25% = 25%閾値 → "未満"なので発動しない
+    const quotation = { total: 1000000, grossProfit: 250000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('should return false when profit rate is above threshold and total is below amount threshold', () => {
+    // Arrange: 利益率30% > 25%閾値、金額50万 < 1億閾値 → 発動しない
+    const quotation = { total: 500000, grossProfit: 150000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('should return true when total exceeds amount threshold', () => {
+    // Arrange: 金額2億 > 1億閾値 → 発動（利益率は閾値超）
+    const quotation = { total: 200000000, grossProfit: 60000000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it('should return false when total equals amount threshold', () => {
+    // Arrange: 金額1億 = 1億閾値 → "超"なので発動しない
+    const quotation = { total: 100000000, grossProfit: 30000000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('should return true when both conditions trigger', () => {
+    // Arrange: 利益率20% かつ 金額2億 → 両方発動
+    const quotation = { total: 200000000, grossProfit: 40000000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it('should return true when gross profit is negative', () => {
+    // Arrange: 粗利がマイナス（赤字見積）→ 利益率がマイナスで閾値未満になる
+    const quotation = { total: 1000000, grossProfit: -100000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it('should return false when total is 0', () => {
+    // Arrange: 合計0円（明細未入力）→ 利益率が計算不能なため発動しない
+    const quotation = { total: 0, grossProfit: 0 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, baseSettings);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('should return false when thresholds are not configured', () => {
+    // Arrange: 閾値未設定 → 安全側として社長決裁不要
+    const quotation = { total: 1000000, grossProfit: 100000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, {});
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('should apply only amount threshold when profit rate threshold is not set', () => {
+    // Arrange: 金額閾値のみ設定、金額2億 → 発動
+    const quotation = { total: 200000000, grossProfit: 40000000 };
+    const settings = { presidentApprovalAmountThreshold: 100000000 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, settings);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it('should apply only profit rate threshold when amount threshold is not set', () => {
+    // Arrange: 利益率閾値のみ設定、利益率10% → 発動
+    const quotation = { total: 1000000, grossProfit: 100000 };
+    const settings = { presidentApprovalProfitRateThreshold: 0.25 };
+
+    // Act
+    const result = requiresPresidentApproval(quotation, settings);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+});
+
+describe('approveQuotation', () => {
+  it('should return quotation with status 承認済み when approved', () => {
+    // Arrange
+    const quotation = { code: 'QUO-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approveQuotation(quotation, '');
+
+    // Assert
+    expect(result.status).toBe('承認済み');
+  });
+
+  it('should store approvalComment when comment provided', () => {
+    // Arrange
+    const quotation = { code: 'QUO-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approveQuotation(quotation, '問題ありません');
+
+    // Assert
+    expect(result.approvalComment).toBe('問題ありません');
+  });
+
+  it('should not mutate original quotation', () => {
+    // Arrange
+    const quotation = { code: 'QUO-00001', status: '承認依頼中' };
+
+    // Act
+    approveQuotation(quotation, '');
+
+    // Assert
+    expect(quotation.status).toBe('承認依頼中');
   });
 });

@@ -8,6 +8,25 @@ const USERS = [
 ];
 
 async function login(page, id, pass) {
+  const userMap = {
+    admin:     { id: 'admin',     name: '中村 管理者', userType: 'システム管理者' },
+    sales01:   { id: 'sales01',   name: '佐藤 営業',   userType: '一般ユーザ' },
+    finance01: { id: 'finance01', name: '鈴木 経理',   userType: '一般ユーザ' },
+  };
+  const user = userMap[id] || { id, name: id, userType: '一般ユーザ' };
+  await page.route('/api/**', (route) => {
+    if (route.request().method() === 'GET') { route.abort(); }
+    else { route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); }
+  });
+  await page.route('/api/auth/me', (route) =>
+    route.fulfill({ status: 401, body: '{}' })
+  );
+  await page.route('/api/auth/login', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user }) })
+  );
+  await page.route('/api/auth/logout', (route) =>
+    route.fulfill({ status: 200, body: '{}' })
+  );
   await page.goto('/');
   await page.fill('#user-id', id);
   await page.fill('#password', pass);

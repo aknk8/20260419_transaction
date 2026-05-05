@@ -3,26 +3,27 @@ import { generateCustomerCode, generateSupplierCode, createCustomer, createSuppl
 import { generateProductCode, createProduct, findProductByCode } from './src/product.js';
 import { createUser, findUserById } from './src/user.js';
 import { generateProjectCode, createProject, findProjectByCode, filterProjectsByName, filterProjectsByStatus } from './src/project.js';
-import { generateQuotationCode, createQuotation, findQuotationByCode, addDetailLine, removeDetailLine, updateDetailLine, createRevision, rejectQuotation, buildQuotationPrintHtml } from './src/quotation.js';
-import { generateOrderCode, createOrderFromQuotation, addAttachment, removeAttachment, findOrderByCode, updateOrderStatus, markAsBillingTarget, applyPayment } from './src/order.js';
-import { generatePurchaseOrderCode, createPurchaseOrderFromOrder, createPurchaseOrder, calcTotalsFromDetails, findPurchaseOrderByCode, updatePurchaseOrderStatus, buildPurchaseOrderPrintHtml, submitPurchaseOrderApproval } from './src/purchaseOrder.js';
+import { generateQuotationCode, createQuotation, findQuotationByCode, addDetailLine, removeDetailLine, updateDetailLine, createRevision, approveQuotation, rejectQuotation, returnQuotationToDraft, requiresPresidentApproval, buildQuotationPrintHtml } from './src/quotation.js';
+import { generateOrderCode, createOrderFromQuotation, addAttachment, removeAttachment, findOrderByCode, updateOrderStatus, markAsBillingTarget, applyPayment, validateOrderApprovalSubmit, submitOrderApproval, approveOrder, rejectOrder, returnOrderToDraft, completeContractProcedure } from './src/order.js';
+import { generatePurchaseOrderCode, createPurchaseOrderFromOrder, createPurchaseOrder, calcTotalsFromDetails, findPurchaseOrderByCode, updatePurchaseOrderStatus, buildPurchaseOrderPrintHtml, submitPurchaseOrderApproval, approvePurchaseOrder } from './src/purchaseOrder.js';
 import { generateDeliveryCode, createDelivery, acceptDelivery, rejectDelivery, isFullyDelivered } from './src/delivery.js';
-import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice, buildInvoicePrintHtml } from './src/invoice.js';
+import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice, buildInvoicePrintHtml, submitInvoiceApproval, approveInvoice, rejectInvoice, returnInvoiceToDraft } from './src/invoice.js';
 import { generateReceiptCode, createReceipt, calcRemainingBalance, isFullyPaid } from './src/receipt.js';
 import { generatePaymentCode, createPaymentRequest, findPayablePurchaseOrders, submitPaymentApproval, approvePayment, rejectPayment, cancelPayment, registerPayment } from './src/payment.js';
-import { getPendingApprovals } from './src/approval.js';
-import { getNotificationsForUser } from './src/notification.js';
+import { getPendingApprovals, getApprovalDetailRoute, buildApprovalHistoryEntry, addApprovalHistoryEntry } from './src/approval.js';
+import { getNotificationsForUser, checkOverdueApprovals, createInvoiceDueNotifications, createDeliveryDueNotifications } from './src/notification.js';
 import { getDashboardMetrics } from './src/dashboard.js';
 import { getSalesSummary, getSalesCostReport, getUncollectedInvoices, getUnpaidPayments, filterReportByYear, getReportTotals, getSalesCostByCustomer, getSalesCostByProject } from './src/report.js';
 import { getFiscalYear, filterReportByFiscalYear, getAvailableFiscalYears } from './src/settings.js';
+import { buildApprovalRoute, getRoutesByDocumentType, addRouteStep, removeRouteStep, updateRouteStep } from './src/approvalRoute.js';
+import { validateApprovalConditionSettings, buildApprovalConditionSettings } from './src/approvalCondition.js';
 
-const STORAGE_KEY = "transaction-system-session";
 const PAGE_SIZE = 5;
 
+// ユーザ権限の一時定義（P2で権限APIが実装されたら削除予定）
 const users = [
   {
     id: "admin",
-    password: "admin123",
     name: "中村 管理者",
     userType: "システム管理者",
     department: "管理部門",
@@ -40,6 +41,8 @@ const users = [
       "sales-order:edit",
       "purchase-order:view",
       "purchase-order:edit",
+      "delivery:view",
+      "delivery:edit",
       "invoice:view",
       "invoice:edit",
       "receipt:view",
@@ -56,7 +59,6 @@ const users = [
   },
   {
     id: "sales01",
-    password: "sales123",
     name: "佐藤 営業",
     userType: "一般ユーザ",
     department: "営業部門",
@@ -73,6 +75,8 @@ const users = [
       "sales-order:edit",
       "purchase-order:view",
       "purchase-order:edit",
+      "delivery:view",
+      "delivery:edit",
       "invoice:view",
       "approval:view",
       "notification:view"
@@ -80,7 +84,6 @@ const users = [
   },
   {
     id: "finance01",
-    password: "finance123",
     name: "鈴木 経理",
     userType: "一般ユーザ",
     department: "経理部門",
@@ -138,6 +141,13 @@ const screens = [
     tag: "S-06",
     description: "受注明細から発注起票し、仕入先別分割と承認へつなぎます。",
     permission: "purchase-order:view"
+  },
+  {
+    id: "delivery",
+    title: "納品・検収",
+    tag: "S-07",
+    description: "納品実績の一覧と検収処理を行います。",
+    permission: "delivery:view"
   },
   {
     id: "invoice",
@@ -673,6 +683,28 @@ const orders = [
       { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 3, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 132000 },
       { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 3, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 33000 }
     ]
+  },
+  {
+    code: "ORD-00006",
+    quotationCode: "QUO-00001",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "新規保守案件 承認申請中",
+    orderDate: "2026-05-01",
+    deliveryDate: "2026-12-31",
+    status: "承認依頼中",
+    subtotal: 600000,
+    taxAmount: 60000,
+    total: 660000,
+    notes: "",
+    billingTarget: false,
+    paidAmount: 0,
+    submittedBy: "user01",
+    attachments: [{ name: "契約書.pdf", size: 102400, type: "application/pdf", uploadedAt: "2026-05-01" }],
+    details: [
+      { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 12, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 528000 },
+      { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 12, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 132000 }
+    ]
   }
 ];
 
@@ -856,6 +888,24 @@ const invoices = [
     notes: "",
     details: [
       { lineNo: 1, productName: "サーバー保守サービス", quantity: 1, unit: "月", unitPrice: 50000, taxRate: 0.10, amount: 55000 }
+    ]
+  },
+  {
+    code: "INV-00005",
+    orderCode: "ORD-00001",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "新規保守案件 承認申請中",
+    invoiceDate: "2026-05-01",
+    dueDate: "2026-05-31",
+    status: "承認依頼中",
+    subtotal: 600000,
+    taxAmount: 60000,
+    total: 660000,
+    notes: "",
+    submittedBy: "user01",
+    details: [
+      { lineNo: 1, productName: "サーバー保守サービス", quantity: 12, unit: "月", unitPrice: 50000, taxRate: 0.10, amount: 660000 }
     ]
   }
 ];
@@ -1068,6 +1118,14 @@ const viewState = {
       page: 1,
       pageSize: 20
     },
+    deliveryList: {
+      search: "",
+      status: "all",
+      sortKey: "deliveryDate",
+      sortDir: "desc",
+      page: 1,
+      pageSize: 20
+    },
     approvalList: {
       search: "",
       type: "all",
@@ -1098,15 +1156,32 @@ const viewState = {
   reportDrilldown: {
     customerId: null
   },
+  approvalFrom: null,
+  approvalAction: { mode: null, comment: '' },
   sidebarCollapsed: false,
   settings: {
     name: "株式会社サンプル商事",
     address: "〒100-0001 東京都千代田区千代田1-1",
     phone: "03-0000-0000",
-    fiscalEndMonth: 12
+    fiscalEndMonth: 12,
+    presidentApprovalProfitRateThreshold: 20,
+    presidentApprovalAmountThreshold: 10000000,
+    approvalStaleDays: 3
   },
   settingsTab: "company",
   settingsErrors: {},
+  approvalRoutes: [
+    { documentType: 'quotation', stepNumber: 1, approverUserId: 'user-002' },
+    { documentType: 'quotation', stepNumber: 2, approverUserId: 'user-003' },
+    { documentType: 'order', stepNumber: 1, approverUserId: 'user-002' },
+    { documentType: 'purchaseOrder', stepNumber: 1, approverUserId: 'user-002' },
+    { documentType: 'invoice', stepNumber: 1, approverUserId: 'user-002' },
+    { documentType: 'payment', stepNumber: 1, approverUserId: 'user-002' }
+  ],
+  approvalRouteForm: {
+    documentType: 'quotation',
+    newApproverUserId: ''
+  },
   invoiceView: "list",
   invoiceDetailCode: null,
   receiptView: "list",
@@ -1255,25 +1330,180 @@ const viewState = {
   }
 };
 
-function saveSession(userId) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ userId: userId }));
+// ── API共通ユーティリティ ──────────────────────────────────────────────────────
+
+async function apiFetch(url, options) {
+  var opts = Object.assign({ credentials: 'include' }, options);
+  var res = await fetch(url, opts);
+  if (!res.ok) {
+    var body = await res.json().catch(function() { return {}; });
+    var msg = (body && body.error && body.error.message) ? body.error.message : 'エラーが発生しました';
+    var err = new Error(msg);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
 }
 
-function clearSession() {
-  localStorage.removeItem(STORAGE_KEY);
+// S-04: 見積データをAPIから取得してローカルキャッシュを更新
+async function refreshQuotations() {
+  try {
+    var data = await apiFetch('/api/quotations');
+    quotations.length = 0;
+    Array.prototype.push.apply(quotations, data);
+  } catch (err) {
+    console.error('見積の取得に失敗しました:', err.message);
+  }
 }
+
+// S-05: 受注データをAPIから取得してローカルキャッシュを更新
+async function refreshOrders() {
+  try {
+    var data = await apiFetch('/api/orders');
+    orders.length = 0;
+    Array.prototype.push.apply(orders, data);
+  } catch (err) {
+    console.error('受注の取得に失敗しました:', err.message);
+  }
+}
+
+// S-08: 請求データをAPIから取得してローカルキャッシュを更新
+async function refreshInvoices() {
+  try {
+    var data = await apiFetch('/api/invoices');
+    invoices.length = 0;
+    Array.prototype.push.apply(invoices, data);
+  } catch (err) {
+    console.error('請求の取得に失敗しました:', err.message);
+  }
+}
+
+// S-03: 案件データをAPIから取得してローカルキャッシュを更新
+async function refreshProjects() {
+  try {
+    var data = await apiFetch('/api/projects');
+    projects.length = 0;
+    Array.prototype.push.apply(projects, data);
+  } catch (err) {
+    console.error('案件の取得に失敗しました:', err.message);
+  }
+}
+
+// S-06: 発注データをAPIから取得してローカルキャッシュを更新
+async function refreshPurchaseOrders() {
+  try {
+    var data = await apiFetch('/api/purchase-orders');
+    purchaseOrders.length = 0;
+    Array.prototype.push.apply(purchaseOrders, data);
+  } catch (err) {
+    console.error('発注の取得に失敗しました:', err.message);
+  }
+}
+
+// S-15: 設定データをAPIから取得してviewState.settingsを更新
+async function refreshSettings() {
+  try {
+    var data = await apiFetch('/api/settings');
+    Object.assign(viewState.settings, data);
+  } catch (err) {
+    console.error('設定の取得に失敗しました:', err.message);
+  }
+}
+
+// S-15: 承認ルートをAPIから取得してviewState.approvalRoutesを更新
+async function refreshApprovalRoutes() {
+  try {
+    var data = await apiFetch('/api/approval-routes');
+    viewState.approvalRoutes = data;
+  } catch (err) {
+    console.error('承認ルートの取得に失敗しました:', err.message);
+  }
+}
+
+// S-07: 納品データをAPIから取得してローカルキャッシュを更新
+async function refreshDeliveries() {
+  try {
+    var data = await apiFetch('/api/deliveries');
+    deliveries.length = 0;
+    Array.prototype.push.apply(deliveries, data);
+  } catch (err) {
+    console.error('納品の取得に失敗しました:', err.message);
+  }
+}
+
+// S-09: 入金データをAPIから取得してローカルキャッシュを更新
+async function refreshReceipts() {
+  try {
+    var data = await apiFetch('/api/receipts');
+    receipts.length = 0;
+    Array.prototype.push.apply(receipts, data);
+  } catch (err) {
+    console.error('入金の取得に失敗しました:', err.message);
+  }
+}
+
+// S-10: 支払依頼データをAPIから取得してローカルキャッシュを更新
+async function refreshPayments() {
+  try {
+    var data = await apiFetch('/api/payments');
+    payments.length = 0;
+    Array.prototype.push.apply(payments, data);
+  } catch (err) {
+    console.error('支払依頼の取得に失敗しました:', err.message);
+  }
+}
+
+// S-14: 通知データをAPIから取得してローカルキャッシュを更新し、クライアント側通知（N-04/N-05/N-06）をマージ
+async function refreshNotifications() {
+  try {
+    var apiData = await apiFetch('/api/notifications');
+    notifications.length = 0;
+    Array.prototype.push.apply(notifications, apiData);
+  } catch (err) {
+    console.error('通知の取得に失敗しました:', err.message);
+  }
+  var today = new Date().toISOString().slice(0, 10);
+  var stalenessDays = (viewState.settings && viewState.settings.approvalStalenessDays) || 3;
+  // N-04: 承認滞留通知
+  var pendingItems = []
+    .concat(
+      quotations.filter(function(q) { return q.status === '承認依頼中'; }).map(function(q) { return Object.assign({}, q, { docType: '見積' }); }),
+      orders.filter(function(o) { return o.status === '承認依頼中'; }).map(function(o) { return Object.assign({}, o, { docType: '受注' }); }),
+      purchaseOrders.filter(function(po) { return po.status === '承認依頼中'; }).map(function(po) { return Object.assign({}, po, { docType: '発注' }); }),
+      invoices.filter(function(inv) { return inv.status === '承認依頼中'; }).map(function(inv) { return Object.assign({}, inv, { docType: '請求' }); }),
+      payments.filter(function(p) { return p.status === '承認依頼中'; }).map(function(p) { return Object.assign({}, p, { docType: '支払依頼' }); })
+    );
+  var overdueNotifs = checkOverdueApprovals(pendingItems, stalenessDays, today);
+  Array.prototype.push.apply(notifications, overdueNotifs);
+  // N-05: 請求支払期日通知
+  Array.prototype.push.apply(notifications, createInvoiceDueNotifications(invoices, today));
+  // N-06: 発注納品予定日通知
+  Array.prototype.push.apply(notifications, createDeliveryDueNotifications(purchaseOrders, today));
+}
+
+// 認証済みユーザのキャッシュ（APIセッションと同期）
+let currentUser = null;
 
 function getSessionUser() {
+  return currentUser;
+}
+
+async function initSession() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return users.find(function (user) {
-      return user.id === parsed.userId;
-    }) || null;
-  } catch (error) {
-    return null;
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    if (res.ok) {
+      const { user: apiUser } = await res.json();
+      // API認証済みユーザと権限定義をマージ（P2で権限APIが実装されたら不要）
+      const localUser = users.find(function (u) { return u.id === apiUser.id; });
+      currentUser = Object.assign({}, apiUser, { permissions: localUser ? localUser.permissions : [] });
+      await refreshSettings();
+    } else {
+      currentUser = null;
+    }
+  } catch {
+    currentUser = null;
   }
+  renderApp();
 }
 
 function hasPermission(user, permission) {
@@ -1380,13 +1610,36 @@ function projectSearchHtml(fieldKey, selectedCode, filterStatuses) {
 
 function metricCardsHtml() {
   const m = getDashboardMetrics(quotations, purchaseOrders, payments, orders, invoices);
-  const metrics = [
-    { label: "承認待ち", value: String(m.pendingApprovals).padStart(2, "0"), note: "見積・発注・支払依頼の合計", route: "approval" },
+  const byType = m.pendingApprovalsByType;
+  const approvalTypeRows = [
+    { label: '見積', count: byType.quotations, hash: '#approval?type=quotation' },
+    { label: '受注', count: byType.orders, hash: '#approval?type=order' },
+    { label: '発注', count: byType.purchaseOrders, hash: '#approval?type=purchaseOrder' },
+    { label: '請求', count: byType.invoices, hash: '#approval?type=invoice' },
+    { label: '支払依頼', count: byType.payments, hash: '#approval?type=payment' }
+  ];
+  const approvalTypeListHtml = approvalTypeRows.map(function(row) {
+    const isZero = row.count === 0;
+    return '<li class="approval-type-row' + (isZero ? ' is-zero' : '') + '">' +
+      '<a href="' + row.hash + '" class="approval-type-link">' +
+        '<span class="approval-type-name">' + row.label + '</span>' +
+        '<span class="approval-type-count">' + row.count + '件</span>' +
+      '</a>' +
+    '</li>';
+  }).join('');
+  const approvalCard =
+    '<article class="metric-card metric-card--approval" data-metric-route="approval" style="cursor:pointer">' +
+      '<div class="metric-label">承認待ち</div>' +
+      '<div class="metric-value">' + String(m.pendingApprovals).padStart(2, '0') + '</div>' +
+      '<ul class="approval-type-list">' + approvalTypeListHtml + '</ul>' +
+    '</article>';
+
+  const otherMetrics = [
     { label: "未請求", value: String(m.unbilled).padStart(2, "0"), note: "請求対象化済みの未請求受注", route: "invoice" },
     { label: "未収", value: String(m.uncollected).padStart(2, "0"), note: "送付済・一部入金の請求", route: "invoice" },
     { label: "未払", value: String(m.unpaid).padStart(2, "0"), note: "承認済みの支払依頼", route: "payment" }
   ];
-  return metrics.map(function (metric) {
+  const otherCardsHtml = otherMetrics.map(function (metric) {
     return (
       '<article class="metric-card" data-metric-route="' + metric.route + '" style="cursor:pointer">' +
         '<div class="metric-label">' + metric.label + "</div>" +
@@ -1395,6 +1648,8 @@ function metricCardsHtml() {
       "</article>"
     );
   }).join("");
+
+  return approvalCard + otherCardsHtml;
 }
 
 function tableRowsHtml(rows) {
@@ -1463,7 +1718,7 @@ function permissionCardHtml(title, copy) {
 }
 
 function dashboardHtml(user) {
-  const pending = getPendingApprovals(quotations, purchaseOrders, payments);
+  const pending = getPendingApprovals(quotations, purchaseOrders, payments, orders, invoices);
   const canApprove = hasPermission(user, "approval:view");
 
   const pendingListHtml = canApprove && pending.length > 0
@@ -2192,6 +2447,8 @@ function quotationDetailHtml(user) {
   const project = projects.find(function (p) { return p.code === q.projectCode; });
   const customer = findCustomerByCode(customers, q.customerId);
   const canEdit = hasPermission(user, "quotation:edit");
+  const canApprove = hasPermission(user, "approval:act");
+  const canApproveThis = canApprove && q.status === '承認依頼中';
 
   const subtotal = q.subtotal || 0;
   const taxAmount = q.taxAmount || 0;
@@ -2231,10 +2488,20 @@ function quotationDetailHtml(user) {
           (canEdit && q.status === '承認済み'
             ? '<button class="button button-primary" type="button" data-action-create-order="' + escapeHtml(q.code) + '">受注作成</button>'
             : '') +
+          (canEdit && q.status === '却下'
+            ? '<button class="button button-secondary" type="button" id="quotation-return-draft-btn">下書きに戻す</button>'
+            : '') +
           '<button class="button button-secondary" type="button" data-action-print-quotation="' + escapeHtml(q.code) + '">PDF出力</button>' +
-          '<button class="button button-ghost" type="button" id="quotation-detail-back">一覧へ戻る</button>' +
+          (canApproveThis
+            ? '<button class="button button-primary" type="button" id="quotation-approve-btn">承認する</button>' +
+              '<button class="button button-danger" type="button" id="quotation-reject-btn">却下</button>'
+            : '') +
+          (viewState.approvalFrom === 'approval'
+            ? '<button class="button button-ghost" type="button" id="quotation-detail-back">承認一覧に戻る</button>'
+            : '<button class="button button-ghost" type="button" id="quotation-detail-back">一覧へ戻る</button>') +
         '</div>' +
       '</div>' +
+      (canApproveThis ? approvalActionPanelHtml() : '') +
       '<div class="detail-grid">' +
         '<div class="detail-row"><span class="detail-label">見積番号</span><span class="detail-value">' + escapeHtml(q.code) + '</span></div>' +
         '<div class="detail-row"><span class="detail-label">版数</span><span class="detail-value">第 ' + q.version + ' 版</span></div>' +
@@ -2257,6 +2524,7 @@ function quotationDetailHtml(user) {
           '<div class="detail-total-row is-total"><span>合計</span><span>' + Number(total).toLocaleString() + ' 円</span></div>' +
         '</div>' +
       '</div>' +
+      approvalHistorySectionHtml(q) +
     '</section>'
   );
 }
@@ -2353,6 +2621,8 @@ function orderDetailHtml(user) {
   const project = projects.find(function (p) { return p.code === order.projectCode; });
   const customer = findCustomerByCode(customers, order.customerId);
   const canEdit = user && hasPermission(user, "sales-order:edit");
+  const canApproveOrder = user && hasPermission(user, "approval:act") && order.status === '承認依頼中';
+  const linkedQuotation = order.quotationCode ? findQuotationByCode(quotations, order.quotationCode) : null;
   const statusClass = orderStatusClass(order.status);
 
   return (
@@ -2363,21 +2633,34 @@ function orderDetailHtml(user) {
           '<div class="panel-title-text">' + escapeHtml(order.title) + '</div>' +
         '</div>' +
         '<div class="panel-actions">' +
-          (canEdit && order.status === '受注済み' && !order.billingTarget ?
+          (canEdit && order.status === '受注済み' ?
+            '<button class="button button-warning button-sm" type="button" id="order-submit-approval-btn">承認依頼</button>'
+          : '') +
+          (canEdit && order.status === '却下' ?
+            '<button class="button button-secondary button-sm" type="button" id="order-return-draft-btn">下書きに戻す</button>'
+          : '') +
+          (canEdit && order.status === '承認済み' && !order.billingTarget ?
             '<button class="button button-primary button-sm" type="button" data-action-billing-target="' + escapeHtml(order.code) + '">請求対象化</button>'
           : '') +
-          (canEdit && order.status === '受注済み' && order.billingTarget ?
+          (canEdit && order.status === '承認済み' && order.billingTarget ?
             '<span class="status-badge is-open">請求対象</span>'
           : '') +
-          (canEdit && order.status === '受注済み' ?
+          (canEdit && order.status === '承認済み' ?
             '<button class="button button-secondary button-sm" type="button" data-action-create-purchase-order="' + escapeHtml(order.code) + '">発注起票</button>'
           : '') +
-          (canEdit && order.status === '受注済み' ?
-            '<button class="button button-warning button-sm" type="button" data-action-order-status="キャンセル" data-order-code="' + escapeHtml(order.code) + '">キャンセル</button>'
+          (hasPermission(user, 'user-permission:edit') && order.status === '承認済み' ?
+            '<button class="button button-primary button-sm" type="button" id="order-complete-contract-btn">契約手続き済にする</button>'
           : '') +
-          '<button class="button button-secondary button-sm" type="button" id="order-detail-back">一覧に戻る</button>' +
+          (canApproveOrder ?
+            '<button class="button button-primary button-sm" type="button" id="order-approve-btn">承認する</button>' +
+            '<button class="button button-danger button-sm" type="button" id="order-reject-btn">却下</button>'
+          : '') +
+          (viewState.approvalFrom === 'approval'
+            ? '<button class="button button-ghost button-sm" type="button" id="order-detail-back">承認一覧に戻る</button>'
+            : '<button class="button button-secondary button-sm" type="button" id="order-detail-back">一覧に戻る</button>') +
         '</div>' +
       '</div>' +
+      (canApproveOrder ? approvalActionPanelHtml() : '') +
       '<div class="detail-grid">' +
         '<div class="detail-field">' +
           '<div class="detail-label">受注番号</div>' +
@@ -2431,6 +2714,7 @@ function orderDetailHtml(user) {
           '</ul>' +
         '</div>'
       : '') +
+      approvalHistorySectionHtml(order) +
     '</section>'
   );
 }
@@ -2615,6 +2899,7 @@ function purchaseOrderDetailHtml(user) {
   const supplier = findSupplierById(pod.supplierId);
   const order = pod.orderCode ? findOrderByCode(orders, pod.orderCode) : null;
   const canEdit = user && hasPermission(user, "purchase-order:edit");
+  const canApprovePod = user && hasPermission(user, "approval:act") && pod.status === '承認依頼中';
   const statusCls = purchaseOrderStatusClass(pod.status);
 
   return (
@@ -2641,12 +2926,16 @@ function purchaseOrderDetailHtml(user) {
           (canEdit && pod.status === '下書き' ?
             '<button class="button button-danger button-sm" type="button" data-action-pod-status="取下げ" data-pod-code="' + escapeHtml(pod.code) + '">取下げ</button>'
           : '') +
-          (canEdit && pod.status === '承認依頼中' ?
-            '<button class="button button-danger button-sm" type="button" data-action-pod-status="却下" data-pod-code="' + escapeHtml(pod.code) + '">却下</button>'
+          (canApprovePod ?
+            '<button class="button button-primary button-sm" type="button" id="pod-approve-btn">承認する</button>' +
+            '<button class="button button-danger button-sm" type="button" id="pod-reject-btn">却下</button>'
           : '') +
-          '<button class="button button-secondary button-sm" type="button" id="pod-detail-back">一覧に戻る</button>' +
+          (viewState.approvalFrom === 'approval'
+            ? '<button class="button button-ghost button-sm" type="button" id="pod-detail-back">承認一覧に戻る</button>'
+            : '<button class="button button-secondary button-sm" type="button" id="pod-detail-back">一覧に戻る</button>') +
         '</div>' +
       '</div>' +
+      (canApprovePod ? approvalActionPanelHtml() : '') +
       '<div class="detail-grid">' +
         '<div class="detail-field">' +
           '<div class="detail-label">発注番号</div>' +
@@ -2750,6 +3039,7 @@ function purchaseOrderDetailHtml(user) {
           '</div>' +
         '</div>';
       })() +
+      approvalHistorySectionHtml(pod) +
     '</section>'
   );
 }
@@ -2962,6 +3252,75 @@ function purchaseOrderScreenHtml(user) {
   return dataTableHtml(getPurchaseOrderTableConfig(user));
 }
 
+function deliveryStatusClass(status) {
+  if (status === '検収待ち') return 'is-pending';
+  if (status === '検収済') return 'is-complete';
+  if (status === '検収NG') return 'is-rejected';
+  return '';
+}
+
+function getDeliveryTableConfig(user) {
+  const canEdit = user && hasPermission(user, 'delivery:edit');
+  const columns = [
+    { key: 'code', label: '納品番号', sortable: true },
+    {
+      key: 'purchaseOrderCode',
+      label: '発注番号',
+      sortable: true,
+      render: function(value) {
+        return '<button class="button button-ghost button-sm" type="button" data-action-goto-purchase-order="' + escapeHtml(value) + '">' + escapeHtml(value) + '</button>';
+      }
+    },
+    { key: 'deliveryDate', label: '納品日', sortable: true },
+    {
+      key: 'status',
+      label: '検収状態',
+      sortable: true,
+      render: function(value) {
+        return '<span class="status ' + deliveryStatusClass(value) + '">' + escapeHtml(value) + '</span>';
+      }
+    }
+  ];
+  if (canEdit) {
+    columns.push({
+      key: '_actions',
+      label: '操作',
+      sortable: false,
+      render: function(value, row) {
+        var btns = '';
+        if (row.status === '検収待ち') {
+          btns += '<button class="button button-primary button-sm" type="button" data-action-accept-delivery="' + escapeHtml(row.code) + '">検収済</button> ';
+          btns += '<button class="button button-danger button-sm" type="button" data-action-reject-delivery="' + escapeHtml(row.code) + '">検収NG</button>';
+        }
+        return btns;
+      }
+    });
+  }
+  return {
+    stateKey: 'deliveryList',
+    title: '納品・検収一覧',
+    rows: deliveries,
+    columns: columns,
+    searchKeys: ['code', 'purchaseOrderCode', 'deliveryDate'],
+    filters: [
+      {
+        key: 'status',
+        label: '検収状態',
+        options: ['all', '検収待ち', '検収済', '検収NG'],
+        allLabel: '全状態'
+      }
+    ],
+    emptyMessage: '納品実績がありません。',
+    hasActions: canEdit,
+    tableClass: 'delivery',
+    toolbarExtra: ''
+  };
+}
+
+function deliveryScreenHtml(user) {
+  return dataTableHtml(getDeliveryTableConfig(user));
+}
+
 function invoiceStatusClass(status) {
   if (status === '下書き') return 'is-info';
   if (status === '確定') return 'is-approved';
@@ -3090,6 +3449,7 @@ function invoiceFormHtml() {
 
 function invoiceDetailHtml(invoice, user) {
   const canEdit = user && hasPermission(user, "invoice:edit");
+  const canApproveInvoice = user && hasPermission(user, "approval:act") && invoice.status === '承認依頼中';
   const customer = findCustomerByCode(customers, invoice.customerId);
   const order = findOrderByCode(orders, invoice.orderCode);
   const status = invoice.status;
@@ -3100,8 +3460,13 @@ function invoiceDetailHtml(invoice, user) {
 
   const statusButtons = canEdit ? (
     (status === '下書き' ?
-      '<button class="button button-primary button-sm" type="button" data-action-invoice-status="確定">確定する</button>' +
-      '<button class="button button-secondary button-sm" type="button" data-action-invoice-status="キャンセル">キャンセル</button>'
+      '<button class="button button-warning button-sm" type="button" id="invoice-submit-approval-btn">承認依頼</button>'
+    : '') +
+    (status === '却下' ?
+      '<button class="button button-secondary button-sm" type="button" id="invoice-return-draft-btn">下書きに戻す</button>'
+    : '') +
+    (status === '承認済み' ?
+      '<button class="button button-primary button-sm" type="button" data-action-invoice-status="確定">確定する</button>'
     : '') +
     (status === '確定' ?
       '<button class="button button-primary button-sm" type="button" data-action-invoice-status="送付済">送付済にする</button>' +
@@ -3111,6 +3476,15 @@ function invoiceDetailHtml(invoice, user) {
       '<button class="button button-primary button-sm" type="button" data-action-register-receipt="' + escapeHtml(invoice.code) + '">入金登録</button>'
     : '')
   ) : '';
+
+  const approvalButtons = canApproveInvoice ? (
+    '<button class="button button-primary button-sm" type="button" id="invoice-approve-btn">承認する</button>' +
+    '<button class="button button-danger button-sm" type="button" id="invoice-reject-btn">却下</button>'
+  ) : '';
+
+  const backButton = viewState.approvalFrom === 'approval'
+    ? '<button class="button button-secondary button-sm" type="button" id="invoice-detail-back">承認一覧に戻る</button>'
+    : '<button class="button button-secondary button-sm" type="button" id="invoice-detail-back">一覧に戻る</button>';
 
   const detailLines = (invoice.details || []).map(function(line) {
     return '<div class="detail-line">' +
@@ -3154,11 +3528,13 @@ function invoiceDetailHtml(invoice, user) {
         '</div>' +
         '<div class="panel-actions">' +
           statusButtons +
+          approvalButtons +
           '<button class="button button-secondary button-sm" type="button" data-action-print-invoice="' + escapeHtml(invoice.code) + '">印刷</button>' +
-          '<button class="button button-secondary button-sm" type="button" id="invoice-detail-back">一覧に戻る</button>' +
+          backButton +
         '</div>' +
       '</div>' +
       '<div class="panel-content">' +
+        (canApproveInvoice ? approvalActionPanelHtml() : '') +
         '<div class="detail-grid">' +
           '<div class="detail-field"><div class="detail-label">請求番号</div><div class="detail-value">' + escapeHtml(invoice.code) + '</div></div>' +
           '<div class="detail-field"><div class="detail-label">ステータス</div><div class="detail-value"><span class="status-badge ' + invoiceStatusClass(status) + '">' + escapeHtml(status) + '</span></div></div>' +
@@ -3180,6 +3556,7 @@ function invoiceDetailHtml(invoice, user) {
           '</div>' +
         '</div>' +
         receiptSection +
+        approvalHistorySectionHtml(invoice) +
       '</div>' +
     '</section>'
   );
@@ -3366,7 +3743,7 @@ function paymentStatusClass(status) {
 }
 
 function getApprovalTableConfig() {
-  const pending = getPendingApprovals(quotations, purchaseOrders, payments);
+  const pending = getPendingApprovals(quotations, purchaseOrders, payments, orders, invoices);
   const enriched = pending.map(function(item) {
     var tradingPartner = '';
     if (item.type === '見積') {
@@ -3374,6 +3751,12 @@ function getApprovalTableConfig() {
       if (q) {
         var c = findCustomerByCode(customers, q.customerId);
         tradingPartner = c ? c.name : q.customerId;
+      }
+    } else if (item.type === '受注') {
+      var ord = orders.find(function(o) { return o.code === item.code; });
+      if (ord) {
+        var c2 = findCustomerByCode(customers, ord.customerId);
+        tradingPartner = c2 ? c2.name : ord.customerId;
       }
     } else if (item.type === '発注') {
       var po = purchaseOrders.find(function(po) { return po.code === item.code; });
@@ -3404,7 +3787,7 @@ function getApprovalTableConfig() {
         key: "type",
         label: "種別",
         allLabel: "すべての種別",
-        options: ["all", "見積", "発注", "支払依頼"]
+        options: ["all", "見積", "受注", "発注", "支払依頼"]
       }
     ],
     columns: [
@@ -3429,10 +3812,76 @@ function getApprovalTableConfig() {
           return (val !== undefined && val !== null) ? Number(val).toLocaleString() + ' 円' : '';
         }
       },
-      { key: "submittedAt", label: "申請日", sortable: true }
+      { key: "submittedAt", label: "申請日", sortable: true },
+      {
+        key: "code",
+        label: "",
+        sortable: false,
+        render: function(val, row) {
+          return '<button class="button button-ghost button-sm" type="button" data-action-detail-approval="' + escapeHtml(row.type) + ':' + escapeHtml(val) + '">詳細</button>';
+        }
+      }
     ],
     toolbarExtra: ""
   };
+}
+
+function approvalActionPanelHtml() {
+  const action = viewState.approvalAction;
+  if (!action || !action.mode) return '';
+  const isReject = action.mode === 'reject';
+  const commentRequired = isReject ? '<span class="required-mark">必須</span>' : '';
+  const commentError = isReject && action.commentError
+    ? '<div class="error-message">' + escapeHtml(action.commentError) + '</div>'
+    : '';
+  return (
+    '<div class="approval-action-panel" style="margin:12px 0;padding:12px;border:1px solid ' + (isReject ? 'var(--color-danger,#c0392b)' : 'var(--color-primary,#2980b9)') + ';border-radius:4px;background:#fafafa;">' +
+      '<div style="margin-bottom:8px;font-weight:bold;">' + (isReject ? '却下理由を入力してください' : '承認コメント（任意）') + commentRequired + '</div>' +
+      '<textarea id="approval-comment-input" class="input" rows="3" style="width:100%;box-sizing:border-box;" placeholder="' + (isReject ? '却下理由（必須）' : 'コメント（任意）') + '">' + escapeHtml(action.comment) + '</textarea>' +
+      commentError +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        (isReject
+          ? '<button class="button button-danger button-sm" type="button" id="approval-confirm-reject">却下を確定</button>'
+          : '<button class="button button-primary button-sm" type="button" id="approval-confirm-approve">承認を確定</button>') +
+        '<button class="button button-ghost button-sm" type="button" id="approval-action-cancel">キャンセル</button>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function approvalHistorySectionHtml(doc) {
+  const history = doc.approvalHistory || [];
+  const statusLabel = (function() {
+    var s = doc.status;
+    if (s === '承認依頼中') return '<span class="status-badge status-warning">承認依頼中（承認待ち）</span>';
+    if (s === '承認済み' || s === '承認済・発注待ち') return '<span class="status-badge status-success">' + escapeHtml(s) + '</span>';
+    if (s === '却下') return '<span class="status-badge status-danger">却下</span>';
+    return '';
+  })();
+
+  if (!statusLabel && history.length === 0) return '';
+
+  var rows = history.map(function(entry) {
+    return '<div class="detail-table-row">' +
+      '<div>' + escapeHtml(entry.timestamp || '') + '</div>' +
+      '<div>' + escapeHtml(entry.operatorName || '') + '</div>' +
+      '<div>' + escapeHtml(entry.action || '') + '</div>' +
+      '<div>' + escapeHtml(entry.comment || '') + '</div>' +
+    '</div>';
+  }).join('');
+
+  return (
+    '<div class="detail-section" id="approval-history-section">' +
+      '<div class="detail-section-label">承認状況</div>' +
+      (statusLabel ? '<div style="margin-bottom:12px;">' + statusLabel + '</div>' : '') +
+      (history.length > 0 ?
+        '<div class="detail-table">' +
+          '<div class="detail-table-head"><div>操作日時</div><div>操作者</div><div>操作種別</div><div>コメント</div></div>' +
+          rows +
+        '</div>'
+      : '<div class="empty-card" style="margin:0"><div class="empty-copy">承認履歴なし</div></div>') +
+    '</div>'
+  );
 }
 
 function approvalScreenHtml() {
@@ -3448,7 +3897,7 @@ function getNotificationTableConfig(user) {
     rows: userNotifications,
     searchKeys: ["message", "targetCode", "type"],
     emptyMessage: "通知はありません",
-    hasActions: false,
+    hasActions: true,
     filters: [
       { key: "type", label: "種別", allLabel: "すべての種別", options: typeOptions }
     ],
@@ -3462,7 +3911,11 @@ function getNotificationTableConfig(user) {
       { key: "isRead", label: "既読", sortable: true, render: function(val) {
         return val ? '<span class="status-badge is-info">既読</span>' : '<span class="status-badge is-pending">未読</span>';
       }},
-      { key: "createdAt", label: "通知日", sortable: true }
+      { key: "createdAt", label: "通知日", sortable: true },
+      { key: "_actions", label: "操作", sortable: false, render: function(val, row) {
+        if (row.isRead) return '';
+        return '<button class="button button-ghost button-sm" type="button" data-action-mark-read="' + escapeHtml(row.id) + '">既読にする</button>';
+      }}
     ],
     toolbarExtra: ""
   };
@@ -3494,7 +3947,18 @@ function settingsScreenHtml(user) {
     '<div class="master-tabs">' +
       '<button class="master-tab' + (tab === "company" ? " is-active" : "") + '" type="button" data-settings-tab="company">会社情報</button>' +
       '<button class="master-tab' + (tab === "fiscal" ? " is-active" : "") + '" type="button" data-settings-tab="fiscal">年度設定</button>' +
+      '<button class="master-tab' + (tab === "approval-route" ? " is-active" : "") + '" type="button" data-settings-tab="approval-route">承認ルート設定</button>' +
+      '<button class="master-tab' + (tab === "approval-condition" ? " is-active" : "") + '" type="button" data-settings-tab="approval-condition">承認条件設定</button>' +
     '</div>';
+
+  const DOCUMENT_TYPE_LABELS = {
+    quotation: '見積',
+    order: '受注',
+    purchaseOrder: '発注',
+    invoice: '請求',
+    payment: '支払依頼'
+  };
+  const DOCUMENT_TYPES = Object.keys(DOCUMENT_TYPE_LABELS);
 
   let formContent = '';
   if (tab === "company") {
@@ -3519,7 +3983,7 @@ function settingsScreenHtml(user) {
           ? '<div class="form-actions"><button class="button button-primary" type="submit">保存</button></div>'
           : '') +
       '</form>';
-  } else {
+  } else if (tab === "fiscal") {
     const monthOptions = [1,2,3,4,5,6,7,8,9,10,11,12].map(function(m) {
       const startMonth = m === 12 ? 1 : m + 1;
       const label = m + '月決算（' + startMonth + '月始まり）';
@@ -3538,14 +4002,93 @@ function settingsScreenHtml(user) {
           ? '<div class="form-actions"><button class="button button-primary" type="submit">保存</button></div>'
           : '') +
       '</form>';
+  } else if (tab === "approval-condition") {
+    const condErrors = viewState.approvalConditionErrors || {};
+    formContent =
+      '<form id="settings-approval-condition-form" class="detail-form">' +
+        '<div class="form-section">' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-condition-profit-rate">利益率閾値（%）</label>' +
+            '<input class="input' + (condErrors.profitRate ? ' is-error' : '') + '" id="s-condition-profit-rate" type="number" min="0" max="100" step="1" value="' + s.presidentApprovalProfitRateThreshold + '"' + (canEdit ? '' : ' disabled') + '>' +
+            (condErrors.profitRate ? '<div class="field-error">' + escapeHtml(condErrors.profitRate) + '</div>' : '') +
+          '</div>' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-condition-amount">見積金額合計閾値（円）</label>' +
+            '<input class="input' + (condErrors.amount ? ' is-error' : '') + '" id="s-condition-amount" type="number" min="1" step="1" value="' + s.presidentApprovalAmountThreshold + '"' + (canEdit ? '' : ' disabled') + '>' +
+            (condErrors.amount ? '<div class="field-error">' + escapeHtml(condErrors.amount) + '</div>' : '') +
+          '</div>' +
+          '<div class="field-hint" style="margin-bottom:12px">上記2条件のどちらか一方が超過した場合、社長決裁が必要になります（OR条件）。</div>' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-condition-stale-days">承認滞留判定日数</label>' +
+            '<input class="input' + (condErrors.staleDays ? ' is-error' : '') + '" id="s-condition-stale-days" type="number" min="1" step="1" value="' + s.approvalStaleDays + '"' + (canEdit ? '' : ' disabled') + '>' +
+            (condErrors.staleDays ? '<div class="field-error">' + escapeHtml(condErrors.staleDays) + '</div>' : '') +
+            '<div class="field-hint">この日数を超えて承認が滞留した場合、通知を送信します（N-04）。</div>' +
+          '</div>' +
+        '</div>' +
+        (canEdit
+          ? '<div class="form-actions"><button class="button button-primary" type="submit">保存</button></div>'
+          : '') +
+      '</form>';
+  } else {
+    const routeForm = viewState.approvalRouteForm;
+    const selectedType = routeForm.documentType;
+    const typeOptions = DOCUMENT_TYPES.map(function(dt) {
+      return '<option value="' + dt + '"' + (selectedType === dt ? ' selected' : '') + '>' + escapeHtml(DOCUMENT_TYPE_LABELS[dt]) + '</option>';
+    }).join('');
+    const currentRoutes = getRoutesByDocumentType(viewState.approvalRoutes, selectedType);
+    const userOptions = users.map(function(u) {
+      return '<option value="' + escapeHtml(u.id) + '"' + (routeForm.newApproverUserId === u.id ? ' selected' : '') + '>' + escapeHtml(u.name) + ' (' + escapeHtml(u.id) + ')</option>';
+    }).join('');
+    const routeRows = currentRoutes.length > 0
+      ? currentRoutes.map(function(r) {
+          const approver = users.find(function(u) { return u.id === r.approverUserId; });
+          const approverName = approver ? approver.name + ' (' + r.approverUserId + ')' : r.approverUserId;
+          return '<div class="data-table-body-row">' +
+            '<div class="data-table-body-cell">第 ' + r.stepNumber + ' ステップ</div>' +
+            '<div class="data-table-body-cell">' + escapeHtml(approverName) + '</div>' +
+            (canEdit
+              ? '<div class="data-table-body-cell"><button class="button button-danger button-sm" type="button" data-action-remove-route="' + (r.id != null ? r.id : escapeHtml(selectedType) + ':' + r.stepNumber) + '">削除</button></div>'
+              : '<div class="data-table-body-cell"></div>') +
+          '</div>';
+        }).join('')
+      : '<div class="data-table-empty">承認ステップが設定されていません。</div>';
+    formContent =
+      '<div class="detail-form">' +
+        '<div class="form-section">' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-route-doctype">伝票種別</label>' +
+            '<select class="select" id="s-route-doctype" data-action-route-doctype>' + typeOptions + '</select>' +
+          '</div>' +
+          '<div class="field-hint" style="margin-bottom:12px">同一ステップに複数登録した場合、全員の承認が必要です（AND条件）。</div>' +
+          '<div class="data-table">' +
+            '<div class="data-table-head">' +
+              '<div class="data-table-head-cell"><span>ステップ</span></div>' +
+              '<div class="data-table-head-cell"><span>承認者</span></div>' +
+              '<div class="data-table-head-cell"><span>操作</span></div>' +
+            '</div>' +
+            routeRows +
+          '</div>' +
+          (canEdit
+            ? '<div class="form-row" style="margin-top:16px">' +
+                '<label class="field-label">承認者を追加</label>' +
+                '<select class="select" id="s-route-new-approver">' +
+                  '<option value="">-- 承認者を選択 --</option>' + userOptions +
+                '</select>' +
+                '<button class="button button-primary button-sm" type="button" id="s-route-add-step" style="margin-left:8px">ステップを追加</button>' +
+              '</div>'
+            : '') +
+        '</div>' +
+      '</div>';
   }
+
+  const panelTitles = { company: '会社情報', fiscal: '年度設定', 'approval-route': '承認ルート設定', 'approval-condition': '承認条件設定' };
 
   return tabs +
     '<section class="panel">' +
       '<div class="panel-header">' +
         '<div>' +
           '<div class="panel-label">S-15</div>' +
-          '<div class="panel-title-text">' + (tab === 'company' ? '会社情報' : '年度設定') + '</div>' +
+          '<div class="panel-title-text">' + escapeHtml(panelTitles[tab] || '設定') + '</div>' +
         '</div>' +
       '</div>' +
       formContent +
@@ -3841,18 +4384,15 @@ function paymentDetailHtml(payment, user) {
   const po = purchaseOrders.find(function(p) { return p.code === payment.purchaseOrderCode; });
   const status = payment.status;
 
+  const canApprovePayment = canApprove && status === '承認待ち';
   const statusButtons = (
     (canEdit && status === '下書き' ?
       '<button class="button button-primary button-sm" type="button" data-action-payment-status="承認待ち">承認依頼</button>' +
       '<button class="button button-secondary button-sm" type="button" data-action-payment-status="キャンセル">キャンセル</button>'
     : '') +
-    (canApprove && status === '承認待ち' ?
-      '<button class="button button-primary button-sm" type="button" data-action-payment-status="承認済">承認</button>' +
-      '<button class="button button-danger button-sm" type="button" data-action-payment-status="差戻し">差戻し</button>'
-    : '') +
-    (canEdit && status === '差戻し' ?
-      '<button class="button button-primary button-sm" type="button" data-action-payment-status="承認待ち">再申請</button>' +
-      '<button class="button button-secondary button-sm" type="button" data-action-payment-status="キャンセル">キャンセル</button>'
+    (canApprovePayment ?
+      '<button class="button button-primary button-sm" type="button" id="payment-approve-btn">承認する</button>' +
+      '<button class="button button-danger button-sm" type="button" id="payment-reject-btn">却下</button>'
     : '') +
     (canEdit && status === '承認済' ?
       '<button class="button button-primary button-sm" type="button" id="payment-register-btn">支払登録</button>'
@@ -3868,9 +4408,12 @@ function paymentDetailHtml(payment, user) {
         '</div>' +
         '<div class="panel-actions">' +
           statusButtons +
-          '<button class="button button-secondary button-sm" type="button" id="payment-detail-back">一覧に戻る</button>' +
+          (viewState.approvalFrom === 'approval'
+            ? '<button class="button button-ghost button-sm" type="button" id="payment-detail-back">承認一覧に戻る</button>'
+            : '<button class="button button-secondary button-sm" type="button" id="payment-detail-back">一覧に戻る</button>') +
         '</div>' +
       '</div>' +
+      (canApprovePayment ? approvalActionPanelHtml() : '') +
       '<div class="panel-content">' +
         '<div class="detail-grid">' +
           '<div class="detail-field"><div class="detail-label">支払依頼番号</div><div class="detail-value">' + escapeHtml(payment.code) + '</div></div>' +
@@ -3881,6 +4424,7 @@ function paymentDetailHtml(payment, user) {
           '<div class="detail-field"><div class="detail-label">支払金額</div><div class="detail-value">' + Number(payment.amount || 0).toLocaleString() + ' 円</div></div>' +
           '<div class="detail-field"><div class="detail-label">備考</div><div class="detail-value">' + escapeHtml(payment.notes || '-') + '</div></div>' +
         '</div>' +
+        approvalHistorySectionHtml(payment) +
       '</div>' +
     '</section>'
   );
@@ -4737,29 +5281,39 @@ function renderLogin(message, kind) {
   });
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
   event.preventDefault();
   const userId = document.getElementById("user-id").value.trim();
   const password = document.getElementById("password").value;
-  const user = users.find(function (candidate) {
-    return candidate.id === userId && candidate.password === password;
-  });
 
-  if (!user) {
-    renderLogin("ユーザ ID またはパスワードが正しくありません。", "error");
-    return;
-  }
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: userId, password: password }),
+      credentials: 'include'
+    });
 
-  if (user.status === "停止") {
-    renderLogin("このユーザは停止されています。システム管理者にお問い合わせください。", "error");
-    return;
-  }
+    if (!res.ok) {
+      if (res.status === 401) {
+        renderLogin("ユーザ ID またはパスワードが正しくありません。", "error");
+      } else {
+        renderLogin("ログインに失敗しました。しばらく後で再試行してください。", "error");
+      }
+      return;
+    }
 
-  saveSession(user.id);
-  if (!window.location.hash) {
-    window.location.hash = "#/dashboard";
+    const { user: apiUser } = await res.json();
+    const localUser = users.find(function (u) { return u.id === apiUser.id; });
+    currentUser = Object.assign({}, apiUser, { permissions: localUser ? localUser.permissions : [] });
+
+    if (!window.location.hash) {
+      window.location.hash = "#/dashboard";
+    }
+    renderApp();
+  } catch {
+    renderLogin("サーバーに接続できません。ネットワーク接続を確認してください。", "error");
   }
-  renderApp();
 }
 
 function sidebarHtml(visibleScreens, currentScreenId) {
@@ -4842,6 +5396,8 @@ function renderApp() {
     contentHtml = salesOrderScreenHtml(user);
   } else if (currentScreen.id === "purchase-order") {
     contentHtml = purchaseOrderScreenHtml(user);
+  } else if (currentScreen.id === "delivery") {
+    contentHtml = deliveryScreenHtml(user);
   } else if (currentScreen.id === "invoice") {
     contentHtml = invoiceScreenHtml(user);
   } else if (currentScreen.id === "receipt") {
@@ -4906,8 +5462,11 @@ function bindAppEvents() {
     renderApp();
   });
 
-  document.getElementById("logout-button").addEventListener("click", function () {
-    clearSession();
+  document.getElementById("logout-button").addEventListener("click", async function () {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch { /* ネットワークエラーは無視してログアウト継続 */ }
+    currentUser = null;
     // hashchange を発火させずにセッションを破棄し、ログイン画面へ戻る
     renderLogin("ログアウトしました。", "success");
   });
@@ -5412,7 +5971,7 @@ function bindAppEvents() {
       if (!u) return;
       viewState.userForm.data = {
         id: u.id,
-        password: u.password,
+        password: '',
         name: u.name,
         userType: u.userType,
         department: u.department,
@@ -5591,19 +6150,12 @@ function bindAppEvents() {
   // S-03: 案件 フォーム送信（登録 / 編集）
   const projectFormEl = document.getElementById("project-register-form");
   if (projectFormEl) {
-    projectFormEl.addEventListener("submit", function (e) {
+    projectFormEl.addEventListener("submit", async function (e) {
       e.preventDefault();
       const isEdit = viewState.projectForm.mode === "edit";
       const data = viewState.projectForm.data;
-      const existingCodes = projects.map(function (p) { return p.code; });
       const rules = Object.assign(
-        isEdit ? {} : {
-          code: [
-            { type: "required", fieldName: "案件コード" },
-            { type: "maxLength", max: 20, fieldName: "案件コード" },
-            { type: "unique", existingValues: existingCodes, fieldName: "案件コード" }
-          ]
-        },
+        {},
         {
           name: [
             { type: "required", fieldName: "案件名" },
@@ -5621,17 +6173,30 @@ function bindAppEvents() {
         renderApp();
         return;
       }
-      if (isEdit) {
-        const idx = projects.findIndex(function (p) { return p.code === viewState.projectForm.editCode; });
-        if (idx >= 0) projects[idx] = createProject(data);
-        viewState.projectForm.editCode = null;
-      } else {
-        projects.push(createProject(data));
+      try {
+        if (isEdit) {
+          await apiFetch('/api/projects/' + viewState.projectForm.editCode, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          viewState.projectForm.editCode = null;
+        } else {
+          await apiFetch('/api/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+        }
+        await refreshProjects();
         viewState.tables.projectList.page = Math.ceil(projects.length / (viewState.tables.projectList.pageSize || PAGE_SIZE));
+        viewState.projectForm.mode = "list";
+        viewState.projectForm.errors = {};
+        renderApp();
+      } catch (err) {
+        viewState.projectForm.errors = { _global: err.message };
+        renderApp();
       }
-      viewState.projectForm.mode = "list";
-      viewState.projectForm.errors = {};
-      renderApp();
     });
   }
 
@@ -5707,19 +6272,105 @@ function bindAppEvents() {
     orderDetailBackBtn.addEventListener("click", function () {
       viewState.orderView = "list";
       viewState.orderDetailCode = null;
-      renderApp();
+      if (viewState.approvalFrom === 'approval') {
+        viewState.approvalFrom = null;
+        window.location.hash = 'approval';
+      } else {
+        renderApp();
+      }
+    });
+  }
+
+  // S-05: 受注 承認依頼ボタン
+  const orderSubmitApprovalBtn = document.getElementById("order-submit-approval-btn");
+  if (orderSubmitApprovalBtn) {
+    orderSubmitApprovalBtn.addEventListener("click", async function() {
+      const order = orders.find(function(o) { return o.code === viewState.orderDetailCode; });
+      if (!order) return;
+      const linkedQuotation = order.quotationCode ? findQuotationByCode(quotations, order.quotationCode) : null;
+      const errors = validateOrderApprovalSubmit(order, linkedQuotation);
+      if (errors) {
+        alert(errors.join('\n'));
+        return;
+      }
+      try {
+        await apiFetch('/api/orders/' + viewState.orderDetailCode + '/submit-approval', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        await refreshOrders();
+        renderApp();
+      } catch (err) {
+        console.error('承認依頼に失敗しました:', err.message);
+      }
+    });
+  }
+
+  // S-05: 受注 承認ボタン
+  var orderApproveBtn = document.getElementById("order-approve-btn");
+  if (orderApproveBtn) {
+    orderApproveBtn.addEventListener("click", function() { openApprovalActionPanel('approve'); });
+  }
+
+  // S-05: 受注 却下ボタン
+  var orderRejectBtn = document.getElementById("order-reject-btn");
+  if (orderRejectBtn) {
+    orderRejectBtn.addEventListener("click", function() { openApprovalActionPanel('reject'); });
+  }
+
+  // P0-08: 受注 下書きに戻すボタン
+  var orderReturnDraftBtn = document.getElementById("order-return-draft-btn");
+  if (orderReturnDraftBtn) {
+    orderReturnDraftBtn.addEventListener("click", async function() {
+      try {
+        await apiFetch('/api/orders/' + viewState.orderDetailCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '下書き' })
+        });
+        await refreshOrders();
+        renderApp();
+      } catch (err) {
+        console.error('下書きに戻す操作に失敗しました:', err.message);
+      }
+    });
+  }
+
+  // P0-08: 受注 契約手続き済ボタン（管理部長のみ）
+  var orderCompleteContractBtn = document.getElementById("order-complete-contract-btn");
+  if (orderCompleteContractBtn) {
+    orderCompleteContractBtn.addEventListener("click", async function() {
+      try {
+        await apiFetch('/api/orders/' + viewState.orderDetailCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '契約手続き済' })
+        });
+        await refreshOrders();
+        renderApp();
+      } catch (err) {
+        console.error('契約手続き済操作に失敗しました:', err.message);
+      }
     });
   }
 
   // S-05: 受注ステータス変更ボタン
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-order-status]"), function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", async function () {
       const newStatus = btn.getAttribute("data-action-order-status");
       const orderCode = btn.getAttribute("data-order-code");
-      const idx = orders.findIndex(function (o) { return o.code === orderCode; });
-      if (idx < 0) return;
-      orders[idx] = updateOrderStatus(orders[idx], newStatus);
-      renderApp();
+      try {
+        await apiFetch('/api/orders/' + orderCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        await refreshOrders();
+        renderApp();
+      } catch (err) {
+        console.error('受注ステータス変更に失敗しました:', err.message);
+      }
     });
   });
 
@@ -5819,7 +6470,7 @@ function bindAppEvents() {
   // S-06: 発注登録フォーム 送信
   const podFormEl = document.getElementById("purchase-order-register-form");
   if (podFormEl) {
-    podFormEl.addEventListener("submit", function (e) {
+    podFormEl.addEventListener("submit", async function (e) {
       e.preventDefault();
       const data = viewState.purchaseOrderForm.data;
       const title = document.getElementById("f-pod-title") ? document.getElementById("f-pod-title").value : data.title;
@@ -5864,12 +6515,22 @@ function bindAppEvents() {
       saved.notes = notes;
       saved.contractMethod = contractMethod;
       saved.attachments = viewState.purchaseOrderForm.attachments.slice();
-      purchaseOrders.push(saved);
-      viewState.tables.purchaseOrderList.page = Math.ceil(purchaseOrders.length / (viewState.tables.purchaseOrderList.pageSize || PAGE_SIZE));
-      viewState.purchaseOrderForm.mode = "list";
-      viewState.purchaseOrderForm.errors = {};
-      viewState.purchaseOrderSourceCode = null;
-      renderApp();
+      try {
+        await apiFetch('/api/purchase-orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(saved)
+        });
+        await refreshPurchaseOrders();
+        viewState.tables.purchaseOrderList.page = Math.ceil(purchaseOrders.length / (viewState.tables.purchaseOrderList.pageSize || PAGE_SIZE));
+        viewState.purchaseOrderForm.mode = "list";
+        viewState.purchaseOrderForm.errors = {};
+        viewState.purchaseOrderSourceCode = null;
+        renderApp();
+      } catch (err) {
+        viewState.purchaseOrderForm.errors = { _global: err.message };
+        renderApp();
+      }
     });
   }
 
@@ -5885,12 +6546,15 @@ function bindAppEvents() {
   // S-06: 承認依頼ボタン（承認依頼→承認依頼中）
   const podSubmitApprovalBtn = document.getElementById("pod-submit-approval-btn");
   if (podSubmitApprovalBtn) {
-    podSubmitApprovalBtn.addEventListener("click", function() {
+    podSubmitApprovalBtn.addEventListener("click", async function() {
       const podCode = viewState.purchaseOrderDetailCode;
-      const idx = purchaseOrders.findIndex(function(p) { return p.code === podCode; });
-      if (idx < 0) return;
-      purchaseOrders[idx] = submitPurchaseOrderApproval(purchaseOrders[idx]);
-      renderApp();
+      try {
+        await apiFetch('/api/purchase-orders/' + podCode + '/submit-approval', { method: 'POST' });
+        await refreshPurchaseOrders();
+        renderApp();
+      } catch (err) {
+        console.error('承認依頼に失敗しました:', err.message);
+      }
     });
   }
 
@@ -5958,6 +6622,295 @@ function bindAppEvents() {
     });
   });
 
+  // S-12: 承認一覧 → 伝票詳細ドリルダウン
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action-detail-approval]"), function(btn) {
+    btn.addEventListener("click", function() {
+      const val = btn.getAttribute("data-action-detail-approval");
+      const sepIdx = val.indexOf(':');
+      const type = val.slice(0, sepIdx);
+      const code = val.slice(sepIdx + 1);
+      const route = getApprovalDetailRoute({ type: type, code: code });
+      if (!route) return;
+      viewState.approvalFrom = 'approval';
+      if (route.screen === 'quotation') {
+        viewState.quotationView = "detail";
+        viewState.quotationDetailCode = route.code;
+        window.location.hash = 'quotation';
+      } else if (route.screen === 'order') {
+        viewState.orderView = "detail";
+        viewState.orderDetailCode = route.code;
+        window.location.hash = 'sales-order';
+      } else if (route.screen === 'purchaseOrder') {
+        viewState.purchaseOrderView = "detail";
+        viewState.purchaseOrderDetailCode = route.code;
+        window.location.hash = 'purchase-order';
+      } else if (route.screen === 'payment') {
+        viewState.paymentView = "detail";
+        viewState.paymentDetailCode = route.code;
+        window.location.hash = 'payment';
+      } else if (route.screen === 'invoice') {
+        viewState.invoiceView = "detail";
+        viewState.invoiceDetailCode = route.code;
+        window.location.hash = 'invoice';
+      }
+    });
+  });
+
+  // S-12/P0-07: 承認操作 - 承認ボタン押下（見積・発注・支払依頼）
+  function currentOperatorName() {
+    const u = getSessionUser();
+    return u ? (u.name || u.id) : '';
+  }
+
+  function nowTimestamp() {
+    return new Date().toISOString().slice(0, 16).replace('T', ' ');
+  }
+
+  function openApprovalActionPanel(mode) {
+    viewState.approvalAction = { mode: mode, comment: '', commentError: null };
+    renderApp();
+  }
+
+  function closeApprovalActionPanel() {
+    viewState.approvalAction = { mode: null, comment: '', commentError: null };
+    renderApp();
+  }
+
+  function navigateBackToApproval() {
+    viewState.approvalFrom = null;
+    viewState.approvalAction = { mode: null, comment: '', commentError: null };
+    window.location.hash = 'approval';
+  }
+
+  var quotationApproveBtn = document.getElementById("quotation-approve-btn");
+  if (quotationApproveBtn) {
+    quotationApproveBtn.addEventListener("click", function() { openApprovalActionPanel('approve'); });
+  }
+
+  var quotationRejectBtn = document.getElementById("quotation-reject-btn");
+  if (quotationRejectBtn) {
+    quotationRejectBtn.addEventListener("click", function() { openApprovalActionPanel('reject'); });
+  }
+
+  // P0-02: 見積 下書きに戻すボタン
+  var quotationReturnDraftBtn = document.getElementById("quotation-return-draft-btn");
+  if (quotationReturnDraftBtn) {
+    quotationReturnDraftBtn.addEventListener("click", async function() {
+      try {
+        await apiFetch('/api/quotations/' + viewState.quotationDetailCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '下書き' })
+        });
+        await refreshQuotations();
+        renderApp();
+      } catch (err) {
+        console.error('下書きに戻す操作に失敗しました:', err.message);
+      }
+    });
+  }
+
+  var podApproveBtn = document.getElementById("pod-approve-btn");
+  if (podApproveBtn) {
+    podApproveBtn.addEventListener("click", function() { openApprovalActionPanel('approve'); });
+  }
+
+  var podRejectBtn = document.getElementById("pod-reject-btn");
+  if (podRejectBtn) {
+    podRejectBtn.addEventListener("click", function() { openApprovalActionPanel('reject'); });
+  }
+
+  var paymentApproveBtn = document.getElementById("payment-approve-btn");
+  if (paymentApproveBtn) {
+    paymentApproveBtn.addEventListener("click", function() { openApprovalActionPanel('approve'); });
+  }
+
+  var paymentRejectBtn = document.getElementById("payment-reject-btn");
+  if (paymentRejectBtn) {
+    paymentRejectBtn.addEventListener("click", function() { openApprovalActionPanel('reject'); });
+  }
+
+  var approvalCancelBtn = document.getElementById("approval-action-cancel");
+  if (approvalCancelBtn) {
+    approvalCancelBtn.addEventListener("click", closeApprovalActionPanel);
+  }
+
+  // 承認確定
+  var approvalConfirmApproveBtn = document.getElementById("approval-confirm-approve");
+  if (approvalConfirmApproveBtn) {
+    approvalConfirmApproveBtn.addEventListener("click", async function() {
+      const commentInput = document.getElementById("approval-comment-input");
+      const comment = commentInput ? commentInput.value.trim() : '';
+      viewState.approvalAction.comment = comment;
+
+      var approveEntry = buildApprovalHistoryEntry('承認', currentOperatorName(), comment, nowTimestamp());
+      if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
+        try {
+          await apiFetch('/api/quotations/' + viewState.quotationDetailCode + '/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: comment })
+          });
+          await refreshQuotations();
+          viewState.quotationView = 'list';
+          viewState.quotationDetailCode = null;
+        } catch (err) {
+          console.error('承認操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.orderDetailCode && viewState.orderView === 'detail') {
+        try {
+          await apiFetch('/api/orders/' + viewState.orderDetailCode + '/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: comment })
+          });
+          await refreshOrders();
+          viewState.orderView = 'list';
+          viewState.orderDetailCode = null;
+        } catch (err) {
+          console.error('受注承認操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.purchaseOrderDetailCode && viewState.purchaseOrderView === 'detail') {
+        try {
+          await apiFetch('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: comment })
+          });
+          await refreshPurchaseOrders();
+          viewState.purchaseOrderView = 'list';
+          viewState.purchaseOrderDetailCode = null;
+        } catch (err) {
+          console.error('発注承認操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.paymentDetailCode && viewState.paymentView === 'detail') {
+        try {
+          await apiFetch('/api/payments/' + viewState.paymentDetailCode + '/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: comment })
+          });
+          await refreshPayments();
+          viewState.paymentView = 'list';
+          viewState.paymentDetailCode = null;
+        } catch (err) {
+          console.error('支払依頼承認操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.invoiceDetailCode && viewState.invoiceView === 'detail') {
+        try {
+          var invCode = viewState.invoiceDetailCode;
+          await apiFetch('/api/invoices/' + invCode + '/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: comment })
+          });
+          var invToApprove = invoices.find(function(i) { return i.code === invCode; });
+          if (invToApprove) invToApprove.status = '承認済み';
+          await refreshInvoices();
+          viewState.invoiceView = 'list';
+          viewState.invoiceDetailCode = null;
+        } catch (err) {
+          console.error('請求承認操作に失敗しました:', err.message);
+          return;
+        }
+      }
+      navigateBackToApproval();
+    });
+  }
+
+  // 却下確定
+  var approvalConfirmRejectBtn = document.getElementById("approval-confirm-reject");
+  if (approvalConfirmRejectBtn) {
+    approvalConfirmRejectBtn.addEventListener("click", async function() {
+      const commentInput = document.getElementById("approval-comment-input");
+      const comment = commentInput ? commentInput.value.trim() : '';
+      if (!comment) {
+        viewState.approvalAction.commentError = '却下理由は必須です。';
+        renderApp();
+        return;
+      }
+      viewState.approvalAction.comment = comment;
+
+      var rejectEntry = buildApprovalHistoryEntry('却下', currentOperatorName(), comment, nowTimestamp());
+      if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
+        try {
+          await apiFetch('/api/quotations/' + viewState.quotationDetailCode + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: comment })
+          });
+          await refreshQuotations();
+          viewState.quotationView = 'list';
+          viewState.quotationDetailCode = null;
+        } catch (err) {
+          console.error('却下操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.orderDetailCode && viewState.orderView === 'detail') {
+        try {
+          await apiFetch('/api/orders/' + viewState.orderDetailCode + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: comment })
+          });
+          await refreshOrders();
+          viewState.orderView = 'list';
+          viewState.orderDetailCode = null;
+        } catch (err) {
+          console.error('受注却下操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.purchaseOrderDetailCode && viewState.purchaseOrderView === 'detail') {
+        try {
+          await apiFetch('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: comment })
+          });
+          await refreshPurchaseOrders();
+          viewState.purchaseOrderView = 'list';
+          viewState.purchaseOrderDetailCode = null;
+        } catch (err) {
+          console.error('発注却下操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.paymentDetailCode && viewState.paymentView === 'detail') {
+        try {
+          await apiFetch('/api/payments/' + viewState.paymentDetailCode + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: comment })
+          });
+          await refreshPayments();
+          viewState.paymentView = 'list';
+          viewState.paymentDetailCode = null;
+        } catch (err) {
+          console.error('支払依頼却下操作に失敗しました:', err.message);
+          return;
+        }
+      } else if (viewState.invoiceDetailCode && viewState.invoiceView === 'detail') {
+        try {
+          await apiFetch('/api/invoices/' + viewState.invoiceDetailCode + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: comment })
+          });
+          await refreshInvoices();
+          viewState.invoiceView = 'list';
+          viewState.invoiceDetailCode = null;
+        } catch (err) {
+          console.error('請求却下操作に失敗しました:', err.message);
+          return;
+        }
+      }
+      navigateBackToApproval();
+    });
+  }
+
   // S-15: 設定タブ切り替え
   Array.prototype.forEach.call(document.querySelectorAll("[data-settings-tab]"), function(btn) {
     btn.addEventListener("click", function() {
@@ -5970,7 +6923,7 @@ function bindAppEvents() {
   // S-15: 会社情報フォーム保存
   var settingsCompanyForm = document.getElementById("settings-company-form");
   if (settingsCompanyForm) {
-    settingsCompanyForm.addEventListener("submit", function(e) {
+    settingsCompanyForm.addEventListener("submit", async function(e) {
       e.preventDefault();
       const name = document.getElementById("s-company-name").value.trim();
       const errors = {};
@@ -5980,23 +6933,125 @@ function bindAppEvents() {
         renderApp();
         return;
       }
-      viewState.settings.name = name;
-      viewState.settings.address = document.getElementById("s-company-address").value.trim();
-      viewState.settings.phone = document.getElementById("s-company-phone").value.trim();
-      viewState.settingsErrors = {};
-      renderApp();
+      try {
+        const patch = {
+          name: name,
+          address: document.getElementById("s-company-address").value.trim(),
+          phone: document.getElementById("s-company-phone").value.trim()
+        };
+        await apiFetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
+        Object.assign(viewState.settings, patch);
+        viewState.settingsErrors = {};
+        renderApp();
+      } catch (err) {
+        viewState.settingsErrors = { _global: err.message };
+        renderApp();
+      }
     });
   }
 
   // S-15: 年度設定フォーム保存
   var settingsFiscalForm = document.getElementById("settings-fiscal-form");
   if (settingsFiscalForm) {
-    settingsFiscalForm.addEventListener("submit", function(e) {
+    settingsFiscalForm.addEventListener("submit", async function(e) {
       e.preventDefault();
       const month = parseInt(document.getElementById("s-fiscal-end-month").value, 10);
-      viewState.settings.fiscalEndMonth = month;
-      viewState.reportFilter.year = "all";
-      viewState.settingsErrors = {};
+      try {
+        await apiFetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fiscalEndMonth: month }) });
+        viewState.settings.fiscalEndMonth = month;
+        viewState.reportFilter.year = "all";
+        viewState.settingsErrors = {};
+        renderApp();
+      } catch (err) {
+        viewState.settingsErrors = { _global: err.message };
+        renderApp();
+      }
+    });
+  }
+
+  // P0-11: 承認ルート設定 - 伝票種別選択
+  var routeDoctypeSelect = document.querySelector("[data-action-route-doctype]");
+  if (routeDoctypeSelect) {
+    routeDoctypeSelect.addEventListener("change", function() {
+      viewState.approvalRouteForm.documentType = routeDoctypeSelect.value;
+      viewState.approvalRouteForm.newApproverUserId = '';
+      renderApp();
+    });
+  }
+
+  // P0-11 / S-15: 承認ルート設定 - ステップ追加
+  var routeAddStepBtn = document.getElementById("s-route-add-step");
+  if (routeAddStepBtn) {
+    routeAddStepBtn.addEventListener("click", async function() {
+      const approverSelect = document.getElementById("s-route-new-approver");
+      const approverUserId = approverSelect ? approverSelect.value : '';
+      if (!approverUserId) return;
+      const docType = viewState.approvalRouteForm.documentType;
+      const existing = viewState.approvalRoutes.filter(function(r) { return r.documentType === docType; });
+      const maxStep = existing.reduce(function(max, r) { return Math.max(max, r.stepNumber); }, 0);
+      try {
+        await apiFetch('/api/approval-routes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documentType: docType, stepNumber: maxStep + 1, approverUserId: approverUserId })
+        });
+        viewState.approvalRoutes = addRouteStep(viewState.approvalRoutes, docType, approverUserId);
+        await refreshApprovalRoutes();
+        viewState.approvalRouteForm.newApproverUserId = '';
+        renderApp();
+      } catch (err) {
+        console.error('承認ルート追加に失敗しました:', err.message);
+      }
+    });
+  }
+
+  // P0-11 / S-15: 承認ルート設定 - ステップ削除
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action-remove-route]"), function(btn) {
+    btn.addEventListener("click", async function() {
+      const val = btn.getAttribute("data-action-remove-route");
+      const numId = Number(val);
+      if (!isNaN(numId) && numId > 0) {
+        try {
+          await apiFetch('/api/approval-routes/' + numId, { method: 'DELETE' });
+          await refreshApprovalRoutes();
+          renderApp();
+        } catch (err) {
+          console.error('承認ルート削除に失敗しました:', err.message);
+        }
+      } else {
+        const parts = val.split(':');
+        const docType = parts[0];
+        const stepNumber = parseInt(parts[1], 10);
+        viewState.approvalRoutes = removeRouteStep(viewState.approvalRoutes, docType, stepNumber);
+        renderApp();
+      }
+    });
+  });
+
+  // P0-12 / S-15: 承認条件設定フォーム保存
+  var approvalConditionForm = document.getElementById("settings-approval-condition-form");
+  if (approvalConditionForm) {
+    approvalConditionForm.addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const profitRate = parseInt(document.getElementById("s-condition-profit-rate").value, 10);
+      const amount = parseInt(document.getElementById("s-condition-amount").value, 10);
+      const staleDays = parseInt(document.getElementById("s-condition-stale-days").value, 10);
+      const errors = validateApprovalConditionSettings(profitRate, amount, staleDays);
+      if (Object.keys(errors).length > 0) {
+        viewState.approvalConditionErrors = errors;
+        renderApp();
+        return;
+      }
+      const updated = buildApprovalConditionSettings(profitRate, amount, staleDays);
+      try {
+        await apiFetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+        viewState.settings.presidentApprovalProfitRateThreshold = updated.presidentApprovalProfitRateThreshold;
+        viewState.settings.presidentApprovalAmountThreshold = updated.presidentApprovalAmountThreshold;
+        viewState.settings.approvalStaleDays = updated.approvalStaleDays;
+        viewState.approvalConditionErrors = {};
+      } catch (err) {
+        viewState.approvalConditionErrors = { _global: err.message };
+      }
       renderApp();
     });
   }
@@ -6043,19 +7098,44 @@ function bindAppEvents() {
     podDetailBackBtn.addEventListener("click", function() {
       viewState.purchaseOrderView = "list";
       viewState.purchaseOrderDetailCode = null;
-      renderApp();
+      if (viewState.approvalFrom === 'approval') {
+        viewState.approvalFrom = null;
+        window.location.hash = 'approval';
+      } else {
+        renderApp();
+      }
     });
   }
 
   // S-06: 発注ステータス変更
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-pod-status]"), function(btn) {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", async function() {
       const newStatus = btn.getAttribute("data-action-pod-status");
       const podCode = btn.getAttribute("data-pod-code");
-      const idx = purchaseOrders.findIndex(function(p) { return p.code === podCode; });
-      if (idx < 0) return;
-      purchaseOrders[idx] = updatePurchaseOrderStatus(purchaseOrders[idx], newStatus);
+      var pod = purchaseOrders.find(function(p) { return p.code === podCode; });
+      if (pod) { pod.status = newStatus; }
       renderApp();
+      try {
+        await apiFetch('/api/purchase-orders/' + podCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        await refreshPurchaseOrders();
+        renderApp();
+      } catch (err) {
+        console.error('発注ステータス変更に失敗しました:', err.message);
+      }
+    });
+  });
+
+  // S-07: 納品一覧から発注詳細へのナビゲーション
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action-goto-purchase-order]"), function(btn) {
+    btn.addEventListener("click", function() {
+      const podCode = btn.getAttribute("data-action-goto-purchase-order");
+      viewState.purchaseOrderDetailCode = podCode;
+      viewState.purchaseOrderView = "detail";
+      window.location.hash = "#/purchase-order";
     });
   });
 
@@ -6063,9 +7143,7 @@ function bindAppEvents() {
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-delivery-register]"), function(btn) {
     btn.addEventListener("click", function() {
       const podCode = btn.getAttribute("data-action-delivery-register");
-      const newCode = generateDeliveryCode(deliveries.map(function(d) { return d.code; }));
       viewState.deliveryForm.data = {
-        code: newCode,
         purchaseOrderCode: podCode,
         deliveryDate: "",
         notes: ""
@@ -6079,11 +7157,23 @@ function bindAppEvents() {
   // S-07: 納品登録フォーム送信
   const deliveryRegisterForm = document.getElementById("delivery-register-form");
   if (deliveryRegisterForm) {
-    deliveryRegisterForm.addEventListener("submit", function(e) {
+    deliveryRegisterForm.addEventListener("submit", async function(e) {
       e.preventDefault();
       const data = viewState.deliveryForm.data;
       const deliveryDate = document.getElementById("f-dlv-date") ? document.getElementById("f-dlv-date").value : data.deliveryDate;
       const notes = document.getElementById("f-dlv-notes") ? document.getElementById("f-dlv-notes").value : data.notes;
+
+      // Read quantities from form before DOM is cleared
+      const pod = findPurchaseOrderByCode(purchaseOrders, data.purchaseOrderCode);
+      const formDetails = [];
+      if (pod && pod.details) {
+        pod.details.forEach(function(line) {
+          var qtyInput = document.getElementById('f-dlv-qty-' + line.lineNo);
+          var qty = qtyInput ? (parseInt(qtyInput.value, 10) || 0) : line.quantity;
+          formDetails.push({ lineNo: line.lineNo, deliveredQuantity: qty });
+        });
+      }
+
       const errors = {};
       if (!deliveryDate) errors.deliveryDate = "納品日は必須です";
       if (Object.keys(errors).length > 0) {
@@ -6091,23 +7181,45 @@ function bindAppEvents() {
         renderApp();
         return;
       }
-      const pod = findPurchaseOrderByCode(purchaseOrders, data.purchaseOrderCode);
-      const dlvDetails = (pod ? pod.details || [] : []).map(function(d) {
-        const qtyInput = document.getElementById("f-dlv-qty-" + d.lineNo);
-        const deliveredQuantity = qtyInput ? parseInt(qtyInput.value, 10) || 0 : d.quantity;
-        return { lineNo: d.lineNo, deliveredQuantity: deliveredQuantity };
-      });
-      const newDelivery = Object.assign(createDelivery(data.code, data.purchaseOrderCode, deliveryDate, notes), { details: dlvDetails });
-      deliveries.push(newDelivery);
-      const podIdx = purchaseOrders.findIndex(function(p) { return p.code === data.purchaseOrderCode; });
-      if (podIdx >= 0) {
-        const newStatus = isFullyDelivered(purchaseOrders[podIdx], deliveries) ? '納品済' : '一部納品';
-        purchaseOrders[podIdx] = updatePurchaseOrderStatus(purchaseOrders[podIdx], newStatus);
+      try {
+        const newDelivery = await apiFetch('/api/deliveries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ purchaseOrderCode: data.purchaseOrderCode, deliveryDate: deliveryDate, notes: notes })
+        });
+
+        // Optimistic: add new delivery to local array
+        var newDlvCode = generateDeliveryCode(deliveries.map(function(d) { return d.code; }));
+        var localDelivery = createDelivery(newDlvCode, data.purchaseOrderCode, deliveryDate, notes);
+        localDelivery.details = formDetails;
+        deliveries.push(localDelivery);
+
+        await refreshDeliveries();
+
+        if (pod) {
+          // Compute POD status from ALL deliveries (any status, sum across all)
+          var podDeliveries = deliveries.filter(function(d) { return d.purchaseOrderCode === data.purchaseOrderCode; });
+          var podLines = pod.details || [];
+          var allFull = podLines.length === 0 || podLines.every(function(line) {
+            var totalDelivered = podDeliveries.reduce(function(sum, dlv) {
+              var detail = (dlv.details || []).find(function(d) { return d.lineNo === line.lineNo; });
+              return sum + (detail ? detail.deliveredQuantity || 0 : 0);
+            }, 0);
+            return totalDelivered >= line.quantity;
+          });
+          var newStatus = allFull ? '納品済' : '一部納品';
+          pod.status = newStatus;
+          await apiFetch('/api/purchase-orders/' + data.purchaseOrderCode, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
+          await refreshPurchaseOrders();
+        }
+        viewState.deliveryView = "list";
+        viewState.deliveryForm.errors = {};
+        viewState.purchaseOrderView = "detail";
+        renderApp();
+      } catch (err) {
+        viewState.deliveryForm.errors = { _global: err.message };
+        renderApp();
       }
-      viewState.deliveryView = "list";
-      viewState.deliveryForm.errors = {};
-      viewState.purchaseOrderView = "detail";
-      renderApp();
     });
   }
 
@@ -6124,23 +7236,41 @@ function bindAppEvents() {
 
   // S-07: 検収済にするボタン
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-accept-delivery]"), function(btn) {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", async function() {
       const dlvCode = btn.getAttribute("data-action-accept-delivery");
-      const idx = deliveries.findIndex(function(d) { return d.code === dlvCode; });
-      if (idx < 0) return;
-      deliveries[idx] = acceptDelivery(deliveries[idx]);
-      renderApp();
+      try {
+        await apiFetch('/api/deliveries/' + encodeURIComponent(dlvCode), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '検収済' })
+        });
+        var dlv = deliveries.find(function(d) { return d.code === dlvCode; });
+        if (dlv) { dlv.status = '検収済'; }
+        await refreshDeliveries();
+        renderApp();
+      } catch (err) {
+        console.error('検収操作に失敗しました:', err.message);
+      }
     });
   });
 
   // S-07: 検収NGボタン
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-reject-delivery]"), function(btn) {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", async function() {
       const dlvCode = btn.getAttribute("data-action-reject-delivery");
-      const idx = deliveries.findIndex(function(d) { return d.code === dlvCode; });
-      if (idx < 0) return;
-      deliveries[idx] = rejectDelivery(deliveries[idx]);
-      renderApp();
+      try {
+        await apiFetch('/api/deliveries/' + encodeURIComponent(dlvCode), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '検収NG' })
+        });
+        var dlv = deliveries.find(function(d) { return d.code === dlvCode; });
+        if (dlv) { dlv.status = '検収NG'; }
+        await refreshDeliveries();
+        renderApp();
+      } catch (err) {
+        console.error('検収NG操作に失敗しました:', err.message);
+      }
     });
   });
 
@@ -6159,20 +7289,80 @@ function bindAppEvents() {
     invoiceDetailBackBtn.addEventListener("click", function() {
       viewState.invoiceView = "list";
       viewState.invoiceDetailCode = null;
-      renderApp();
+      if (viewState.approvalFrom === 'approval') {
+        viewState.approvalFrom = null;
+        viewState.approvalAction = { mode: null, comment: '', commentError: null };
+        window.location.hash = 'approval';
+      } else {
+        renderApp();
+      }
+    });
+  }
+
+  // S-08 P0-09: 請求承認依頼ボタン
+  const invoiceSubmitApprovalBtn = document.getElementById("invoice-submit-approval-btn");
+  if (invoiceSubmitApprovalBtn) {
+    invoiceSubmitApprovalBtn.addEventListener("click", async function() {
+      try {
+        await apiFetch('/api/invoices/' + viewState.invoiceDetailCode + '/submit-approval', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        var inv = invoices.find(function(i) { return i.code === viewState.invoiceDetailCode; });
+        if (inv) inv.status = '承認依頼中';
+        await refreshInvoices();
+        renderApp();
+      } catch (err) {
+        console.error('請求承認依頼に失敗しました:', err.message);
+      }
+    });
+  }
+
+  // S-08 P0-09: 請求承認・却下ボタン
+  var invoiceApproveBtn = document.getElementById("invoice-approve-btn");
+  if (invoiceApproveBtn) {
+    invoiceApproveBtn.addEventListener("click", function() { openApprovalActionPanel('approve'); });
+  }
+
+  var invoiceRejectBtn = document.getElementById("invoice-reject-btn");
+  if (invoiceRejectBtn) {
+    invoiceRejectBtn.addEventListener("click", function() { openApprovalActionPanel('reject'); });
+  }
+
+  // P0-09: 請求 下書きに戻すボタン
+  var invoiceReturnDraftBtn = document.getElementById("invoice-return-draft-btn");
+  if (invoiceReturnDraftBtn) {
+    invoiceReturnDraftBtn.addEventListener("click", async function() {
+      try {
+        await apiFetch('/api/invoices/' + viewState.invoiceDetailCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '下書き' })
+        });
+        await refreshInvoices();
+        renderApp();
+      } catch (err) {
+        console.error('下書きに戻す操作に失敗しました:', err.message);
+      }
     });
   }
 
   // S-08: 請求ステータス変更ボタン（詳細画面から）
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-invoice-status]"), function(btn) {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", async function() {
       const newStatus = btn.getAttribute("data-action-invoice-status");
-      const idx = invoices.findIndex(function(inv) { return inv.code === viewState.invoiceDetailCode; });
-      if (idx < 0) return;
-      if (newStatus === '確定') invoices[idx] = confirmInvoice(invoices[idx]);
-      else if (newStatus === '送付済') invoices[idx] = markInvoiceAsSent(invoices[idx]);
-      else if (newStatus === 'キャンセル') invoices[idx] = cancelInvoice(invoices[idx]);
-      renderApp();
+      try {
+        await apiFetch('/api/invoices/' + viewState.invoiceDetailCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        await refreshInvoices();
+        renderApp();
+      } catch (err) {
+        console.error('請求ステータス変更に失敗しました:', err.message);
+      }
     });
   });
 
@@ -6196,31 +7386,43 @@ function bindAppEvents() {
 
   // S-08: 請求起票ボタン（請求対象一覧から：インライン日付で直接作成）
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-create-invoice]"), function(btn) {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", async function() {
       const orderCode = btn.getAttribute("data-action-create-invoice");
-      const order = findOrderByCode(orders, orderCode);
-      if (!order) return;
       const dateInput = document.querySelector('[data-inv-date-for="' + orderCode + '"]');
       const dueDateInput = document.querySelector('[data-inv-due-date-for="' + orderCode + '"]');
       const invoiceDate = dateInput ? dateInput.value : "";
       const dueDate = dueDateInput ? dueDateInput.value : "";
       if (!invoiceDate || !dueDate) return;
-      const newCode = generateInvoiceCode(invoices.map(function(inv) { return inv.code; }));
-      const newInvoice = createInvoiceFromOrder(order, newCode, invoiceDate, dueDate);
-      invoices.push(newInvoice);
-      viewState.invoiceView = "billable";
-      renderApp();
+      try {
+        await apiFetch('/api/invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderCode: orderCode, invoiceDate: invoiceDate, dueDate: dueDate })
+        });
+        await refreshInvoices();
+        viewState.invoiceView = "billable";
+        renderApp();
+      } catch (err) {
+        console.error('請求起票に失敗しました:', err.message);
+      }
     });
   });
 
   // S-05: 請求対象化ボタン
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-billing-target]"), function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", async function () {
       const orderCode = btn.getAttribute("data-action-billing-target");
-      const idx = orders.findIndex(function (o) { return o.code === orderCode; });
-      if (idx < 0) return;
-      orders[idx] = markAsBillingTarget(orders[idx]);
-      renderApp();
+      try {
+        await apiFetch('/api/orders/' + orderCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ billingTarget: true })
+        });
+        await refreshOrders();
+        renderApp();
+      } catch (err) {
+        console.error('請求対象化操作に失敗しました:', err.message);
+      }
     });
   });
 
@@ -6324,7 +7526,7 @@ function bindAppEvents() {
   // S-05: 受注登録フォーム 送信
   const orderFormEl = document.getElementById("order-register-form");
   if (orderFormEl) {
-    orderFormEl.addEventListener("submit", function (e) {
+    orderFormEl.addEventListener("submit", async function (e) {
       e.preventDefault();
       const data = viewState.orderForm.data;
       const orderDate = document.getElementById("f-order-date") ? document.getElementById("f-order-date").value : data.orderDate;
@@ -6341,17 +7543,27 @@ function bindAppEvents() {
         return;
       }
 
-      const quotation = findQuotationByCode(quotations, data.quotationCode);
-      const saved = createOrderFromQuotation(quotation || data, data.code, orderDate);
-      saved.title = title;
-      saved.deliveryDate = deliveryDate;
-      saved.notes = notes;
-      saved.attachments = viewState.orderForm.attachments.slice();
-      orders.push(saved);
-      viewState.tables.orderList.page = Math.ceil(orders.length / (viewState.tables.orderList.pageSize || PAGE_SIZE));
-      viewState.orderForm.mode = "list";
-      viewState.orderForm.errors = {};
-      renderApp();
+      try {
+        await apiFetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quotationCode: data.quotationCode,
+            title: title,
+            orderDate: orderDate,
+            deliveryDate: deliveryDate,
+            notes: notes
+          })
+        });
+        await refreshOrders();
+        viewState.tables.orderList.page = Math.ceil(orders.length / (viewState.tables.orderList.pageSize || PAGE_SIZE));
+        viewState.orderForm.mode = "list";
+        viewState.orderForm.errors = {};
+        renderApp();
+      } catch (err) {
+        viewState.orderForm.errors = { _api: err.message };
+        renderApp();
+      }
     });
   }
 
@@ -6361,7 +7573,12 @@ function bindAppEvents() {
     quotationDetailBackBtn.addEventListener("click", function () {
       viewState.quotationView = "list";
       viewState.quotationDetailCode = null;
-      renderApp();
+      if (viewState.approvalFrom === 'approval') {
+        viewState.approvalFrom = null;
+        window.location.hash = 'approval';
+      } else {
+        renderApp();
+      }
     });
   }
 
@@ -6549,27 +7766,36 @@ function bindAppEvents() {
     });
   }
 
-  // S-04: 見積 フォーム送信（ワークフローアクション）
+  // S-04: 見積 フォーム送信（API統合版）
   const quotationFormEl = document.getElementById("quotation-register-form");
   if (quotationFormEl) {
-    quotationFormEl.addEventListener("submit", function (e) {
+    quotationFormEl.addEventListener("submit", async function (e) {
       e.preventDefault();
       const action = (e.submitter && e.submitter.getAttribute("data-quo-action")) || "draft";
       const isEdit = viewState.quotationForm.mode === "edit";
+      const editCode = viewState.quotationForm.editCode;
       const data = viewState.quotationForm.data;
 
-      // 承認・失注はバリデーション不要でステータスを更新
+      // 承認・失注はステータスをPATCHで更新
       if (action === "approve" || action === "lost") {
         const statusMap = { approve: "承認済み", lost: "失注" };
-        const idx = quotations.findIndex(function (q) { return q.code === viewState.quotationForm.editCode; });
-        if (idx >= 0) quotations[idx] = Object.assign({}, quotations[idx], { status: statusMap[action] });
+        try {
+          await apiFetch('/api/quotations/' + editCode, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: statusMap[action] })
+          });
+          await refreshQuotations();
+        } catch (err) {
+          viewState.quotationForm.errors = { _api: err.message };
+        }
         viewState.quotationForm.mode = "list";
         viewState.quotationForm.errors = {};
         renderApp();
         return;
       }
 
-      // 却下は却下理由が必須
+      // 却下は却下理由が必須 → POST /api/quotations/:code/reject
       if (action === "reject") {
         const reason = (data.rejectReason || "").trim();
         if (!reason) {
@@ -6577,8 +7803,16 @@ function bindAppEvents() {
           renderApp();
           return;
         }
-        const idx = quotations.findIndex(function (q) { return q.code === viewState.quotationForm.editCode; });
-        if (idx >= 0) quotations[idx] = rejectQuotation(quotations[idx], reason);
+        try {
+          await apiFetch('/api/quotations/' + editCode + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: reason })
+          });
+          await refreshQuotations();
+        } catch (err) {
+          viewState.quotationForm.errors = { _api: err.message };
+        }
         viewState.quotationForm.mode = "list";
         viewState.quotationForm.errors = {};
         renderApp();
@@ -6586,25 +7820,14 @@ function bindAppEvents() {
       }
 
       // 下書き保存・承認依頼はバリデーションあり
-      const targetStatus = action === "request" ? "承認依頼中" : "下書き";
-      const existingCodes = quotations.map(function (q) { return q.code; });
-      const rules = Object.assign(
-        isEdit ? {} : {
-          code: [
-            { type: "required", fieldName: "見積番号" },
-            { type: "maxLength", max: 20, fieldName: "見積番号" },
-            { type: "unique", existingValues: existingCodes, fieldName: "見積番号" }
-          ]
-        },
-        {
-          title: [
-            { type: "required", fieldName: "見積件名" },
-            { type: "maxLength", max: 100, fieldName: "見積件名" }
-          ],
-          projectCode: [{ type: "required", fieldName: "案件" }],
-          issueDate: [{ type: "required", fieldName: "発行日" }]
-        }
-      );
+      const rules = {
+        title: [
+          { type: "required", fieldName: "見積件名" },
+          { type: "maxLength", max: 100, fieldName: "見積件名" }
+        ],
+        projectCode: [{ type: "required", fieldName: "案件" }],
+        issueDate: [{ type: "required", fieldName: "発行日" }]
+      };
       const errors = validateForm(data, rules);
       const hasError = Object.keys(errors).some(function (k) { return errors[k] !== null; });
       if (hasError) {
@@ -6612,20 +7835,48 @@ function bindAppEvents() {
         renderApp();
         return;
       }
-      const saved = createQuotation(Object.assign({}, data, {
-        status: targetStatus,
+
+      const body = {
+        title: data.title,
+        projectCode: data.projectCode,
+        customerId: data.customerId,
+        issueDate: data.issueDate,
+        validityDate: data.validityDate,
+        notes: data.notes,
         details: viewState.quotationForm.details
-      }));
-      if (isEdit) {
-        const idx = quotations.findIndex(function (q) { return q.code === viewState.quotationForm.editCode; });
-        if (idx >= 0) quotations[idx] = saved;
+      };
+
+      try {
+        var targetCode = editCode;
+        if (isEdit) {
+          await apiFetch('/api/quotations/' + editCode, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        } else {
+          var created = await apiFetch('/api/quotations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          targetCode = created.code;
+        }
+        // 承認依頼時はsubmit-approvalも呼び出す
+        if (action === "request") {
+          await apiFetch('/api/quotations/' + targetCode + '/submit-approval', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+          });
+        }
+        await refreshQuotations();
+        viewState.quotationForm.mode = "list";
+        viewState.quotationForm.errors = {};
         viewState.quotationForm.editCode = null;
-      } else {
-        quotations.push(saved);
-        viewState.tables.quotationList.page = Math.ceil(quotations.length / (viewState.tables.quotationList.pageSize || PAGE_SIZE));
+      } catch (err) {
+        viewState.quotationForm.errors = { _api: err.message };
       }
-      viewState.quotationForm.mode = "list";
-      viewState.quotationForm.errors = {};
       renderApp();
     });
   }
@@ -6653,7 +7904,7 @@ function bindAppEvents() {
   // S-09: 入金登録フォームサブミット
   const receiptRegisterForm = document.getElementById("receipt-register-form");
   if (receiptRegisterForm) {
-    receiptRegisterForm.addEventListener("submit", function(e) {
+    receiptRegisterForm.addEventListener("submit", async function(e) {
       e.preventDefault();
       const dateVal = document.getElementById("f-rcp-date").value;
       const amountVal = document.getElementById("f-rcp-amount").value;
@@ -6671,23 +7922,28 @@ function bindAppEvents() {
       }
 
       const invoiceCode = viewState.receiptForm.invoiceCode;
-      const newCode = generateReceiptCode(receipts.map(function(r) { return r.code; }));
-      const newReceipt = createReceipt(newCode, invoiceCode, dateVal, Number(amountVal), Number(feeVal) || 0, notesVal);
-      receipts.push(newReceipt);
-
-      const idx = invoices.findIndex(function(inv) { return inv.code === invoiceCode; });
-      if (idx >= 0) {
-        if (isFullyPaid(invoices[idx], receipts)) {
-          invoices[idx] = Object.assign({}, invoices[idx], { status: '入金済' });
-        } else {
-          invoices[idx] = Object.assign({}, invoices[idx], { status: '一部入金' });
-        }
+      try {
+        await apiFetch('/api/receipts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invoiceCode: invoiceCode,
+            receiptDate: dateVal,
+            amount: Number(amountVal),
+            fee: Number(feeVal) || 0,
+            notes: notesVal
+          })
+        });
+        await refreshReceipts();
+        await refreshInvoices();
+        viewState.invoiceView = "detail";
+        viewState.invoiceDetailCode = invoiceCode;
+        viewState.receiptForm = { invoiceCode: null, errors: {} };
+        renderApp();
+      } catch (err) {
+        viewState.receiptForm.errors = { _global: err.message };
+        renderApp();
       }
-
-      viewState.invoiceView = "detail";
-      viewState.invoiceDetailCode = invoiceCode;
-      viewState.receiptForm = { invoiceCode: null, errors: {} };
-      renderApp();
     });
   }
 
@@ -6706,21 +7962,31 @@ function bindAppEvents() {
     paymentDetailBackBtn.addEventListener("click", function() {
       viewState.paymentView = "list";
       viewState.paymentDetailCode = null;
-      renderApp();
+      if (viewState.approvalFrom === 'approval') {
+        viewState.approvalFrom = null;
+        window.location.hash = 'approval';
+      } else {
+        renderApp();
+      }
     });
   }
 
   // S-10: 支払ステータス変更ボタン（詳細画面から）
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-payment-status]"), function(btn) {
-    btn.addEventListener("click", function() {
+    btn.addEventListener("click", async function() {
       const newStatus = btn.getAttribute("data-action-payment-status");
-      const idx = payments.findIndex(function(p) { return p.code === viewState.paymentDetailCode; });
-      if (idx < 0) return;
-      if (newStatus === '承認待ち') payments[idx] = submitPaymentApproval(payments[idx]);
-      else if (newStatus === '承認済') payments[idx] = approvePayment(payments[idx]);
-      else if (newStatus === '差戻し') payments[idx] = rejectPayment(payments[idx]);
-      else if (newStatus === 'キャンセル') payments[idx] = cancelPayment(payments[idx]);
-      renderApp();
+      const pmtCode = viewState.paymentDetailCode;
+      try {
+        if (newStatus === '承認待ち') {
+          await apiFetch('/api/payments/' + pmtCode + '/submit-approval', { method: 'POST' });
+        } else if (newStatus === 'キャンセル') {
+          await apiFetch('/api/payments/' + pmtCode + '/cancel', { method: 'POST' });
+        }
+        await refreshPayments();
+        renderApp();
+      } catch (err) {
+        console.error('支払依頼ステータス変更に失敗しました:', err.message);
+      }
     });
   });
 
@@ -6747,7 +8013,7 @@ function bindAppEvents() {
   // S-10: 支払登録フォームサブミット
   const paymentExecForm = document.getElementById("payment-exec-form");
   if (paymentExecForm) {
-    paymentExecForm.addEventListener("submit", function(e) {
+    paymentExecForm.addEventListener("submit", async function(e) {
       e.preventDefault();
       const dateVal = document.getElementById("f-pmte-date").value;
       const amountVal = document.getElementById("f-pmte-amount").value;
@@ -6762,17 +8028,16 @@ function bindAppEvents() {
         return;
       }
 
-      const idx = payments.findIndex(function(p) { return p.code === viewState.paymentDetailCode; });
-      if (idx >= 0) {
-        payments[idx] = Object.assign({}, registerPayment(payments[idx]), {
-          paidDate: dateVal,
-          paidAmount: Number(amountVal)
-        });
+      try {
+        await apiFetch('/api/payments/' + viewState.paymentDetailCode + '/register', { method: 'POST' });
+        await refreshPayments();
+        viewState.paymentView = "detail";
+        viewState.paymentForm = { purchaseOrderCode: null, errors: {} };
+        renderApp();
+      } catch (err) {
+        viewState.paymentForm.errors = { _global: err.message };
+        renderApp();
       }
-
-      viewState.paymentView = "detail";
-      viewState.paymentForm = { purchaseOrderCode: null, errors: {} };
-      renderApp();
     });
   }
 
@@ -6817,7 +8082,7 @@ function bindAppEvents() {
   // S-10: 支払依頼登録フォームサブミット
   const paymentRegisterForm = document.getElementById("payment-register-form");
   if (paymentRegisterForm) {
-    paymentRegisterForm.addEventListener("submit", function(e) {
+    paymentRegisterForm.addEventListener("submit", async function(e) {
       e.preventDefault();
       const dateVal = document.getElementById("f-pmt-date").value;
       const amountVal = document.getElementById("f-pmt-amount").value;
@@ -6836,15 +8101,43 @@ function bindAppEvents() {
 
       const poCode = viewState.paymentForm.purchaseOrderCode;
       const po = purchaseOrders.find(function(p) { return p.code === poCode; });
-      const newCode = generatePaymentCode(payments.map(function(p) { return p.code; }));
-      const newPayment = createPaymentRequest(newCode, poCode, po ? po.supplierId : '', titleVal, dateVal, Number(amountVal), notesVal);
-      payments.push(newPayment);
-
-      viewState.paymentView = "list";
-      viewState.paymentForm = { purchaseOrderCode: null, errors: {} };
-      renderApp();
+      try {
+        await apiFetch('/api/payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            purchaseOrderCode: poCode,
+            supplierId: po ? po.supplierId : '',
+            title: titleVal,
+            paymentDate: dateVal,
+            amount: Number(amountVal),
+            notes: notesVal
+          })
+        });
+        await refreshPayments();
+        viewState.paymentView = "list";
+        viewState.paymentForm = { purchaseOrderCode: null, errors: {} };
+        renderApp();
+      } catch (err) {
+        viewState.paymentForm.errors = { _global: err.message };
+        renderApp();
+      }
     });
   }
+
+  // S-14: 通知既読ボタン
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action-mark-read]"), function(btn) {
+    btn.addEventListener("click", async function() {
+      const id = btn.getAttribute("data-action-mark-read");
+      try {
+        await apiFetch('/api/notifications/' + encodeURIComponent(id) + '/read', { method: 'PUT' });
+        await refreshNotifications();
+        renderApp();
+      } catch (err) {
+        console.error('既読処理に失敗しました:', err.message);
+      }
+    });
+  });
 }
 
 function exportReportCsv(rows, keys, labels, filename) {
@@ -6942,5 +8235,19 @@ function exportSupplierCsv() {
   URL.revokeObjectURL(link.href);
 }
 
-window.addEventListener("hashchange", renderApp);
-renderApp();
+async function handleHashChange() {
+  var route = getRoute();
+  if (route === 'quotation') await refreshQuotations();
+  if (route === 'sales-order') await refreshOrders();
+  if (route === 'invoice') { await refreshInvoices(); await refreshReceipts(); }
+  if (route === 'project') await refreshProjects();
+  if (route === 'purchase-order') await refreshPurchaseOrders();
+  if (route === 'delivery') await refreshDeliveries();
+  if (route === 'receipt') await refreshReceipts();
+  if (route === 'payment') await refreshPayments();
+  if (route === 'notification') await refreshNotifications();
+  if (route === 'settings') { await refreshSettings(); await refreshApprovalRoutes(); }
+  renderApp();
+}
+window.addEventListener("hashchange", handleHashChange);
+initSession();

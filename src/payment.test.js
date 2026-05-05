@@ -233,15 +233,26 @@ describe('approvePayment', () => {
 });
 
 describe('rejectPayment', () => {
-  it('should return payment with status 差戻し', () => {
+  it('should return payment with status 却下 when payment is rejected', () => {
     // Arrange
     const payment = { code: 'PMT-00001', status: '承認待ち' };
 
     // Act
-    const result = rejectPayment(payment);
+    const result = rejectPayment(payment, '');
 
     // Assert
-    expect(result.status).toBe('差戻し');
+    expect(result.status).toBe('却下');
+  });
+
+  it('should store rejectReason when reason provided', () => {
+    // Arrange
+    const payment = { code: 'PMT-00001', status: '承認待ち' };
+
+    // Act
+    const result = rejectPayment(payment, '金額が予算超過');
+
+    // Assert
+    expect(result.rejectReason).toBe('金額が予算超過');
   });
 
   it('should not mutate original payment', () => {
@@ -249,7 +260,7 @@ describe('rejectPayment', () => {
     const payment = { code: 'PMT-00001', status: '承認待ち' };
 
     // Act
-    rejectPayment(payment);
+    rejectPayment(payment, '');
 
     // Assert
     expect(payment.status).toBe('承認待ち');

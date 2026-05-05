@@ -29,3 +29,17 @@ export function calcRemainingBalance(invoice, receipts) {
 export function isFullyPaid(invoice, receipts) {
   return calcRemainingBalance(invoice, receipts) <= 0;
 }
+
+export function calcExcessAmount(invoice, receipts) {
+  const paid = receipts
+    .filter(function(r) { return r.invoiceCode === invoice.code; })
+    .reduce(function(sum, r) { return sum + (r.amount || 0); }, 0);
+  return Math.max(0, paid - (invoice.total || 0));
+}
+
+export function getMatchingStatus(invoice, receipts) {
+  const excess = calcExcessAmount(invoice, receipts);
+  if (excess > 0) return '差額あり';
+  if (isFullyPaid(invoice, receipts)) return '消込済み';
+  return '未消込';
+}

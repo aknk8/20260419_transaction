@@ -3,11 +3,18 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
-  reporter: 'list',
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'e2e-report/html', open: 'never' }],
+    ['json', { outputFile: 'e2e-report/results.json' }],
+    ['junit', { outputFile: 'e2e-report/results.xml' }],
+  ],
+  outputDir: 'e2e-report/artifacts',
   use: {
     baseURL: 'http://localhost:5173',
-    screenshot: 'only-on-failure',
-    trace: 'on-first-retry',
+    screenshot: process.env.E2E_SCREENSHOT === 'on' ? 'on' : 'only-on-failure',
+    trace: 'retain-on-failure',
+    video: 'retain-on-failure',
   },
   projects: [
     {

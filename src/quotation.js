@@ -78,11 +78,41 @@ export function createRevision(original, newCode) {
   });
 }
 
+export function approveQuotation(quotation, comment) {
+  return Object.assign({}, quotation, {
+    status: '承認済み',
+    approvalComment: comment || ''
+  });
+}
+
 export function rejectQuotation(quotation, reason) {
   return Object.assign({}, quotation, {
-    status: '取消',
+    status: '却下',
     rejectReason: reason
   });
+}
+
+export function returnQuotationToDraft(quotation) {
+  return Object.assign({}, quotation, { status: '下書き' });
+}
+
+export function requiresPresidentApproval(quotation, settings) {
+  var rateThreshold = settings.presidentApprovalProfitRateThreshold;
+  var amountThreshold = settings.presidentApprovalAmountThreshold;
+  if (rateThreshold == null && amountThreshold == null) return false;
+
+  var total = quotation.total || 0;
+
+  // 見積金額合計が閾値超（超 = strictly greater than）
+  if (amountThreshold != null && total > amountThreshold) return true;
+
+  // 利益率が閾値未満（未満 = strictly less than）。合計0円は計算不能のため対象外
+  if (rateThreshold != null && total > 0) {
+    var profitRate = (quotation.grossProfit || 0) / total;
+    if (profitRate < rateThreshold) return true;
+  }
+
+  return false;
 }
 
 export function buildQuotationPrintHtml(quotation, project, customer, company) {

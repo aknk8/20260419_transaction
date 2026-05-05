@@ -38,8 +38,8 @@ export function approvePayment(payment) {
   return Object.assign({}, payment, { status: '承認済' });
 }
 
-export function rejectPayment(payment) {
-  return Object.assign({}, payment, { status: '差戻し' });
+export function rejectPayment(payment, reason) {
+  return Object.assign({}, payment, { status: '却下', rejectReason: reason || '' });
 }
 
 export function cancelPayment(payment) {

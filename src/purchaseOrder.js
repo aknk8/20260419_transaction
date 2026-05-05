@@ -49,6 +49,24 @@ export function submitPurchaseOrderApproval(purchaseOrder) {
   return Object.assign({}, purchaseOrder, { status: '承認依頼中' });
 }
 
+export function approvePurchaseOrder(purchaseOrder, comment) {
+  return Object.assign({}, purchaseOrder, {
+    status: '承認済・発注待ち',
+    approvalComment: comment || ''
+  });
+}
+
+export function rejectPurchaseOrder(purchaseOrder, reason) {
+  return Object.assign({}, purchaseOrder, {
+    status: '却下',
+    rejectReason: reason
+  });
+}
+
+export function returnPurchaseOrderToDraft(purchaseOrder) {
+  return Object.assign({}, purchaseOrder, { status: '下書き' });
+}
+
 
 export function buildPurchaseOrderPrintHtml(purchaseOrder, supplier) {
   var esc = function(s) {

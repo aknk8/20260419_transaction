@@ -1,8 +1,10 @@
 export function getDashboardMetrics(quotations, purchaseOrders, payments, orders, invoices) {
-  var pendingApprovals =
-    quotations.filter(function(q) { return q.status === '承認依頼中'; }).length +
-    purchaseOrders.filter(function(po) { return po.status === '承認依頼中'; }).length +
-    payments.filter(function(p) { return p.status === '承認待ち'; }).length;
+  var pendingByQuotations = quotations.filter(function(q) { return q.status === '承認依頼中'; }).length;
+  var pendingByOrders = (orders || []).filter(function(o) { return o.status === '承認依頼中'; }).length;
+  var pendingByPurchaseOrders = purchaseOrders.filter(function(po) { return po.status === '承認依頼中'; }).length;
+  var pendingByInvoices = (invoices || []).filter(function(inv) { return inv.status === '承認依頼中'; }).length;
+  var pendingByPayments = payments.filter(function(p) { return p.status === '承認待ち'; }).length;
+  var pendingApprovals = pendingByQuotations + pendingByOrders + pendingByPurchaseOrders + pendingByInvoices + pendingByPayments;
 
   var unbilled = orders.filter(function(o) {
     if (!o.billingTarget) return false;
@@ -22,6 +24,13 @@ export function getDashboardMetrics(quotations, purchaseOrders, payments, orders
 
   return {
     pendingApprovals: pendingApprovals,
+    pendingApprovalsByType: {
+      quotations: pendingByQuotations,
+      orders: pendingByOrders,
+      purchaseOrders: pendingByPurchaseOrders,
+      invoices: pendingByInvoices,
+      payments: pendingByPayments
+    },
     unbilled: unbilled,
     uncollected: uncollected,
     unpaid: unpaid

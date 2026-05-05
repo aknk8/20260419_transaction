@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice, buildInvoicePrintHtml } from './invoice.js';
+import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice, buildInvoicePrintHtml, submitInvoiceApproval, approveInvoice, rejectInvoice, returnInvoiceToDraft } from './invoice.js';
 
 describe('generateInvoiceCode', () => {
   it('should return INV-00001 when no existing codes', () => {
@@ -511,5 +511,123 @@ describe('buildInvoicePrintHtml', () => {
 
     // Assert
     expect(result).toContain('振込手数料はご負担ください。');
+  });
+});
+
+describe('submitInvoiceApproval', () => {
+  it('should return invoice with status 承認依頼中', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '下書き' };
+
+    // Act
+    const result = submitInvoiceApproval(invoice);
+
+    // Assert
+    expect(result.status).toBe('承認依頼中');
+  });
+
+  it('should not mutate original invoice', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '下書き' };
+
+    // Act
+    submitInvoiceApproval(invoice);
+
+    // Assert
+    expect(invoice.status).toBe('下書き');
+  });
+});
+
+describe('approveInvoice', () => {
+  it('should return invoice with status 承認済み', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approveInvoice(invoice, '');
+
+    // Assert
+    expect(result.status).toBe('承認済み');
+  });
+
+  it('should store approvalComment when comment provided', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approveInvoice(invoice, '問題なし');
+
+    // Assert
+    expect(result.approvalComment).toBe('問題なし');
+  });
+
+  it('should not mutate original invoice', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '承認依頼中' };
+
+    // Act
+    approveInvoice(invoice, '');
+
+    // Assert
+    expect(invoice.status).toBe('承認依頼中');
+  });
+});
+
+describe('rejectInvoice', () => {
+  it('should return invoice with status 却下', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '承認依頼中' };
+
+    // Act
+    const result = rejectInvoice(invoice, '金額に誤りがあります');
+
+    // Assert
+    expect(result.status).toBe('却下');
+  });
+
+  it('should store rejectReason', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '承認依頼中' };
+
+    // Act
+    const result = rejectInvoice(invoice, '金額に誤りがあります');
+
+    // Assert
+    expect(result.rejectReason).toBe('金額に誤りがあります');
+  });
+
+  it('should not mutate original invoice', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '承認依頼中' };
+
+    // Act
+    rejectInvoice(invoice, '金額に誤りがあります');
+
+    // Assert
+    expect(invoice.status).toBe('承認依頼中');
+  });
+});
+
+describe('returnInvoiceToDraft', () => {
+  it('should return invoice with status 下書き when currently 却下', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '却下', rejectReason: '金額に誤りがあります' };
+
+    // Act
+    const result = returnInvoiceToDraft(invoice);
+
+    // Assert
+    expect(result.status).toBe('下書き');
+  });
+
+  it('should not mutate original invoice', () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', status: '却下' };
+
+    // Act
+    returnInvoiceToDraft(invoice);
+
+    // Assert
+    expect(invoice.status).toBe('却下');
   });
 });

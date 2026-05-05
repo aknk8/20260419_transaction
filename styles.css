@@ -548,6 +548,38 @@ a {
   font-size: 13px;
 }
 
+.approval-type-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.approval-type-row {
+  display: flex;
+}
+
+.approval-type-link {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 3px 0;
+  font-size: 12px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.approval-type-link:hover {
+  color: var(--primary);
+}
+
+.approval-type-row.is-zero .approval-type-link {
+  color: var(--text-muted);
+}
+
+.approval-type-count {
+  font-weight: 600;
+}
+
 .wide-panel {
   grid-column: span 8;
 }
@@ -864,7 +896,14 @@ a {
 .input.is-error,
 .select.is-error {
   border-color: var(--danger);
-  background: #fdf5f5;
+  background: #ffeaea;
+}
+
+.error-message {
+  color: var(--danger);
+  font-size: 12px;
+  min-height: 18px;
+  line-height: 1.5;
 }
 
 .input.is-error:focus,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generatePurchaseOrderCode, createPurchaseOrderFromOrder, createPurchaseOrder, calcTotalsFromDetails, findPurchaseOrderByCode, updatePurchaseOrderStatus, buildPurchaseOrderPrintHtml, submitPurchaseOrderApproval } from './purchaseOrder.js';
+import { generatePurchaseOrderCode, createPurchaseOrderFromOrder, createPurchaseOrder, calcTotalsFromDetails, findPurchaseOrderByCode, updatePurchaseOrderStatus, buildPurchaseOrderPrintHtml, submitPurchaseOrderApproval, rejectPurchaseOrder, returnPurchaseOrderToDraft, approvePurchaseOrder } from './purchaseOrder.js';
 
 describe('generatePurchaseOrderCode', () => {
   it('should return POD-00001 when no existing codes', () => {
@@ -397,3 +397,97 @@ describe('submitPurchaseOrderApproval', () => {
   });
 });
 
+
+describe('rejectPurchaseOrder', () => {
+  it('should set status to 却下 when purchase order is rejected', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '承認依頼中', title: '保守発注' };
+
+    // Act
+    const result = rejectPurchaseOrder(purchaseOrder, '仕様不一致のため');
+
+    // Assert
+    expect(result.status).toBe('却下');
+  });
+
+  it('should save reject reason', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '承認依頼中', title: '保守発注' };
+
+    // Act
+    const result = rejectPurchaseOrder(purchaseOrder, '仕様不一致のため');
+
+    // Assert
+    expect(result.rejectReason).toBe('仕様不一致のため');
+  });
+
+  it('should not mutate original purchase order', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '承認依頼中', title: '保守発注' };
+
+    // Act
+    rejectPurchaseOrder(purchaseOrder, '仕様不一致のため');
+
+    // Assert
+    expect(purchaseOrder.status).toBe('承認依頼中');
+  });
+});
+
+describe('returnPurchaseOrderToDraft', () => {
+  it('should set status to 下書き when returned from 却下', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '却下', title: '保守発注' };
+
+    // Act
+    const result = returnPurchaseOrderToDraft(purchaseOrder);
+
+    // Assert
+    expect(result.status).toBe('下書き');
+  });
+
+  it('should not mutate original purchase order', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '却下', title: '保守発注' };
+
+    // Act
+    returnPurchaseOrderToDraft(purchaseOrder);
+
+    // Assert
+    expect(purchaseOrder.status).toBe('却下');
+  });
+});
+
+describe('approvePurchaseOrder', () => {
+  it('should return purchase order with status 承認済・発注待ち when approved', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approvePurchaseOrder(purchaseOrder, '');
+
+    // Assert
+    expect(result.status).toBe('承認済・発注待ち');
+  });
+
+  it('should store approvalComment when comment provided', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approvePurchaseOrder(purchaseOrder, '内容確認済み');
+
+    // Assert
+    expect(result.approvalComment).toBe('内容確認済み');
+  });
+
+  it('should not mutate original purchase order', () => {
+    // Arrange
+    const purchaseOrder = { code: 'POD-00001', status: '承認依頼中' };
+
+    // Act
+    approvePurchaseOrder(purchaseOrder, '');
+
+    // Assert
+    expect(purchaseOrder.status).toBe('承認依頼中');
+  });
+});

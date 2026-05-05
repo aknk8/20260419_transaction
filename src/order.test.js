@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateOrderCode, createOrderFromQuotation, addAttachment, removeAttachment, findOrderByCode, updateOrderStatus, markAsBillingTarget, applyPayment } from './order.js';
+import { generateOrderCode, createOrderFromQuotation, addAttachment, removeAttachment, findOrderByCode, updateOrderStatus, markAsBillingTarget, applyPayment, validateOrderApprovalSubmit, submitOrderApproval, approveOrder, rejectOrder, returnOrderToDraft, completeContractProcedure } from './order.js';
 
 describe('generateOrderCode', () => {
   it('should return ORD-00001 when no existing codes', () => {
@@ -355,5 +355,210 @@ describe('applyPayment', () => {
     // Assert
     expect(order.paidAmount).toBe(0);
     expect(order.status).toBe('受注済み');
+  });
+});
+
+describe('validateOrderApprovalSubmit', () => {
+  it('should return null when order has attachments and quotation total matches', () => {
+    // Arrange
+    const order = { total: 500000, attachments: [{ name: '契約書.pdf' }], quotationCode: 'QUO-00001' };
+    const quotation = { code: 'QUO-00001', total: 500000 };
+
+    // Act
+    const result = validateOrderApprovalSubmit(order, quotation);
+
+    // Assert
+    expect(result).toBeNull();
+  });
+
+  it('should return errors when attachments are empty', () => {
+    // Arrange
+    const order = { total: 500000, attachments: [], quotationCode: 'QUO-00001' };
+    const quotation = { code: 'QUO-00001', total: 500000 };
+
+    // Act
+    const result = validateOrderApprovalSubmit(order, quotation);
+
+    // Assert
+    expect(result).not.toBeNull();
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('should return errors when attachments is null', () => {
+    // Arrange
+    const order = { total: 500000, attachments: null, quotationCode: 'QUO-00001' };
+    const quotation = { code: 'QUO-00001', total: 500000 };
+
+    // Act
+    const result = validateOrderApprovalSubmit(order, quotation);
+
+    // Assert
+    expect(result).not.toBeNull();
+  });
+
+  it('should return errors when linked quotation is null', () => {
+    // Arrange
+    const order = { total: 500000, attachments: [{ name: '注文書.pdf' }], quotationCode: 'QUO-00001' };
+
+    // Act
+    const result = validateOrderApprovalSubmit(order, null);
+
+    // Assert
+    expect(result).not.toBeNull();
+  });
+
+  it('should return errors when quotation total does not match order total', () => {
+    // Arrange
+    const order = { total: 600000, attachments: [{ name: '注文書.pdf' }], quotationCode: 'QUO-00001' };
+    const quotation = { code: 'QUO-00001', total: 500000 };
+
+    // Act
+    const result = validateOrderApprovalSubmit(order, quotation);
+
+    // Assert
+    expect(result).not.toBeNull();
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('submitOrderApproval', () => {
+  it('should return order with status 承認依頼中', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '受注済み' };
+
+    // Act
+    const result = submitOrderApproval(order);
+
+    // Assert
+    expect(result.status).toBe('承認依頼中');
+  });
+
+  it('should not mutate original order', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '受注済み' };
+
+    // Act
+    submitOrderApproval(order);
+
+    // Assert
+    expect(order.status).toBe('受注済み');
+  });
+});
+
+describe('approveOrder', () => {
+  it('should return order with status 承認済み', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approveOrder(order, '');
+
+    // Assert
+    expect(result.status).toBe('承認済み');
+  });
+
+  it('should store approvalComment when comment provided', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認依頼中' };
+
+    // Act
+    const result = approveOrder(order, '問題なし');
+
+    // Assert
+    expect(result.approvalComment).toBe('問題なし');
+  });
+
+  it('should not mutate original order', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認依頼中' };
+
+    // Act
+    approveOrder(order, '');
+
+    // Assert
+    expect(order.status).toBe('承認依頼中');
+  });
+});
+
+describe('rejectOrder', () => {
+  it('should return order with status 却下', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認依頼中' };
+
+    // Act
+    const result = rejectOrder(order, '添付書類不備');
+
+    // Assert
+    expect(result.status).toBe('却下');
+  });
+
+  it('should store rejectReason', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認依頼中' };
+
+    // Act
+    const result = rejectOrder(order, '添付書類不備');
+
+    // Assert
+    expect(result.rejectReason).toBe('添付書類不備');
+  });
+
+  it('should not mutate original order', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認依頼中' };
+
+    // Act
+    rejectOrder(order, '添付書類不備');
+
+    // Assert
+    expect(order.status).toBe('承認依頼中');
+  });
+});
+
+describe('returnOrderToDraft', () => {
+  it('should return order with status 下書き when currently 却下', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '却下', rejectReason: '添付書類不備' };
+
+    // Act
+    const result = returnOrderToDraft(order);
+
+    // Assert
+    expect(result.status).toBe('下書き');
+  });
+
+  it('should not mutate original order', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '却下' };
+
+    // Act
+    returnOrderToDraft(order);
+
+    // Assert
+    expect(order.status).toBe('却下');
+  });
+});
+
+describe('completeContractProcedure', () => {
+  it('should return order with status 契約手続き済 when currently 承認済み', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認済み' };
+
+    // Act
+    const result = completeContractProcedure(order);
+
+    // Assert
+    expect(result.status).toBe('契約手続き済');
+  });
+
+  it('should not mutate original order', () => {
+    // Arrange
+    const order = { code: 'ORD-00001', status: '承認済み' };
+
+    // Act
+    completeContractProcedure(order);
+
+    // Assert
+    expect(order.status).toBe('承認済み');
   });
 });

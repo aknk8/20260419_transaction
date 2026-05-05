@@ -59,3 +59,42 @@ export function applyPayment(order, amount) {
     status: isComplete ? '完了' : order.status
   });
 }
+
+export function validateOrderApprovalSubmit(order, linkedQuotation) {
+  var errors = [];
+  if (!order.attachments || order.attachments.length === 0) {
+    errors.push('契約書または注文書のいずれか1ファイル以上の添付が必要です。');
+  }
+  if (!linkedQuotation) {
+    errors.push('見積申請の紐づけが必要です。');
+  } else if (linkedQuotation.total !== order.total) {
+    errors.push('受注金額が見積金額と一致しません。');
+  }
+  return errors.length > 0 ? errors : null;
+}
+
+export function submitOrderApproval(order) {
+  return Object.assign({}, order, { status: '承認依頼中' });
+}
+
+export function approveOrder(order, comment) {
+  return Object.assign({}, order, {
+    status: '承認済み',
+    approvalComment: comment || ''
+  });
+}
+
+export function rejectOrder(order, reason) {
+  return Object.assign({}, order, {
+    status: '却下',
+    rejectReason: reason
+  });
+}
+
+export function returnOrderToDraft(order) {
+  return Object.assign({}, order, { status: '下書き' });
+}
+
+export function completeContractProcedure(order) {
+  return Object.assign({}, order, { status: '契約手続き済' });
+}

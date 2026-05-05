@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateReceiptCode, createReceipt, calcRemainingBalance, isFullyPaid } from './receipt.js';
+import { generateReceiptCode, createReceipt, calcRemainingBalance, isFullyPaid, calcExcessAmount, getMatchingStatus } from './receipt.js';
 
 describe('generateReceiptCode', () => {
   it('should return RCP-00001 when no existing codes', () => {
@@ -202,5 +202,148 @@ describe('isFullyPaid', () => {
 
     // Assert
     expect(result).toBe(true);
+  });
+});
+
+describe('calcExcessAmount', () => {
+  const invoice = { code: 'INV-00001', total: 528000 };
+
+  it('should return 0 when no receipts', () => {
+    // Arrange & Act
+    const result = calcExcessAmount(invoice, []);
+
+    // Assert
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 when partially paid', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 200000, fee: 0 }
+    ];
+
+    // Act
+    const result = calcExcessAmount(invoice, receipts);
+
+    // Assert
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 when exactly fully paid', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 528000, fee: 0 }
+    ];
+
+    // Act
+    const result = calcExcessAmount(invoice, receipts);
+
+    // Assert
+    expect(result).toBe(0);
+  });
+
+  it('should return excess amount when overpaid', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 600000, fee: 0 }
+    ];
+
+    // Act
+    const result = calcExcessAmount(invoice, receipts);
+
+    // Assert
+    expect(result).toBe(72000);
+  });
+
+  it('should ignore receipts for other invoices', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00099', amount: 600000, fee: 0 }
+    ];
+
+    // Act
+    const result = calcExcessAmount(invoice, receipts);
+
+    // Assert
+    expect(result).toBe(0);
+  });
+});
+
+describe('getMatchingStatus', () => {
+  const invoice = { code: 'INV-00001', total: 528000 };
+
+  it('should return 未消込 when no receipts', () => {
+    // Arrange & Act
+    const result = getMatchingStatus(invoice, []);
+
+    // Assert
+    expect(result).toBe('未消込');
+  });
+
+  it('should return 未消込 when partially paid', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 200000, fee: 0 }
+    ];
+
+    // Act
+    const result = getMatchingStatus(invoice, receipts);
+
+    // Assert
+    expect(result).toBe('未消込');
+  });
+
+  it('should return 消込済み when exactly fully paid', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 528000, fee: 0 }
+    ];
+
+    // Act
+    const result = getMatchingStatus(invoice, receipts);
+
+    // Assert
+    expect(result).toBe('消込済み');
+  });
+
+  it('should return 差額あり when overpaid', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 600000, fee: 0 }
+    ];
+
+    // Act
+    const result = getMatchingStatus(invoice, receipts);
+
+    // Assert
+    expect(result).toBe('差額あり');
+  });
+
+  it('should return 消込済み when multiple receipts sum to invoice total', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 300000, fee: 0 },
+      { code: 'RCP-00002', invoiceCode: 'INV-00001', amount: 228000, fee: 0 }
+    ];
+
+    // Act
+    const result = getMatchingStatus(invoice, receipts);
+
+    // Assert
+    expect(result).toBe('消込済み');
+  });
+
+  it('should return 差額あり when multiple receipts sum exceeds invoice total', () => {
+    // Arrange
+    const receipts = [
+      { code: 'RCP-00001', invoiceCode: 'INV-00001', amount: 300000, fee: 0 },
+      { code: 'RCP-00002', invoiceCode: 'INV-00001', amount: 300000, fee: 0 }
+    ];
+
+    // Act
+    const result = getMatchingStatus(invoice, receipts);
+
+    // Assert
+    expect(result).toBe('差額あり');
   });
 });

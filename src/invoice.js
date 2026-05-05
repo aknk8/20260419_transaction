@@ -143,3 +143,25 @@ export function createInvoiceFromOrder(order, newCode, invoiceDate, dueDate) {
     details: (order.details || []).map(function(d) { return Object.assign({}, d); })
   };
 }
+
+export function submitInvoiceApproval(invoice) {
+  return Object.assign({}, invoice, { status: '承認依頼中' });
+}
+
+export function approveInvoice(invoice, comment) {
+  return Object.assign({}, invoice, {
+    status: '承認済み',
+    approvalComment: comment || ''
+  });
+}
+
+export function rejectInvoice(invoice, reason) {
+  return Object.assign({}, invoice, {
+    status: '却下',
+    rejectReason: reason
+  });
+}
+
+export function returnInvoiceToDraft(invoice) {
+  return Object.assign({}, invoice, { status: '下書き' });
+}
