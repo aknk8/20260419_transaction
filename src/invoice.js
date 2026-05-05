@@ -52,6 +52,81 @@ export function cancelInvoice(invoice) {
   return Object.assign({}, invoice, { status: 'キャンセル' });
 }
 
+export function buildInvoicePrintHtml(invoice, order, customer, company) {
+  var esc = function(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  };
+  var fmt = function(n) { return Number(n || 0).toLocaleString(); };
+  var customerName = customer ? customer.name : (invoice.customerId || '');
+  var companyBlock = company
+    ? '<div>' + esc(company.name) + '</div>' +
+      (company.address ? '<div>' + esc(company.address) + '</div>' : '') +
+      (company.phone ? '<div>' + esc(company.phone) + '</div>' : '')
+    : '';
+
+  var detailRows = (invoice.details || []).map(function(d) {
+    return '<tr>' +
+      '<td>' + esc(d.productName) + '</td>' +
+      '<td style="text-align:right">' + esc(d.quantity) + '</td>' +
+      '<td>' + esc(d.unit) + '</td>' +
+      '<td style="text-align:right">' + fmt(d.unitPrice) + '</td>' +
+      '<td style="text-align:right">' + (d.taxRate === 0.10 ? '10%' : d.taxRate === 0.08 ? '8%' : '非課税') + '</td>' +
+      '<td style="text-align:right">' + fmt(d.amount || 0) + '</td>' +
+      '</tr>';
+  }).join('');
+
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">' +
+    '<title>請求書 ' + esc(invoice.code) + '</title>' +
+    '<style>' +
+      'body{font-family:"Noto Sans JP",sans-serif;margin:40px;font-size:12px;color:#111;}' +
+      '.print-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}' +
+      'h1{font-size:20px;text-align:center;margin:0;flex:1;}' +
+      '.company-info{flex:1;text-align:right;font-size:11px;line-height:1.6;}' +
+      '.meta{display:flex;justify-content:space-between;margin-bottom:16px;}' +
+      '.customer{font-size:16px;font-weight:bold;border-bottom:2px solid #111;padding-bottom:4px;margin-bottom:16px;}' +
+      'table{width:100%;border-collapse:collapse;margin-bottom:16px;}' +
+      'th,td{border:1px solid #ccc;padding:6px 8px;}' +
+      'th{background:#f0f0f0;}' +
+      '.totals{text-align:right;margin-bottom:16px;}' +
+      '.totals table{width:280px;margin-left:auto;}' +
+      '.total-row td{font-weight:bold;}' +
+      '.notes{font-size:11px;margin-top:16px;border-top:1px solid #ccc;padding-top:8px;}' +
+      '@media print{body{margin:0;}}' +
+    '</style></head><body>' +
+    '<div class="print-top">' +
+      '<div style="flex:1"></div>' +
+      '<h1>請 求 書</h1>' +
+      '<div class="company-info">' + companyBlock + '</div>' +
+    '</div>' +
+    '<div class="meta">' +
+      '<div>' +
+        '<div>請求番号：' + esc(invoice.code) + '</div>' +
+        '<div>受注番号：' + esc(invoice.orderCode || '') + '</div>' +
+      '</div>' +
+      '<div>' +
+        '<div>請求日：' + esc(invoice.invoiceDate || '') + '</div>' +
+        '<div>支払期日：' + esc(invoice.dueDate || '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="customer">' + esc(customerName) + ' 御中</div>' +
+    '<p>件名：' + esc(invoice.title) + '</p>' +
+    '<table>' +
+      '<thead><tr><th>品名</th><th>数量</th><th>単位</th><th>単価</th><th>税率</th><th>金額</th></tr></thead>' +
+      '<tbody>' + (detailRows || '<tr><td colspan="6">明細なし</td></tr>') + '</tbody>' +
+    '</table>' +
+    '<div class="totals"><table>' +
+      '<tr><td>小計</td><td style="text-align:right">' + fmt(invoice.subtotal) + ' 円</td></tr>' +
+      '<tr><td>消費税</td><td style="text-align:right">' + fmt(invoice.taxAmount) + ' 円</td></tr>' +
+      '<tr class="total-row"><td>請求金額</td><td style="text-align:right">' + fmt(invoice.total) + ' 円</td></tr>' +
+    '</table></div>' +
+    (invoice.notes ? '<div class="notes">備考：' + esc(invoice.notes) + '</div>' : '') +
+    '</body></html>';
+}
+
 export function createInvoiceFromOrder(order, newCode, invoiceDate, dueDate) {
   return {
     code: newCode,

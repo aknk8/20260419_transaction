@@ -442,7 +442,7 @@ describe('createRevision', () => {
 });
 
 describe('rejectQuotation', () => {
-  it('should set status to 却下', () => {
+  it('should set status to 取消', () => {
     // Arrange
     const quotation = { code: 'QUO-00003', status: '承認依頼中', title: '見積' };
 
@@ -450,7 +450,7 @@ describe('rejectQuotation', () => {
     const result = rejectQuotation(quotation, '金額が予算を超過しています。');
 
     // Assert
-    expect(result.status).toBe('却下');
+    expect(result.status).toBe('取消');
   });
 
   it('should save reject reason', () => {

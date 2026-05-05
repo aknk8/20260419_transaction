@@ -10,9 +10,9 @@ test.describe('S-08 請求一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display invoice list with 3 rows', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(3);
-    await expect(page.locator('.table-summary')).toContainText('全 3 件中');
+  test('should display invoice list with 4 rows', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(4);
+    await expect(page.locator('.table-summary')).toContainText('全 4 件中');
   });
 
   test('should show invoice code in list', async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe('S-08 請求一覧', () => {
   });
 
   test('should filter invoice list when keyword is entered in search box', async ({ page }) => {
-    await page.fill('[data-table-input="search"]', 'セキュリティ');
+    await page.fill('[data-table-input="search"]', '追加作業');
     await expect(page.locator('.data-table-body-row')).toHaveCount(1);
     await expect(page.locator('.data-table')).toContainText('INV-00003');
   });
@@ -104,7 +104,7 @@ test.describe('S-08 請求対象抽出', () => {
     await page.locator('[data-action-create-invoice]').first().click();
     await page.click('#invoice-back-to-list');
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table-body-row')).toHaveCount(4);
+    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
   });
 
   test('should not show invoiced order in billable list after invoice creation', async ({ page }) => {
@@ -199,5 +199,10 @@ test.describe('S-08 請求詳細', () => {
     await page.click('[data-action-detail-invoice="INV-00001"]');
     await page.click('#invoice-detail-back');
     await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should show 印刷 button in invoice detail', async ({ page }) => {
+    await page.click('[data-action-detail-invoice="INV-00001"]');
+    await expect(page.locator('[data-action-print-invoice="INV-00001"]')).toBeVisible();
   });
 });

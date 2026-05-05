@@ -7,10 +7,14 @@ import { generateQuotationCode, createQuotation, findQuotationByCode, addDetailL
 import { generateOrderCode, createOrderFromQuotation, addAttachment, removeAttachment, findOrderByCode, updateOrderStatus, markAsBillingTarget, applyPayment } from './src/order.js';
 import { generatePurchaseOrderCode, createPurchaseOrderFromOrder, createPurchaseOrder, calcTotalsFromDetails, findPurchaseOrderByCode, updatePurchaseOrderStatus, buildPurchaseOrderPrintHtml, submitPurchaseOrderApproval } from './src/purchaseOrder.js';
 import { generateDeliveryCode, createDelivery, acceptDelivery, rejectDelivery, isFullyDelivered } from './src/delivery.js';
-import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice } from './src/invoice.js';
+import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice, buildInvoicePrintHtml } from './src/invoice.js';
 import { generateReceiptCode, createReceipt, calcRemainingBalance, isFullyPaid } from './src/receipt.js';
 import { generatePaymentCode, createPaymentRequest, findPayablePurchaseOrders, submitPaymentApproval, approvePayment, rejectPayment, cancelPayment, registerPayment } from './src/payment.js';
 import { getPendingApprovals } from './src/approval.js';
+import { getNotificationsForUser } from './src/notification.js';
+import { getDashboardMetrics } from './src/dashboard.js';
+import { getSalesSummary, getSalesCostReport, getUncollectedInvoices, getUnpaidPayments, filterReportByYear, getReportTotals, getSalesCostByCustomer, getSalesCostByProject } from './src/report.js';
+import { getFiscalYear, filterReportByFiscalYear, getAvailableFiscalYears } from './src/settings.js';
 
 const STORAGE_KEY = "transaction-system-session";
 const PAGE_SIZE = 5;
@@ -45,7 +49,9 @@ const users = [
       "approval:act",
       "report:view",
       "notification:view",
-      "user-permission:edit"
+      "user-permission:edit",
+      "settings:view",
+      "settings:edit"
     ]
   },
   {
@@ -181,6 +187,13 @@ const screens = [
     tag: "S-14",
     description: "承認依頼や期限超過通知を一覧表示します。",
     permission: "notification:view"
+  },
+  {
+    id: "settings",
+    title: "システム設定",
+    tag: "S-15",
+    description: "会社情報と年度設定を管理します。",
+    permission: "settings:view"
   }
 ];
 
@@ -525,6 +538,40 @@ const quotations = [
     subtotal: 120000,
     taxAmount: 12000,
     total: 132000
+  },
+  {
+    code: "QUO-00006",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "新規保守案件 第2四半期見積",
+    issueDate: "2026-03-01",
+    validityDate: "2026-03-31",
+    version: 1,
+    status: "承認済み",
+    notes: "4月〜6月（3か月）",
+    details: [
+      { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 3, unit: "月", unitPrice: 50000, discount: 0, taxRate: 0.10, amount: 165000 }
+    ],
+    subtotal: 150000,
+    taxAmount: 15000,
+    total: 165000
+  },
+  {
+    code: "QUO-00007",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "新規保守案件 第3四半期見積",
+    issueDate: "2026-06-01",
+    validityDate: "2026-06-30",
+    version: 1,
+    status: "承認済み",
+    notes: "7月〜9月（3か月）",
+    details: [
+      { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 3, unit: "月", unitPrice: 50000, discount: 0, taxRate: 0.10, amount: 165000 }
+    ],
+    subtotal: 150000,
+    taxAmount: 15000,
+    total: 165000
   }
 ];
 
@@ -585,6 +632,46 @@ const orders = [
     paidAmount: 132000,
     details: [
       { lineNo: 1, productCode: "PRD-003", productName: "ソフトウェアライセンス", quantity: 1, unit: "年", unitPrice: 120000, discount: 0, taxRate: 0.10, amount: 132000 }
+    ]
+  },
+  {
+    code: "ORD-00004",
+    quotationCode: "QUO-00006",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "新規保守案件 第2四半期",
+    orderDate: "2026-03-20",
+    deliveryDate: "2026-06-30",
+    status: "受注済み",
+    subtotal: 150000,
+    taxAmount: 15000,
+    total: 165000,
+    notes: "4月〜6月（3か月）",
+    billingTarget: true,
+    paidAmount: 0,
+    details: [
+      { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 3, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 132000 },
+      { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 3, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 33000 }
+    ]
+  },
+  {
+    code: "ORD-00005",
+    quotationCode: "QUO-00007",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "新規保守案件 第3四半期",
+    orderDate: "2026-06-01",
+    deliveryDate: "2026-09-30",
+    status: "受注済み",
+    subtotal: 150000,
+    taxAmount: 15000,
+    total: 165000,
+    notes: "7月〜9月（3か月）",
+    billingTarget: false,
+    paidAmount: 0,
+    details: [
+      { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 3, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 132000 },
+      { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 3, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 33000 }
     ]
   }
 ];
@@ -706,6 +793,7 @@ const invoices = [
   {
     code: "INV-00001",
     orderCode: "ORD-00001",
+    projectCode: "PJ-00001",
     customerId: "CUS-001",
     title: "サーバー保守サービス 2026年1月分",
     invoiceDate: "2026-01-31",
@@ -722,8 +810,9 @@ const invoices = [
   {
     code: "INV-00002",
     orderCode: "ORD-00002",
-    customerId: "CUS-002",
-    title: "クラウド移行支援 請求",
+    projectCode: "PJ-00004",
+    customerId: "CUS-005",
+    title: "セキュリティ診断サービス 請求",
     invoiceDate: "2026-03-31",
     dueDate: "2026-04-30",
     status: "入金済",
@@ -732,14 +821,15 @@ const invoices = [
     total: 2200000,
     notes: "",
     details: [
-      { lineNo: 1, productName: "クラウド移行支援", quantity: 1, unit: "式", unitPrice: 2000000, taxRate: 0.10, amount: 2200000 }
+      { lineNo: 1, productName: "セキュリティ診断サービス", quantity: 1, unit: "式", unitPrice: 2000000, taxRate: 0.10, amount: 2200000 }
     ]
   },
   {
     code: "INV-00003",
     orderCode: "ORD-00002",
-    customerId: "CUS-003",
-    title: "セキュリティ診断 請求",
+    projectCode: "PJ-00004",
+    customerId: "CUS-005",
+    title: "セキュリティ診断 追加作業 請求",
     invoiceDate: "2026-04-30",
     dueDate: "2026-05-31",
     status: "下書き",
@@ -748,7 +838,24 @@ const invoices = [
     total: 385000,
     notes: "",
     details: [
-      { lineNo: 1, productName: "セキュリティ診断", quantity: 1, unit: "式", unitPrice: 350000, taxRate: 0.10, amount: 385000 }
+      { lineNo: 1, productName: "セキュリティ診断 追加作業", quantity: 1, unit: "式", unitPrice: 350000, taxRate: 0.10, amount: 385000 }
+    ]
+  },
+  {
+    code: "INV-00004",
+    orderCode: "ORD-00004",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "サーバー保守サービス 2026年4月分",
+    invoiceDate: "2026-04-30",
+    dueDate: "2026-05-31",
+    status: "送付済",
+    subtotal: 50000,
+    taxAmount: 5000,
+    total: 55000,
+    notes: "",
+    details: [
+      { lineNo: 1, productName: "サーバー保守サービス", quantity: 1, unit: "月", unitPrice: 50000, taxRate: 0.10, amount: 55000 }
     ]
   }
 ];
@@ -786,6 +893,39 @@ const payments = [
     amount: 1100000,
     status: "承認済",
     notes: ""
+  }
+];
+
+const notifications = [
+  {
+    id: "NTF-00001",
+    type: "承認依頼",
+    message: "見積 QUO-00003 の承認依頼が届いています",
+    targetType: "quotation",
+    targetCode: "QUO-00003",
+    recipientId: "admin",
+    createdAt: "2026-04-20",
+    isRead: false
+  },
+  {
+    id: "NTF-00002",
+    type: "承認依頼",
+    message: "発注 POD-00006 の承認依頼が届いています",
+    targetType: "purchase-order",
+    targetCode: "POD-00006",
+    recipientId: "admin",
+    createdAt: "2026-04-15",
+    isRead: false
+  },
+  {
+    id: "NTF-00003",
+    type: "承認依頼",
+    message: "支払依頼 PMT-00002 の承認依頼が届いています",
+    targetType: "payment",
+    targetCode: "PMT-00002",
+    recipientId: "admin",
+    createdAt: "2026-05-01",
+    isRead: true
   }
 ];
 
@@ -829,7 +969,8 @@ const viewState = {
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     customerMaster: {
       search: "",
@@ -837,14 +978,16 @@ const viewState = {
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     supplierMaster: {
       search: "",
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     productMaster: {
       search: "",
@@ -852,7 +995,8 @@ const viewState = {
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     userMaster: {
       search: "",
@@ -860,69 +1004,109 @@ const viewState = {
       status: "all",
       sortKey: "id",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     paymentTermMaster: {
       search: "",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     taxRateMaster: {
       search: "",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     quotationList: {
       search: "",
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     orderList: {
       search: "",
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     purchaseOrderList: {
       search: "",
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     invoiceList: {
       search: "",
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     receiptList: {
       search: "",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     paymentList: {
       search: "",
       status: "all",
       sortKey: "code",
       sortDir: "asc",
-      page: 1
+      page: 1,
+      pageSize: 20
     },
     approvalList: {
       search: "",
       type: "all",
       sortKey: "submittedAt",
       sortDir: "desc",
-      page: 1
+      page: 1,
+      pageSize: 20
+    },
+    notificationList: {
+      search: "",
+      type: "all",
+      sortKey: "createdAt",
+      sortDir: "desc",
+      page: 1,
+      pageSize: 20
+    },
+    salesSummary: {
+      search: "",
+      sortKey: "yearMonth",
+      sortDir: "asc",
+      page: 1,
+      pageSize: 20
     }
   },
+  reportFilter: {
+    year: "all"
+  },
+  reportDrilldown: {
+    customerId: null
+  },
+  sidebarCollapsed: false,
+  settings: {
+    name: "株式会社サンプル商事",
+    address: "〒100-0001 東京都千代田区千代田1-1",
+    phone: "03-0000-0000",
+    fiscalEndMonth: 12
+  },
+  settingsTab: "company",
+  settingsErrors: {},
   invoiceView: "list",
   invoiceDetailCode: null,
   receiptView: "list",
@@ -1195,12 +1379,19 @@ function projectSearchHtml(fieldKey, selectedCode, filterStatuses) {
 }
 
 function metricCardsHtml() {
-  return dashboardMetrics.map(function (metric) {
+  const m = getDashboardMetrics(quotations, purchaseOrders, payments, orders, invoices);
+  const metrics = [
+    { label: "承認待ち", value: String(m.pendingApprovals).padStart(2, "0"), note: "見積・発注・支払依頼の合計", route: "approval" },
+    { label: "未請求", value: String(m.unbilled).padStart(2, "0"), note: "請求対象化済みの未請求受注", route: "invoice" },
+    { label: "未収", value: String(m.uncollected).padStart(2, "0"), note: "送付済・一部入金の請求", route: "invoice" },
+    { label: "未払", value: String(m.unpaid).padStart(2, "0"), note: "承認済みの支払依頼", route: "payment" }
+  ];
+  return metrics.map(function (metric) {
     return (
-      '<article class="metric-card">' +
+      '<article class="metric-card" data-metric-route="' + metric.route + '" style="cursor:pointer">' +
         '<div class="metric-label">' + metric.label + "</div>" +
         '<div class="metric-value">' + metric.value + "</div>" +
-        '<div class="metric-note">' + metric.note + "</div>" +
+        '<div class="metric-note">' + escapeHtml(metric.note) + "</div>" +
       "</article>"
     );
   }).join("");
@@ -1272,68 +1463,50 @@ function permissionCardHtml(title, copy) {
 }
 
 function dashboardHtml(user) {
+  const pending = getPendingApprovals(quotations, purchaseOrders, payments);
+  const canApprove = hasPermission(user, "approval:view");
+
+  const pendingListHtml = canApprove && pending.length > 0
+    ? pending.slice(0, 5).map(function(item) {
+        var typeCls = item.type === '見積' ? 'is-open' : item.type === '発注' ? 'is-pending' : 'is-draft';
+        return (
+          '<article class="list-item">' +
+            '<div class="list-item-title">' +
+              '<span class="status-badge ' + typeCls + '">' + escapeHtml(item.type) + '</span> ' +
+              escapeHtml(item.code) +
+            '</div>' +
+            '<div class="list-item-copy">' + escapeHtml(item.title) + '</div>' +
+          '</article>'
+        );
+      }).join("")
+    : '<div class="empty-card"><div class="empty-copy">承認待ちの案件はありません。</div></div>';
+
   return (
     '<section class="dashboard-grid">' +
       '<div class="metrics-row">' + metricCardsHtml() + "</div>" +
       '<section class="panel wide-panel">' +
         '<div class="panel-header">' +
           "<div>" +
-            '<div class="panel-label">案件サマリ</div>' +
-            '<div class="panel-title-text">担当案件と関連伝票の起点</div>' +
+            '<div class="panel-label">S-02</div>' +
+            '<div class="panel-title-text">ダッシュボード</div>' +
           "</div>" +
-          '<span class="menu-tag">' + user.position + "</span>" +
-        "</div>" +
-        '<div class="table">' +
-          '<div class="table-row table-row-head">' +
-            "<div>案件</div><div>主管部門</div><div>状態</div><div>次アクション</div>" +
-          "</div>" +
-          tableRowsHtml(projectRows) +
-        "</div>" +
-      "</section>" +
-      '<section class="panel narrow-panel">' +
-        '<div class="panel-header">' +
-          "<div>" +
-            '<div class="panel-label">承認</div>' +
-            '<div class="panel-title-text">本日の確認事項</div>' +
-          "</div>" +
-        "</div>" +
-        '<div class="list">' +
-          approvalItems.map(function (item) {
-            return (
-              '<article class="list-item">' +
-                '<div class="list-item-title">' + item.title + "</div>" +
-                '<div class="list-item-copy">' + item.copy + "</div>" +
-              "</article>"
-            );
-          }).join("") +
-        "</div>" +
-      "</section>" +
-      '<section class="panel wide-panel">' +
-        '<div class="panel-header">' +
-          "<div>" +
-            '<div class="panel-label">認可モデル</div>' +
-            '<div class="panel-title-text">利用者区分・所属部門・役職・個別権限</div>' +
-          "</div>" +
+          '<span class="menu-tag">' + escapeHtml(user.name) + "</span>" +
         "</div>" +
         '<div class="permissions-grid">' +
-          permissionCardHtml("利用者区分", user.userType + " としてログイン中です。") +
-          permissionCardHtml("所属部門", user.department + " に基づく画面導線を表示しています。") +
-          permissionCardHtml("役職", user.position + " のため承認表示とダッシュボード内容が調整されます。") +
-          permissionCardHtml("ユーザ個別権限", "付与数: " + user.permissions.length + "件。個別権限で画面表示と操作可否を制御します。") +
+          permissionCardHtml("利用者区分", escapeHtml(user.userType) + " としてログイン中です。") +
+          permissionCardHtml("所属部門", escapeHtml(user.department) + " に基づく画面導線を表示しています。") +
+          permissionCardHtml("役職", escapeHtml(user.position) + " のため承認表示とダッシュボード内容が調整されます。") +
+          permissionCardHtml("ユーザ個別権限", "付与数: " + user.permissions.length + "件。") +
         "</div>" +
       "</section>" +
       '<section class="panel narrow-panel">' +
         '<div class="panel-header">' +
           "<div>" +
-            '<div class="panel-label">着手状況</div>' +
-            '<div class="panel-title-text">実装計画との対応</div>' +
+            '<div class="panel-label">承認待ち</div>' +
+            '<div class="panel-title-text">要承認の伝票</div>' +
           "</div>" +
         "</div>" +
-        '<div class="list">' +
-          '<article class="list-item"><div class="list-item-title">CB-04 フォーム共通部品</div><div class="list-item-copy">必須・文字数・重複チェック、インラインエラー表示を共通バリデーションエンジンとして実装済み。</div></article>' +
-          '<article class="list-item"><div class="list-item-title">S-11 Step 2-3 顧客マスタ登録・編集・無効化</div><div class="list-item-copy">コード自動採番、フォームバリデーション、登録・編集・無効化（状態を停止に変更）を実装済み。admin ユーザで確認可能。</div></article>' +
-          '<article class="list-item"><div class="list-item-title">次の候補</div><div class="list-item-copy">S-11 Step 4: 仕入先マスタ。または CB-06 添付・承認・通知・帳票の基礎。</div></article>' +
-        "</div>" +
+        '<div class="list">' + pendingListHtml + "</div>" +
       "</section>" +
     "</section>"
   );
@@ -1671,6 +1844,23 @@ function projectDetailHtml(user) {
   const customer = findCustomerByCode(customers, project.customerId);
   const canEdit = hasPermission(user, "project:edit");
 
+  const linkedOrders = orders.filter(function(o) { return o.projectCode === project.code; });
+  const ordersHtml = linkedOrders.length === 0
+    ? '<div class="empty-card"><div class="empty-copy">紐づく受注はありません。</div></div>'
+    : linkedOrders.map(function(o) {
+        return (
+          '<div class="detail-row">' +
+            '<span class="detail-label">' + escapeHtml(o.code) + '</span>' +
+            '<span class="detail-value">' +
+              escapeHtml(o.title) + '&nbsp;' +
+              '<span class="status ' + statusClass(o.status) + '">' + escapeHtml(o.status) + '</span>' +
+              '&nbsp;' + Number(o.total).toLocaleString('ja-JP') + ' 円' +
+              '&nbsp;（納期: ' + escapeHtml(o.deliveryDate) + '）' +
+            '</span>' +
+          '</div>'
+        );
+      }).join('');
+
   return (
     '<section class="panel">' +
       '<div class="panel-header">' +
@@ -1695,6 +1885,10 @@ function projectDetailHtml(user) {
         '<div class="detail-row"><span class="detail-label">次アクション日</span><span class="detail-value">' + escapeHtml(project.dueDate || "—") + "</span></div>" +
         (project.description ? '<div class="detail-row detail-row-full"><span class="detail-label">概要</span><span class="detail-value">' + escapeHtml(project.description) + "</span></div>" : "") +
       "</div>" +
+      '<div class="panel-header" style="margin-top:20px;">' +
+        '<div class="panel-label">紐づく受注</div>' +
+      '</div>' +
+      '<div class="detail-grid" id="project-detail-orders">' + ordersHtml + '</div>' +
     "</section>"
   );
 }
@@ -1778,7 +1972,7 @@ function getQuotationTableConfig(user) {
       {
         key: "status",
         label: "状態",
-        options: ["all", "下書き", "承認依頼中", "承認済み", "却下", "失注"],
+        options: ["all", "下書き", "承認依頼中", "承認済み", "取消", "失注"],
         allLabel: "全状態"
       }
     ],
@@ -1794,7 +1988,7 @@ function getQuotationTableConfig(user) {
 function quotationStatusClass(status) {
   if (status === "承認済み") return "is-open";
   if (status === "承認依頼中") return "is-pending";
-  if (status === "却下" || status === "失注") return "is-locked";
+  if (status === "取消" || status === "失注") return "is-locked";
   return "is-info";
 }
 
@@ -1960,7 +2154,7 @@ function quotationFormHtml(user) {
       '<form class="register-form" id="quotation-register-form" data-form-context="quotation" novalidate>' +
         '<input type="hidden" id="f-quo-version" value="' + (data.version || 1) + '">' +
         '<div class="form-grid">' +
-          fieldHtml("f-quo-code", "見積番号", textInputHtml("f-quo-code", "code", "QUO-XXXXX", !isNew), !isNew, "code") +
+          fieldHtml("f-quo-code", "見積番号", textInputHtml("f-quo-code", "code", "QUO-XXXXX", true), true, "code") +
           fieldHtml("f-quo-title", "見積件名", textInputHtml("f-quo-title", "title", "○○案件 見積", false), true, "title") +
           projectFieldHtml +
           '<div class="form-field">' +
@@ -2434,6 +2628,7 @@ function purchaseOrderDetailHtml(user) {
           (canEdit && pod.status === '下書き' ?
             '<button class="button button-warning button-sm" type="button" id="pod-submit-approval-btn">承認依頼</button>'
           : '') +
+          '<button class="button button-secondary button-sm" type="button" data-action-print-pod="' + escapeHtml(pod.code) + '">発注書出力</button>' +
           (canEdit && pod.status === '承認済・発注待ち' ?
             '<button class="button button-primary button-sm" type="button" data-action-pod-status="発注済" data-pod-code="' + escapeHtml(pod.code) + '">発注確定</button>'
           : '') +
@@ -2806,11 +3001,11 @@ function getInvoiceTableConfig(user) {
       }
     },
     {
-      key: "_actions",
-      label: "",
+      key: "_detail",
+      label: "詳細",
       sortable: false,
       render: function(value, row) {
-        return '<button class="button button-secondary button-xs" type="button" data-action-detail-invoice="' + escapeHtml(row.code) + '">詳細</button>';
+        return '<button class="button button-ghost button-sm" type="button" data-action-detail-invoice="' + escapeHtml(row.code) + '">詳細</button>';
       }
     }
   ];
@@ -2959,6 +3154,7 @@ function invoiceDetailHtml(invoice, user) {
         '</div>' +
         '<div class="panel-actions">' +
           statusButtons +
+          '<button class="button button-secondary button-sm" type="button" data-action-print-invoice="' + escapeHtml(invoice.code) + '">印刷</button>' +
           '<button class="button button-secondary button-sm" type="button" id="invoice-detail-back">一覧に戻る</button>' +
         '</div>' +
       '</div>' +
@@ -3241,6 +3437,346 @@ function getApprovalTableConfig() {
 
 function approvalScreenHtml() {
   return dataTableHtml(getApprovalTableConfig());
+}
+
+function getNotificationTableConfig(user) {
+  const userNotifications = getNotificationsForUser(notifications, user.id);
+  const typeOptions = ["all", "承認依頼", "承認完了", "差戻し"];
+  return {
+    stateKey: "notificationList",
+    title: "通知一覧",
+    rows: userNotifications,
+    searchKeys: ["message", "targetCode", "type"],
+    emptyMessage: "通知はありません",
+    hasActions: false,
+    filters: [
+      { key: "type", label: "種別", allLabel: "すべての種別", options: typeOptions }
+    ],
+    columns: [
+      { key: "type", label: "種別", sortable: true, render: function(val) {
+        var cls = val === '承認依頼' ? 'is-pending' : val === '承認完了' ? 'is-open' : 'is-draft';
+        return '<span class="status-badge ' + cls + '">' + escapeHtml(val) + '</span>';
+      }},
+      { key: "message", label: "内容", sortable: false },
+      { key: "targetCode", label: "対象コード", sortable: true },
+      { key: "isRead", label: "既読", sortable: true, render: function(val) {
+        return val ? '<span class="status-badge is-info">既読</span>' : '<span class="status-badge is-pending">未読</span>';
+      }},
+      { key: "createdAt", label: "通知日", sortable: true }
+    ],
+    toolbarExtra: ""
+  };
+}
+
+function notificationScreenHtml(user) {
+  return dataTableHtml(getNotificationTableConfig(user));
+}
+
+function reportTotalsRowHtml(totals) {
+  var gpStyle = totals.grossProfit >= 0 ? '' : ' style="color:var(--color-danger,#c0392b)"';
+  return (
+    '<div class="data-table-body-row report-totals-row" id="report-summary-totals-row">' +
+      '<div class="data-table-body-cell"><strong>合計</strong></div>' +
+      '<div class="data-table-body-cell"><strong>' + Number(totals.sales).toLocaleString('ja-JP') + ' 円</strong></div>' +
+      '<div class="data-table-body-cell"><strong>' + Number(totals.cost).toLocaleString('ja-JP') + ' 円</strong></div>' +
+      '<div class="data-table-body-cell"' + gpStyle + '><strong>' + Number(totals.grossProfit).toLocaleString('ja-JP') + ' 円</strong></div>' +
+    '</div>'
+  );
+}
+
+function settingsScreenHtml(user) {
+  const tab = viewState.settingsTab;
+  const s = viewState.settings;
+  const errors = viewState.settingsErrors || {};
+  const canEdit = user && hasPermission(user, "settings:edit");
+
+  const tabs =
+    '<div class="master-tabs">' +
+      '<button class="master-tab' + (tab === "company" ? " is-active" : "") + '" type="button" data-settings-tab="company">会社情報</button>' +
+      '<button class="master-tab' + (tab === "fiscal" ? " is-active" : "") + '" type="button" data-settings-tab="fiscal">年度設定</button>' +
+    '</div>';
+
+  let formContent = '';
+  if (tab === "company") {
+    formContent =
+      '<form id="settings-company-form" class="detail-form">' +
+        '<div class="form-section">' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-company-name">会社名</label>' +
+            '<input class="input' + (errors.name ? ' is-error' : '') + '" id="s-company-name" type="text" value="' + escapeHtml(s.name) + '"' + (canEdit ? '' : ' disabled') + '>' +
+            (errors.name ? '<div class="field-error">' + escapeHtml(errors.name) + '</div>' : '') +
+          '</div>' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-company-address">住所</label>' +
+            '<input class="input" id="s-company-address" type="text" value="' + escapeHtml(s.address) + '"' + (canEdit ? '' : ' disabled') + '>' +
+          '</div>' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-company-phone">電話番号</label>' +
+            '<input class="input" id="s-company-phone" type="text" value="' + escapeHtml(s.phone) + '"' + (canEdit ? '' : ' disabled') + '>' +
+          '</div>' +
+        '</div>' +
+        (canEdit
+          ? '<div class="form-actions"><button class="button button-primary" type="submit">保存</button></div>'
+          : '') +
+      '</form>';
+  } else {
+    const monthOptions = [1,2,3,4,5,6,7,8,9,10,11,12].map(function(m) {
+      const startMonth = m === 12 ? 1 : m + 1;
+      const label = m + '月決算（' + startMonth + '月始まり）';
+      return '<option value="' + m + '"' + (s.fiscalEndMonth === m ? ' selected' : '') + '>' + label + '</option>';
+    }).join('');
+    formContent =
+      '<form id="settings-fiscal-form" class="detail-form">' +
+        '<div class="form-section">' +
+          '<div class="form-row">' +
+            '<label class="field-label" for="s-fiscal-end-month">決算月</label>' +
+            '<select class="select" id="s-fiscal-end-month"' + (canEdit ? '' : ' disabled') + '>' + monthOptions + '</select>' +
+            '<div class="field-hint">レポートの年度集計に使用されます。変更すると即座にレポートへ反映されます。</div>' +
+          '</div>' +
+        '</div>' +
+        (canEdit
+          ? '<div class="form-actions"><button class="button button-primary" type="submit">保存</button></div>'
+          : '') +
+      '</form>';
+  }
+
+  return tabs +
+    '<section class="panel">' +
+      '<div class="panel-header">' +
+        '<div>' +
+          '<div class="panel-label">S-15</div>' +
+          '<div class="panel-title-text">' + (tab === 'company' ? '会社情報' : '年度設定') + '</div>' +
+        '</div>' +
+      '</div>' +
+      formContent +
+    '</section>';
+}
+
+function reportScreenHtml() {
+  const allSummaryRows = getSalesCostReport(invoices, payments);
+  const fiscalEndMonth = viewState.settings.fiscalEndMonth;
+  const selectedYear = viewState.reportFilter.year;
+  const summaryRows = filterReportByFiscalYear(allSummaryRows, selectedYear, fiscalEndMonth);
+  const uncollected = getUncollectedInvoices(invoices);
+  const unpaid = getUnpaidPayments(payments);
+
+  const availableFiscalYears = getAvailableFiscalYears(allSummaryRows, fiscalEndMonth);
+  const yearOptions =
+    '<option value="all"' + (selectedYear === 'all' ? ' selected' : '') + '>すべての年度</option>' +
+    availableFiscalYears.map(function(y) {
+      const ys = String(y);
+      return '<option value="' + ys + '"' + (selectedYear === ys ? ' selected' : '') + '>' + ys + '年度</option>';
+    }).join('');
+
+  const summarySection =
+    '<section class="panel">' +
+      '<div class="panel-header">' +
+        '<div>' +
+          '<div class="panel-label">S-13 Step 2</div>' +
+          '<div class="panel-title-text">売上・原価・粗利集計表（月別）</div>' +
+        '</div>' +
+        '<div class="toolbar">' +
+          '<label class="table-filter">' +
+            '<span class="field-label">年度</span>' +
+            '<select class="select" id="report-year-filter">' + yearOptions + '</select>' +
+          '</label>' +
+        '</div>' +
+      '</div>' +
+      '<div class="data-table" id="report-summary-table">' +
+        '<div class="data-table-head">' +
+          '<div class="data-table-head-cell"><span>年月</span></div>' +
+          '<div class="data-table-head-cell"><span>売上合計</span></div>' +
+          '<div class="data-table-head-cell"><span>原価合計</span></div>' +
+          '<div class="data-table-head-cell"><span>粗利</span></div>' +
+        '</div>' +
+        (summaryRows.length
+          ? summaryRows.map(function(row) {
+              var gpClass = row.grossProfit >= 0 ? '' : ' style="color:var(--color-danger,#c0392b)"';
+              return (
+                '<div class="data-table-body-row">' +
+                  '<div class="data-table-body-cell">' + escapeHtml(row.yearMonth) + '</div>' +
+                  '<div class="data-table-body-cell">' + Number(row.sales).toLocaleString('ja-JP') + ' 円</div>' +
+                  '<div class="data-table-body-cell">' + Number(row.cost).toLocaleString('ja-JP') + ' 円</div>' +
+                  '<div class="data-table-body-cell"' + gpClass + '>' + Number(row.grossProfit).toLocaleString('ja-JP') + ' 円</div>' +
+                '</div>'
+              );
+            }).join('') + reportTotalsRowHtml(getReportTotals(summaryRows))
+          : '<div class="data-table-empty">集計対象のデータがありません。</div>'
+        ) +
+      '</div>' +
+    '</section>';
+
+  const uncollectedSection =
+    '<section class="panel">' +
+      '<div class="panel-header">' +
+        '<div>' +
+          '<div class="panel-label">S-13 Step 3</div>' +
+          '<div class="panel-title-text">未収一覧</div>' +
+        '</div>' +
+        '<div class="toolbar">' +
+          '<button class="button button-secondary" type="button" id="report-export-uncollected">CSV 出力</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="data-table" id="report-uncollected-table">' +
+        '<div class="data-table-head">' +
+          '<div class="data-table-head-cell"><span>請求コード</span></div>' +
+          '<div class="data-table-head-cell"><span>タイトル</span></div>' +
+          '<div class="data-table-head-cell"><span>請求日</span></div>' +
+          '<div class="data-table-head-cell"><span>支払期限</span></div>' +
+          '<div class="data-table-head-cell"><span>金額</span></div>' +
+          '<div class="data-table-head-cell"><span>ステータス</span></div>' +
+        '</div>' +
+        (uncollected.length
+          ? uncollected.map(function(inv) {
+              return (
+                '<div class="data-table-body-row">' +
+                  '<div class="data-table-body-cell">' + escapeHtml(inv.code) + '</div>' +
+                  '<div class="data-table-body-cell">' + escapeHtml(inv.title) + '</div>' +
+                  '<div class="data-table-body-cell">' + escapeHtml(inv.invoiceDate) + '</div>' +
+                  '<div class="data-table-body-cell">' + escapeHtml(inv.dueDate) + '</div>' +
+                  '<div class="data-table-body-cell">' + Number(inv.total).toLocaleString('ja-JP') + ' 円</div>' +
+                  '<div class="data-table-body-cell"><span class="status-badge is-pending">' + escapeHtml(inv.status) + '</span></div>' +
+                '</div>'
+              );
+            }).join('')
+          : '<div class="data-table-empty">未収の請求はありません。</div>'
+        ) +
+      '</div>' +
+    '</section>';
+
+  const unpaidSection =
+    '<section class="panel">' +
+      '<div class="panel-header">' +
+        '<div>' +
+          '<div class="panel-label">S-13 Step 3</div>' +
+          '<div class="panel-title-text">未払一覧</div>' +
+        '</div>' +
+        '<div class="toolbar">' +
+          '<button class="button button-secondary" type="button" id="report-export-unpaid">CSV 出力</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="data-table" id="report-unpaid-table">' +
+        '<div class="data-table-head">' +
+          '<div class="data-table-head-cell"><span>支払依頼コード</span></div>' +
+          '<div class="data-table-head-cell"><span>タイトル</span></div>' +
+          '<div class="data-table-head-cell"><span>支払予定日</span></div>' +
+          '<div class="data-table-head-cell"><span>金額</span></div>' +
+          '<div class="data-table-head-cell"><span>ステータス</span></div>' +
+        '</div>' +
+        (unpaid.length
+          ? unpaid.map(function(p) {
+              return (
+                '<div class="data-table-body-row">' +
+                  '<div class="data-table-body-cell">' + escapeHtml(p.code) + '</div>' +
+                  '<div class="data-table-body-cell">' + escapeHtml(p.title) + '</div>' +
+                  '<div class="data-table-body-cell">' + escapeHtml(p.paymentDate) + '</div>' +
+                  '<div class="data-table-body-cell">' + Number(p.amount).toLocaleString('ja-JP') + ' 円</div>' +
+                  '<div class="data-table-body-cell"><span class="status-badge is-pending">' + escapeHtml(p.status) + '</span></div>' +
+                '</div>'
+              );
+            }).join('')
+          : '<div class="data-table-empty">未払の支払依頼はありません。</div>'
+        ) +
+      '</div>' +
+    '</section>';
+
+  // Fiscal-year-filtered invoices and payments for drill-down
+  const fyInvoices = selectedYear === 'all' ? invoices : invoices.filter(function(inv) {
+    return String(getFiscalYear(inv.invoiceDate.slice(0, 7), fiscalEndMonth)) === selectedYear;
+  });
+  const fyPayments = selectedYear === 'all' ? payments : payments.filter(function(p) {
+    return String(getFiscalYear(p.paymentDate.slice(0, 7), fiscalEndMonth)) === selectedYear;
+  });
+
+  const customerRows = getSalesCostByCustomer(fyInvoices, fyPayments, purchaseOrders, orders);
+  const drilldownCustomerId = viewState.reportDrilldown.customerId;
+
+  const customerSection =
+    '<section class="panel" id="report-customer-section">' +
+      '<div class="panel-header">' +
+        '<div>' +
+          '<div class="panel-label">S-13 Step 5</div>' +
+          '<div class="panel-title-text">顧客別集計</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="data-table" id="report-customer-table">' +
+        '<div class="data-table-head">' +
+          '<div class="data-table-head-cell"><span>顧客</span></div>' +
+          '<div class="data-table-head-cell"><span>売上合計</span></div>' +
+          '<div class="data-table-head-cell"><span>原価合計</span></div>' +
+          '<div class="data-table-head-cell"><span>粗利</span></div>' +
+          '<div class="data-table-head-cell"><span>詳細</span></div>' +
+        '</div>' +
+        (customerRows.length
+          ? customerRows.map(function(row) {
+              const customer = findCustomerByCode(customers, row.customerId);
+              const name = customer ? customer.name : row.customerId;
+              const isActive = row.customerId === drilldownCustomerId;
+              const gpClass = row.grossProfit >= 0 ? '' : ' style="color:var(--color-danger,#c0392b)"';
+              return (
+                '<div class="data-table-body-row' + (isActive ? ' is-selected' : '') + '">' +
+                  '<div class="data-table-body-cell">' + escapeHtml(name) + '</div>' +
+                  '<div class="data-table-body-cell">' + Number(row.sales).toLocaleString('ja-JP') + ' 円</div>' +
+                  '<div class="data-table-body-cell">' + Number(row.cost).toLocaleString('ja-JP') + ' 円</div>' +
+                  '<div class="data-table-body-cell"' + gpClass + '>' + Number(row.grossProfit).toLocaleString('ja-JP') + ' 円</div>' +
+                  '<div class="data-table-body-cell">' +
+                    '<button class="button button-ghost button-sm" type="button" data-action-drill-customer="' + escapeHtml(row.customerId) + '">' +
+                      (isActive ? '閉じる' : '案件別') +
+                    '</button>' +
+                  '</div>' +
+                '</div>'
+              );
+            }).join('')
+          : '<div class="data-table-empty">集計対象のデータがありません。</div>'
+        ) +
+      '</div>' +
+    '</section>';
+
+  let projectSection = '';
+  if (drilldownCustomerId) {
+    const customer = findCustomerByCode(customers, drilldownCustomerId);
+    const customerName = customer ? customer.name : drilldownCustomerId;
+    const projectRows = getSalesCostByProject(fyInvoices, fyPayments, purchaseOrders, orders, drilldownCustomerId);
+
+    projectSection =
+      '<section class="panel" id="report-project-section">' +
+        '<div class="panel-header">' +
+          '<div>' +
+            '<div class="panel-label">S-13 Step 5</div>' +
+            '<div class="panel-title-text">案件別集計 — ' + escapeHtml(customerName) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="data-table" id="report-project-table">' +
+          '<div class="data-table-head">' +
+            '<div class="data-table-head-cell"><span>案件</span></div>' +
+            '<div class="data-table-head-cell"><span>売上合計</span></div>' +
+            '<div class="data-table-head-cell"><span>原価合計</span></div>' +
+            '<div class="data-table-head-cell"><span>粗利</span></div>' +
+          '</div>' +
+          (projectRows.length
+            ? projectRows.map(function(row) {
+                const project = row.projectCode ? projects.find(function(p) { return p.code === row.projectCode; }) : null;
+                const projectName = project ? project.name : (row.projectCode || '案件なし');
+                const gpClass = row.grossProfit >= 0 ? '' : ' style="color:var(--color-danger,#c0392b)"';
+                return (
+                  '<div class="data-table-body-row">' +
+                    '<div class="data-table-body-cell">' +
+                      (row.projectCode ? '<span class="chip">' + escapeHtml(row.projectCode) + '</span> ' : '') +
+                      escapeHtml(projectName) +
+                    '</div>' +
+                    '<div class="data-table-body-cell">' + Number(row.sales).toLocaleString('ja-JP') + ' 円</div>' +
+                    '<div class="data-table-body-cell">' + Number(row.cost).toLocaleString('ja-JP') + ' 円</div>' +
+                    '<div class="data-table-body-cell"' + gpClass + '>' + Number(row.grossProfit).toLocaleString('ja-JP') + ' 円</div>' +
+                  '</div>'
+                );
+              }).join('')
+            : '<div class="data-table-empty">集計対象のデータがありません。</div>'
+          ) +
+        '</div>' +
+      '</section>';
+  }
+
+  return summarySection + customerSection + projectSection + uncollectedSection + unpaidSection;
 }
 
 function getPaymentTableConfig(user) {
@@ -3650,11 +4186,12 @@ function getFilteredRows(config) {
 function getPagedRows(config) {
   const state = viewState.tables[config.stateKey];
   const filtered = getFilteredRows(config);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageSize = state.pageSize || PAGE_SIZE;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   state.page = Math.min(state.page, totalPages);
-  const start = (state.page - 1) * PAGE_SIZE;
+  const start = (state.page - 1) * pageSize;
   return {
-    rows: filtered.slice(start, start + PAGE_SIZE),
+    rows: filtered.slice(start, start + pageSize),
     totalRows: filtered.length,
     totalPages: totalPages,
     page: state.page
@@ -3675,18 +4212,18 @@ function renderTableCell(column, row) {
 function dataTableHtml(config) {
   const state = viewState.tables[config.stateKey];
   const result = getPagedRows(config);
+  const pageSize = state.pageSize || PAGE_SIZE;
   const summary =
     "全 " + config.rows.length + " 件中 " +
-    (result.totalRows === 0 ? "0" : ((result.page - 1) * PAGE_SIZE + 1)) +
+    (result.totalRows === 0 ? "0" : ((result.page - 1) * pageSize + 1)) +
     " - " +
-    Math.min(result.page * PAGE_SIZE, result.totalRows) +
+    Math.min(result.page * pageSize, result.totalRows) +
     " 件を表示";
 
   return (
     '<section class="panel">' +
       '<div class="panel-header">' +
         "<div>" +
-          '<div class="panel-label">CB-03 / S-11 Step 1</div>' +
           '<div class="panel-title-text">' + config.title + "</div>" +
         "</div>" +
         '<div class="toolbar">' +
@@ -3713,6 +4250,14 @@ function dataTableHtml(config) {
             "</label>"
           );
         }).join("") +
+        '<label class="table-filter">' +
+          '<span class="field-label">表示件数</span>' +
+          '<select class="select" data-table-pagesize data-table="' + config.stateKey + '">' +
+            [5, 20, 50].map(function(n) {
+              return '<option value="' + n + '"' + (pageSize === n ? ' selected' : '') + '>' + n + '件</option>';
+            }).join('') +
+          '</select>' +
+        '</label>' +
       "</div>" +
       '<div class="table-summary">' + summary + "</div>" +
       '<div class="data-table' + (config.tableClass ? " " + config.tableClass : "") + (config.hasActions ? " has-actions" : "") + '">' +
@@ -4305,18 +4850,26 @@ function renderApp() {
     contentHtml = paymentScreenHtml(user);
   } else if (currentScreen.id === "approval") {
     contentHtml = approvalScreenHtml();
+  } else if (currentScreen.id === "notification") {
+    contentHtml = notificationScreenHtml(user);
+  } else if (currentScreen.id === "report") {
+    contentHtml = reportScreenHtml();
+  } else if (currentScreen.id === "settings") {
+    contentHtml = settingsScreenHtml(user);
   } else {
     contentHtml = placeholderScreenHtml(currentScreen, user);
   }
 
   appRoot.innerHTML =
     '<div class="app-shell">' +
-      '<div class="workspace">' +
-        '<aside class="sidebar">' +
+      '<div class="workspace' + (viewState.sidebarCollapsed ? ' sidebar-collapsed' : '') + '">' +
+        '<aside class="sidebar' + (viewState.sidebarCollapsed ? ' is-collapsed' : '') + '">' +
+          '<button class="sidebar-toggle" id="sidebar-toggle" type="button" title="サイドバーを' + (viewState.sidebarCollapsed ? '展開' : '折りたたむ') + '">' +
+            (viewState.sidebarCollapsed ? '›' : '‹') +
+          '</button>' +
           '<div class="sidebar-header">' +
             '<div class="brand-mark"></div>' +
             '<div class="brand-title">取引管理システム</div>' +
-            '<div class="sidebar-subtitle">共通基盤、認証認可、フォーム部品、顧客マスタ一覧・登録まで実装済み。</div>' +
           "</div>" +
           '<nav class="menu">' + sidebarHtml(visibleScreens, currentScreen.id) + "</nav>" +
           '<div class="sidebar-footer">' +
@@ -4332,7 +4885,6 @@ function renderApp() {
             '<div class="page-heading">' +
               '<div class="panel-label">' + currentScreen.tag + "</div>" +
               '<div class="page-title">' + currentScreen.title + "</div>" +
-              '<div class="page-copy">' + currentScreen.description + "</div>" +
             "</div>" +
             '<div class="toolbar">' +
               '<span class="menu-tag">' + user.department + "</span>" +
@@ -4349,6 +4901,11 @@ function renderApp() {
 }
 
 function bindAppEvents() {
+  document.getElementById("sidebar-toggle").addEventListener("click", function () {
+    viewState.sidebarCollapsed = !viewState.sidebarCollapsed;
+    renderApp();
+  });
+
   document.getElementById("logout-button").addEventListener("click", function () {
     clearSession();
     // hashchange を発火させずにセッションを破棄し、ログイン画面へ戻る
@@ -4392,6 +4949,15 @@ function bindAppEvents() {
     select.addEventListener("change", function () {
       const state = viewState.tables[select.getAttribute("data-table")];
       state[select.getAttribute("data-table-filter")] = select.value;
+      state.page = 1;
+      renderApp();
+    });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-table-pagesize]"), function (select) {
+    select.addEventListener("change", function () {
+      const state = viewState.tables[select.getAttribute("data-table")];
+      state.pageSize = parseInt(select.value, 10);
       state.page = 1;
       renderApp();
     });
@@ -4623,7 +5189,7 @@ function bindAppEvents() {
         viewState.customerForm.editCode = null;
       } else {
         customers.push(createCustomer(data));
-        viewState.tables.customerMaster.page = Math.ceil(customers.length / PAGE_SIZE);
+        viewState.tables.customerMaster.page = Math.ceil(customers.length / (viewState.tables.customerMaster.pageSize || PAGE_SIZE));
       }
       viewState.customerForm.mode = "list";
       viewState.customerForm.errors = {};
@@ -4720,7 +5286,7 @@ function bindAppEvents() {
         viewState.supplierForm.editCode = null;
       } else {
         suppliers.push(createSupplier(data));
-        viewState.tables.supplierMaster.page = Math.ceil(suppliers.length / PAGE_SIZE);
+        viewState.tables.supplierMaster.page = Math.ceil(suppliers.length / (viewState.tables.supplierMaster.pageSize || PAGE_SIZE));
       }
       viewState.supplierForm.mode = "list";
       viewState.supplierForm.errors = {};
@@ -4821,7 +5387,7 @@ function bindAppEvents() {
         viewState.productForm.editCode = null;
       } else {
         products.push(createProduct(data));
-        viewState.tables.productMaster.page = Math.ceil(products.length / PAGE_SIZE);
+        viewState.tables.productMaster.page = Math.ceil(products.length / (viewState.tables.productMaster.pageSize || PAGE_SIZE));
       }
       viewState.productForm.mode = "list";
       viewState.productForm.errors = {};
@@ -4940,7 +5506,7 @@ function bindAppEvents() {
         viewState.userForm.editId = null;
       } else {
         users.push(createUser(data));
-        viewState.tables.userMaster.page = Math.ceil(users.length / PAGE_SIZE);
+        viewState.tables.userMaster.page = Math.ceil(users.length / (viewState.tables.userMaster.pageSize || PAGE_SIZE));
       }
       viewState.userForm.mode = "list";
       viewState.userForm.errors = {};
@@ -5061,7 +5627,7 @@ function bindAppEvents() {
         viewState.projectForm.editCode = null;
       } else {
         projects.push(createProject(data));
-        viewState.tables.projectList.page = Math.ceil(projects.length / PAGE_SIZE);
+        viewState.tables.projectList.page = Math.ceil(projects.length / (viewState.tables.projectList.pageSize || PAGE_SIZE));
       }
       viewState.projectForm.mode = "list";
       viewState.projectForm.errors = {};
@@ -5115,7 +5681,7 @@ function bindAppEvents() {
       if (!q) return;
       const project = projects.find(function (p) { return p.code === q.projectCode; }) || null;
       const customer = findCustomerByCode(customers, q.customerId) || null;
-      const html = buildQuotationPrintHtml(q, project, customer);
+      const html = buildQuotationPrintHtml(q, project, customer, viewState.settings);
       const win = window.open('', '_blank');
       if (win) {
         win.document.write(html);
@@ -5299,7 +5865,7 @@ function bindAppEvents() {
       saved.contractMethod = contractMethod;
       saved.attachments = viewState.purchaseOrderForm.attachments.slice();
       purchaseOrders.push(saved);
-      viewState.tables.purchaseOrderList.page = Math.ceil(purchaseOrders.length / PAGE_SIZE);
+      viewState.tables.purchaseOrderList.page = Math.ceil(purchaseOrders.length / (viewState.tables.purchaseOrderList.pageSize || PAGE_SIZE));
       viewState.purchaseOrderForm.mode = "list";
       viewState.purchaseOrderForm.errors = {};
       viewState.purchaseOrderSourceCode = null;
@@ -5327,6 +5893,131 @@ function bindAppEvents() {
       renderApp();
     });
   }
+
+  // S-13 Step 4: レポート年フィルター
+  var reportYearFilter = document.getElementById("report-year-filter");
+  if (reportYearFilter) {
+    reportYearFilter.addEventListener("change", function() {
+      viewState.reportFilter.year = reportYearFilter.value;
+      viewState.reportDrilldown.customerId = null;
+      renderApp();
+    });
+  }
+
+  // S-13 Step 4: 未収CSV出力
+  var exportUncollected = document.getElementById("report-export-uncollected");
+  if (exportUncollected) {
+    exportUncollected.addEventListener("click", function() {
+      exportReportCsv(
+        getUncollectedInvoices(invoices),
+        ["code", "title", "invoiceDate", "dueDate", "total", "status"],
+        ["請求コード", "タイトル", "請求日", "支払期限", "金額", "ステータス"],
+        "uncollected.csv"
+      );
+    });
+  }
+
+  // S-13 Step 4: 未払CSV出力
+  var exportUnpaid = document.getElementById("report-export-unpaid");
+  if (exportUnpaid) {
+    exportUnpaid.addEventListener("click", function() {
+      exportReportCsv(
+        getUnpaidPayments(payments),
+        ["code", "title", "paymentDate", "amount", "status"],
+        ["支払依頼コード", "タイトル", "支払予定日", "金額", "ステータス"],
+        "unpaid.csv"
+      );
+    });
+  }
+
+  // S-08: 請求書印刷ボタン
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action-print-invoice]"), function(btn) {
+    btn.addEventListener("click", function() {
+      const invCode = btn.getAttribute("data-action-print-invoice");
+      const inv = invoices.find(function(i) { return i.code === invCode; });
+      if (!inv) return;
+      const customer = findCustomerByCode(customers, inv.customerId) || null;
+      const order = findOrderByCode(orders, inv.orderCode) || null;
+      const html = buildInvoicePrintHtml(inv, order, customer, viewState.settings);
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        win.print();
+      }
+    });
+  });
+
+  // S-13 Step 5: 顧客別集計 → 案件別集計ドリルダウン
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action-drill-customer]"), function(btn) {
+    btn.addEventListener("click", function() {
+      const cid = btn.getAttribute("data-action-drill-customer");
+      viewState.reportDrilldown.customerId = viewState.reportDrilldown.customerId === cid ? null : cid;
+      renderApp();
+    });
+  });
+
+  // S-15: 設定タブ切り替え
+  Array.prototype.forEach.call(document.querySelectorAll("[data-settings-tab]"), function(btn) {
+    btn.addEventListener("click", function() {
+      viewState.settingsTab = btn.getAttribute("data-settings-tab");
+      viewState.settingsErrors = {};
+      renderApp();
+    });
+  });
+
+  // S-15: 会社情報フォーム保存
+  var settingsCompanyForm = document.getElementById("settings-company-form");
+  if (settingsCompanyForm) {
+    settingsCompanyForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("s-company-name").value.trim();
+      const errors = {};
+      if (!name) errors.name = "会社名は必須です。";
+      if (Object.keys(errors).length > 0) {
+        viewState.settingsErrors = errors;
+        renderApp();
+        return;
+      }
+      viewState.settings.name = name;
+      viewState.settings.address = document.getElementById("s-company-address").value.trim();
+      viewState.settings.phone = document.getElementById("s-company-phone").value.trim();
+      viewState.settingsErrors = {};
+      renderApp();
+    });
+  }
+
+  // S-15: 年度設定フォーム保存
+  var settingsFiscalForm = document.getElementById("settings-fiscal-form");
+  if (settingsFiscalForm) {
+    settingsFiscalForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const month = parseInt(document.getElementById("s-fiscal-end-month").value, 10);
+      viewState.settings.fiscalEndMonth = month;
+      viewState.reportFilter.year = "all";
+      viewState.settingsErrors = {};
+      renderApp();
+    });
+  }
+
+  // S-06: 発注書出力ボタン
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action-print-pod]"), function(btn) {
+    btn.addEventListener("click", function() {
+      const podCode = btn.getAttribute("data-action-print-pod");
+      const pod = findPurchaseOrderByCode(purchaseOrders, podCode);
+      if (!pod) return;
+      const supplier = findSupplierById(pod.supplierId);
+      const html = buildPurchaseOrderPrintHtml(pod, supplier);
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        win.print();
+      }
+    });
+  });
 
   // S-06: 契約処理ボタン
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-contract-process]"), function(btn) {
@@ -5657,7 +6348,7 @@ function bindAppEvents() {
       saved.notes = notes;
       saved.attachments = viewState.orderForm.attachments.slice();
       orders.push(saved);
-      viewState.tables.orderList.page = Math.ceil(orders.length / PAGE_SIZE);
+      viewState.tables.orderList.page = Math.ceil(orders.length / (viewState.tables.orderList.pageSize || PAGE_SIZE));
       viewState.orderForm.mode = "list";
       viewState.orderForm.errors = {};
       renderApp();
@@ -5931,7 +6622,7 @@ function bindAppEvents() {
         viewState.quotationForm.editCode = null;
       } else {
         quotations.push(saved);
-        viewState.tables.quotationList.page = Math.ceil(quotations.length / PAGE_SIZE);
+        viewState.tables.quotationList.page = Math.ceil(quotations.length / (viewState.tables.quotationList.pageSize || PAGE_SIZE));
       }
       viewState.quotationForm.mode = "list";
       viewState.quotationForm.errors = {};
@@ -6154,6 +6845,23 @@ function bindAppEvents() {
       renderApp();
     });
   }
+}
+
+function exportReportCsv(rows, keys, labels, filename) {
+  var lines = [labels.map(function(l) { return '"' + l + '"'; }).join(",")];
+  rows.forEach(function(row) {
+    lines.push(keys.map(function(k) {
+      return '"' + String(row[k] || "").replace(/"/g, '""') + '"';
+    }).join(","));
+  });
+  var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 }
 
 function exportCustomerCsv() {

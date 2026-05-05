@@ -130,7 +130,7 @@ test.describe('S-11 仕入先マスタ 権限制御', () => {
 
     // Assert: 仕入先一覧が参照できる
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
+    await expect(page.locator('.data-table-body-row')).toHaveCount(6);
   });
 
   test('should not show edit button or new registration button for sales01 user on supplier tab', async ({ page }) => {

@@ -10,9 +10,9 @@ test.describe('S-06 発注一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display purchase order list with 3 rows', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(3);
-    await expect(page.locator('.table-summary')).toContainText('全 3 件中');
+  test('should display purchase order list with correct row count', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(6);
+    await expect(page.locator('.table-summary')).toContainText('全 6 件中');
   });
 
   test('should show supplier name (not code) in purchase order list', async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe('S-06 発注一覧', () => {
   test('should filter purchase order list by status', async ({ page }) => {
     await page.locator('[data-table-filter="status"]').selectOption('納品済');
 
-    await expect(page.locator('.data-table-body-row')).toHaveCount(1);
+    await expect(page.locator('.data-table-body-row')).toHaveCount(3);
   });
 });
 
@@ -61,7 +61,7 @@ test.describe('S-06 発注起票', () => {
   });
 
   test('should auto-fill purchase order code with next sequential value', async ({ page }) => {
-    await expect(page.locator('#f-pod-code')).toHaveValue('POD-00004');
+    await expect(page.locator('#f-pod-code')).toHaveValue('POD-00007');
   });
 
   test('should show validation error when supplier is not selected', async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe('S-06 発注起票', () => {
     await page.getByRole('button', { name: '発注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('POD-00004');
+    await expect(page.locator('.data-table')).toContainText('POD-00007');
   });
 
   test('should return to order detail when キャンセル is clicked', async ({ page }) => {
@@ -210,7 +210,7 @@ test.describe('S-06 仕入先別分割', () => {
     await page.getByRole('button', { name: '発注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('POD-00004');
+    await expect(page.locator('.data-table')).toContainText('POD-00007');
     // 528,000 円 (line 1 only)
     await expect(page.locator('.data-table')).toContainText('528,000 円');
   });
@@ -271,6 +271,17 @@ test.describe('S-06 発注詳細', () => {
 
     await expect(page.locator('[data-action-pod-status="取下げ"]')).not.toBeVisible();
   });
+
+  test('should show 発注書出力 button in purchase order detail', async ({ page }) => {
+    await expect(page.locator('[data-action-print-pod="POD-00001"]')).toBeVisible();
+  });
+
+  test('should show 発注書出力 button regardless of status', async ({ page }) => {
+    await page.locator('#pod-detail-back').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00003"]').click();
+
+    await expect(page.locator('[data-action-print-pod="POD-00003"]')).toBeVisible();
+  });
 });
 
 test.describe('S-06 発注承認依頼', () => {
@@ -290,7 +301,7 @@ test.describe('S-06 発注承認依頼', () => {
     await page.fill('#f-pod-date', '2026-05-10');
     await page.getByRole('button', { name: '発注登録' }).click();
 
-    await page.locator('[data-action-detail-purchase-order="POD-00004"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00007"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('下書き');
   });
 
@@ -418,7 +429,7 @@ test.describe('S-06 契約処理方法', () => {
     await page.locator('#f-pod-contract-method').selectOption('発注書');
     await page.getByRole('button', { name: '発注登録' }).click();
 
-    await page.locator('[data-action-detail-purchase-order="POD-00004"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00007"]').click();
     await expect(page.locator('.detail-grid')).toContainText('発注書');
   });
 });

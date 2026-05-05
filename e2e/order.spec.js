@@ -10,9 +10,9 @@ test.describe('S-05 受注一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display order list with 3 rows', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(3);
-    await expect(page.locator('.table-summary')).toContainText('全 3 件中');
+  test('should display order list with 5 rows', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
+    await expect(page.locator('.table-summary')).toContainText('全 5 件中');
   });
 
   test('should show project name (not code) in order list', async ({ page }) => {
@@ -32,7 +32,7 @@ test.describe('S-05 受注一覧', () => {
   test('should filter order list when keyword is entered in search box', async ({ page }) => {
     await page.locator('[data-table-input="search"]').fill('保守');
 
-    await expect(page.locator('.data-table-body-row')).toHaveCount(1);
+    await expect(page.locator('.data-table-body-row')).toHaveCount(3);
   });
 
   test('should filter order list by status', async ({ page }) => {
@@ -80,8 +80,8 @@ test.describe('S-05 受注作成', () => {
     await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
     await page.locator('[data-action-create-order="QUO-00001"]').click();
 
-    // 既存3件の次は ORD-00004
-    await expect(page.locator('#f-order-code')).toHaveValue('ORD-00004');
+    // 既存5件の次は ORD-00006
+    await expect(page.locator('#f-order-code')).toHaveValue('ORD-00006');
   });
 
   test('should show validation error when order date is empty', async ({ page }) => {
@@ -101,7 +101,7 @@ test.describe('S-05 受注作成', () => {
     await page.getByRole('button', { name: '受注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('ORD-00004');
+    await expect(page.locator('.data-table')).toContainText('ORD-00006');
   });
 
   test('should return to quotation detail when キャンセル is clicked', async ({ page }) => {
@@ -170,7 +170,7 @@ test.describe('S-05 受注添付', () => {
     await page.getByRole('button', { name: '受注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('ORD-00004');
+    await expect(page.locator('.data-table')).toContainText('ORD-00006');
   });
 });
 

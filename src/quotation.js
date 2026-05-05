@@ -80,12 +80,12 @@ export function createRevision(original, newCode) {
 
 export function rejectQuotation(quotation, reason) {
   return Object.assign({}, quotation, {
-    status: '却下',
+    status: '取消',
     rejectReason: reason
   });
 }
 
-export function buildQuotationPrintHtml(quotation, project, customer) {
+export function buildQuotationPrintHtml(quotation, project, customer, company) {
   var esc = function(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;')
@@ -96,6 +96,11 @@ export function buildQuotationPrintHtml(quotation, project, customer) {
   var fmt = function(n) { return Number(n || 0).toLocaleString(); };
   var projectName = project ? project.name : (quotation.projectCode || '');
   var customerName = customer ? customer.name : (quotation.customerId || '');
+  var companyBlock = company
+    ? '<div>' + esc(company.name) + '</div>' +
+      (company.address ? '<div>' + esc(company.address) + '</div>' : '') +
+      (company.phone ? '<div>' + esc(company.phone) + '</div>' : '')
+    : '';
 
   var detailRows = (quotation.details || []).map(function(d) {
     return '<tr>' +
@@ -113,7 +118,9 @@ export function buildQuotationPrintHtml(quotation, project, customer) {
     '<title>見積書 ' + esc(quotation.code) + '</title>' +
     '<style>' +
       'body{font-family:"Noto Sans JP",sans-serif;margin:40px;font-size:12px;color:#111;}' +
-      'h1{font-size:20px;text-align:center;margin-bottom:24px;}' +
+      '.print-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}' +
+      'h1{font-size:20px;text-align:center;margin:0;flex:1;}' +
+      '.company-info{flex:1;text-align:right;font-size:11px;line-height:1.6;}' +
       '.meta{display:flex;justify-content:space-between;margin-bottom:16px;}' +
       '.customer{font-size:16px;font-weight:bold;border-bottom:2px solid #111;padding-bottom:4px;margin-bottom:16px;}' +
       'table{width:100%;border-collapse:collapse;margin-bottom:16px;}' +
@@ -125,7 +132,11 @@ export function buildQuotationPrintHtml(quotation, project, customer) {
       '.notes{font-size:11px;margin-top:16px;border-top:1px solid #ccc;padding-top:8px;}' +
       '@media print{body{margin:0;}}' +
     '</style></head><body>' +
-    '<h1>見 積 書</h1>' +
+    '<div class="print-top">' +
+      '<div style="flex:1"></div>' +
+      '<h1>見 積 書</h1>' +
+      '<div class="company-info">' + companyBlock + '</div>' +
+    '</div>' +
     '<div class="meta">' +
       '<div>' +
         '<div>見積番号：' + esc(quotation.code) + '</div>' +

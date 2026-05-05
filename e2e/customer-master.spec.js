@@ -10,12 +10,8 @@ test.describe('S-11 顧客マスタ', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display customer list with 5 rows per page on master screen', async ({ page }) => {
-    // Arrange: beforeEach でマスタ管理画面を表示済み
-
-    // Assert: 1ページに5件表示される
-    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
-    // Assert: ページングテキストが表示される
+  test('should display all 9 customers when default page size is 20', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(9);
     await expect(page.locator('.table-summary')).toContainText('全 9 件中');
   });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice } from './invoice.js';
+import { generateInvoiceCode, createInvoice, findBillableOrders, createInvoiceFromOrder, getDefaultDueDate, confirmInvoice, markInvoiceAsSent, cancelInvoice, buildInvoicePrintHtml } from './invoice.js';
 
 describe('generateInvoiceCode', () => {
   it('should return INV-00001 when no existing codes', () => {
@@ -396,5 +396,120 @@ describe('cancelInvoice', () => {
 
     // Assert
     expect(invoice.status).toBe('下書き');
+  });
+});
+
+describe('buildInvoicePrintHtml', () => {
+  const invoice = {
+    code: 'INV-00001',
+    orderCode: 'ORD-00001',
+    title: 'サーバー保守サービス 2026年1月分',
+    invoiceDate: '2026-01-31',
+    dueDate: '2026-02-28',
+    subtotal: 480000,
+    taxAmount: 48000,
+    total: 528000,
+    notes: '振込手数料はご負担ください。',
+    details: [
+      { lineNo: 1, productName: 'サーバー保守', quantity: 1, unit: '月', unitPrice: 480000, taxRate: 0.10, amount: 528000 }
+    ]
+  };
+  const customer = { name: '株式会社青葉システム' };
+  const company = { name: '株式会社サンプル商事', address: '東京都千代田区1-1', phone: '03-0000-0000' };
+
+  it('should return html string', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(typeof result).toBe('string');
+  });
+
+  it('should contain 請求書 title', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('請 求 書');
+  });
+
+  it('should contain invoice code', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('INV-00001');
+  });
+
+  it('should contain customer name', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('株式会社青葉システム');
+  });
+
+  it('should contain invoice date', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('2026-01-31');
+  });
+
+  it('should contain due date', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('2026-02-28');
+  });
+
+  it('should contain total amount', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('528,000');
+  });
+
+  it('should contain product name from details', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('サーバー保守');
+  });
+
+  it('should contain company name when company is provided', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, company);
+
+    // Assert
+    expect(result).toContain('株式会社サンプル商事');
+  });
+
+  it('should contain company address when company is provided', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, company);
+
+    // Assert
+    expect(result).toContain('東京都千代田区1-1');
+  });
+
+  it('should not contain company info when company is null', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).not.toContain('株式会社サンプル商事');
+  });
+
+  it('should contain notes', () => {
+    // Act
+    const result = buildInvoicePrintHtml(invoice, null, customer, null);
+
+    // Assert
+    expect(result).toContain('振込手数料はご負担ください。');
   });
 });

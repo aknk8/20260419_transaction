@@ -10,9 +10,9 @@ test.describe('S-04 見積一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display quotation list with 5 rows', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
-    await expect(page.locator('.table-summary')).toContainText('全 5 件中');
+  test('should display all 7 quotations when default page size is 20', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(7);
+    await expect(page.locator('.table-summary')).toContainText('全 7 件中');
   });
 
   test('should show project name (not code) in quotation list', async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe('S-04 見積ヘッダ登録', () => {
   });
 
   test('should auto-fill quotation code with next sequential value when form opens', async ({ page }) => {
-    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00006');
+    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00008');
   });
 
   test('should show only 商談中 projects in project search dropdown', async ({ page }) => {
@@ -314,13 +314,13 @@ test.describe('S-04 見積ワークフロー', () => {
     await expect(page.locator('.field-error').filter({ hasText: '却下理由は必須です。' })).toBeVisible();
   });
 
-  test('should update status to 却下 when reject reason is entered and 却下する is clicked', async ({ page }) => {
+  test('should update status to 取消 when reject reason is entered and 却下する is clicked', async ({ page }) => {
     await page.locator('[data-action-edit-quotation="QUO-00003"]').click();
     await page.fill('#f-quo-reject-reason', '金額が予算を超過しています。');
     await page.getByRole('button', { name: '却下する' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('[data-action-edit-quotation="QUO-00003"]').locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')).toContainText('却下');
+    await expect(page.locator('[data-action-edit-quotation="QUO-00003"]').locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')).toContainText('取消');
   });
 
   test('should show reject reason on detail view after rejection', async ({ page }) => {
@@ -371,8 +371,8 @@ test.describe('S-04 見積改版', () => {
     await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
     await page.locator('[data-action-revise-quotation="QUO-00001"]').click();
 
-    // 既存5件の次は QUO-00006
-    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00006');
+    // 既存7件の次は QUO-00008
+    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00008');
   });
 
   test('should save revised quotation and show it in list', async ({ page }) => {
@@ -382,7 +382,7 @@ test.describe('S-04 見積改版', () => {
     await page.getByRole('button', { name: '下書き保存' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('QUO-00006');
+    await expect(page.locator('.data-table')).toContainText('QUO-00008');
   });
 });
 
