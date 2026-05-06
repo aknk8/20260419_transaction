@@ -18,7 +18,7 @@ export default async function productRoutes(fastify, { productService }) {
   });
 
   fastify.post('/api/products', {
-    preHandler: [fastify.authenticate]
+    preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
       const product = await productService.registerProduct(request.body, {
@@ -31,7 +31,7 @@ export default async function productRoutes(fastify, { productService }) {
   });
 
   fastify.patch('/api/products/:code', {
-    preHandler: [fastify.authenticate]
+    preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
       return await productService.updateProduct(request.params.code, request.body, {

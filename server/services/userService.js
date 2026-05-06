@@ -1,3 +1,5 @@
+import { validatePassword } from './passwordPolicy.js';
+
 function notFound(id) {
   const err = new Error(`ユーザ ID ${id} は存在しません`);
   err.statusCode = 404;
@@ -30,6 +32,12 @@ export async function registerUser(formData, { repository, hashPassword }) {
   if (!formData.name || !formData.name.trim()) throw validationError('ユーザ名は必須です');
   if (!formData.password || !formData.password.trim()) throw validationError('パスワードは必須です');
 
+  try {
+    validatePassword(formData.password);
+  } catch (err) {
+    throw validationError(err.message);
+  }
+
   const passwordHash = await hashPassword(formData.password);
   const { password, ...rest } = formData;
   const user = { ...rest, passwordHash };
@@ -43,6 +51,11 @@ export async function updateUser(id, data, { repository, hashPassword }) {
 
   const updateData = { ...data };
   if (data.password) {
+    try {
+      validatePassword(data.password);
+    } catch (err) {
+      throw validationError(err.message);
+    }
     updateData.passwordHash = await hashPassword(data.password);
     delete updateData.password;
   }

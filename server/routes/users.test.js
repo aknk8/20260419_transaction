@@ -26,11 +26,14 @@ const makeApp = async (serviceOverrides = {}) => {
   return { app, mockUserService };
 };
 
+const makeAdminToken = (app) =>
+  app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者', permissions: ['user-permission:edit'] });
+
 describe('GET /api/users', () => {
   it('should return 200 with user list when authenticated', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者' });
+    const token = makeAdminToken(app);
 
     // Act
     const res = await app.inject({
@@ -60,7 +63,7 @@ describe('GET /api/users/:id', () => {
   it('should return 200 with user when id exists', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者' });
+    const token = makeAdminToken(app);
 
     // Act
     const res = await app.inject({
@@ -79,7 +82,7 @@ describe('GET /api/users/:id', () => {
     const notFoundErr = new Error('Not found');
     notFoundErr.statusCode = 404;
     const { app } = await makeApp({ getUserById: vi.fn().mockRejectedValue(notFoundErr) });
-    const token = app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者' });
+    const token = makeAdminToken(app);
 
     // Act
     const res = await app.inject({
@@ -97,7 +100,7 @@ describe('POST /api/users', () => {
   it('should return 201 with created user', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者' });
+    const token = makeAdminToken(app);
 
     // Act
     const res = await app.inject({
@@ -117,7 +120,7 @@ describe('POST /api/users', () => {
     const validationErr = new Error('ユーザIDは必須です');
     validationErr.statusCode = 400;
     const { app } = await makeApp({ registerUser: vi.fn().mockRejectedValue(validationErr) });
-    const token = app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者' });
+    const token = makeAdminToken(app);
 
     // Act
     const res = await app.inject({
@@ -145,13 +148,30 @@ describe('POST /api/users', () => {
     // Assert
     expect(res.statusCode).toBe(401);
   });
+
+  it('should return 400 when extra fields are provided', async () => {
+    // Arrange
+    const { app } = await makeApp();
+    const token = makeAdminToken(app);
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/users',
+      cookies: { token },
+      payload: { id: 'user01', name: '田中', password: 'pass', userType: '営業', maliciousField: 'hack' }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
+  });
 });
 
 describe('PATCH /api/users/:id', () => {
   it('should return 200 with updated user', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者' });
+    const token = makeAdminToken(app);
 
     // Act
     const res = await app.inject({
@@ -170,7 +190,7 @@ describe('PATCH /api/users/:id', () => {
     const notFoundErr = new Error('Not found');
     notFoundErr.statusCode = 404;
     const { app } = await makeApp({ updateUser: vi.fn().mockRejectedValue(notFoundErr) });
-    const token = app.jwt.sign({ id: 'admin', name: '管理者', userType: 'システム管理者' });
+    const token = makeAdminToken(app);
 
     // Act
     const res = await app.inject({
@@ -182,5 +202,22 @@ describe('PATCH /api/users/:id', () => {
 
     // Assert
     expect(res.statusCode).toBe(404);
+  });
+
+  it('should return 400 when extra fields are provided', async () => {
+    // Arrange
+    const { app } = await makeApp();
+    const token = makeAdminToken(app);
+
+    // Act
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/api/users/user01',
+      cookies: { token },
+      payload: { name: '変更後', maliciousField: 'hack' }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
   });
 });

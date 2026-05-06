@@ -5,6 +5,8 @@ import fhelmet from '@fastify/helmet';
 import fcors from '@fastify/cors';
 import frateLimit from '@fastify/rate-limit';
 import { auditLogPlugin } from './plugins/auditLog.js';
+import { authorizationPlugin } from './plugins/authorization.js';
+import { csrfPlugin } from './plugins/csrf.js';
 import authRoutes from './routes/auth.js';
 import customerRoutes from './routes/customers.js';
 import supplierRoutes from './routes/suppliers.js';
@@ -19,13 +21,30 @@ import invoiceRoutes from './routes/invoices.js';
 import receiptRoutes from './routes/receipts.js';
 import paymentRoutes from './routes/payments.js';
 import notificationRoutes from './routes/notifications.js';
+import approvalRoutes from './routes/approvals.js';
 import deliveryRoutes from './routes/deliveries.js';
 import settingsRoutes from './routes/settings.js';
 
-export async function buildApp({ userRepository, customerService, supplierService, productService, userService, projectService, quotationService, orderService, approvalRouteRepository, purchaseOrderService, invoiceService, receiptService, paymentService, notificationService, deliveryService, settingsService, auditLogRepository, corsOrigin, rateLimit } = {}) {
-  const app = Fastify({ logger: false });
+export async function buildApp({ userRepository, customerService, supplierService, productService, userService, projectService, quotationService, orderService, approvalRouteRepository, purchaseOrderService, invoiceService, receiptService, paymentService, notificationService, deliveryService, settingsService, auditLogRepository, sessionRepository, refreshTokenRepository, corsOrigin, rateLimit, allowedOrigins } = {}) {
+  const app = Fastify({
+    logger: false,
+    ajv: { customOptions: { removeAdditional: false } }
+  });
 
-  await app.register(fhelmet);
+  await app.register(fhelmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"]
+      }
+    }
+  });
 
   if (corsOrigin) {
     const allowedOrigins = Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin];
@@ -55,16 +74,31 @@ export async function buildApp({ userRepository, customerService, supplierServic
   app.decorate('authenticate', async function (request, reply) {
     try {
       await request.jwtVerify({ onlyCookie: true });
+      if (sessionRepository) {
+        const jti = request.user?.jti;
+        if (jti) {
+          const session = sessionRepository.findByJti(jti);
+          if (!session || session.revoked) {
+            return reply.code(401).send({ error: { message: '認証が必要です' } });
+          }
+        }
+      }
     } catch {
       reply.code(401).send({ error: { message: '認証が必要です' } });
     }
   });
 
+  await app.register(authorizationPlugin);
+
+  if (allowedOrigins && allowedOrigins.length > 0) {
+    await app.register(csrfPlugin, { allowedOrigins });
+  }
+
   if (auditLogRepository) {
     await app.register(auditLogPlugin, { auditLogRepository });
   }
 
-  await app.register(authRoutes, { userRepository });
+  await app.register(authRoutes, { userRepository, sessionRepository, refreshTokenRepository });
 
   await app.register(customerRoutes, { customerService });
   await app.register(supplierRoutes, { supplierService });
@@ -79,6 +113,9 @@ export async function buildApp({ userRepository, customerService, supplierServic
   await app.register(receiptRoutes, { receiptService });
   await app.register(paymentRoutes, { paymentService });
   await app.register(notificationRoutes, { notificationService });
+  if (quotationService && orderService && purchaseOrderService && invoiceService && paymentService) {
+    await app.register(approvalRoutes, { quotationService, orderService, purchaseOrderService, invoiceService, paymentService });
+  }
   if (deliveryService) await app.register(deliveryRoutes, { deliveryService });
   if (settingsService) await app.register(settingsRoutes, { settingsService });
 

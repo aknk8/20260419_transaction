@@ -26,8 +26,18 @@ export function createNotificationService() {
       return repository.save(notification);
     },
 
-    async markAsRead(id, { repository }) {
+    async markAsRead(id, requestingUserId, { repository }) {
+      const notification = await repository.findById(id);
+      if (!notification || notification.recipientId !== requestingUserId) {
+        const err = new Error('通知が見つかりません');
+        err.statusCode = 404;
+        throw err;
+      }
       return repository.markAsRead(id);
+    },
+
+    async markAllAsRead(userId, { repository }) {
+      return repository.markAllAsRead(userId);
     },
 
     async notifyStaleApprovals(staleDays, today, { pendingDocuments, repository }) {

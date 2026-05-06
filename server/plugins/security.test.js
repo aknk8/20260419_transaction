@@ -31,6 +31,39 @@ describe('Security headers (@fastify/helmet)', () => {
     // Assert
     expect(res.headers['x-frame-options']).toBeDefined();
   });
+
+  it('should include Content-Security-Policy header in responses', async () => {
+    // Arrange
+    const app = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/auth/me' });
+
+    // Assert
+    expect(res.headers['content-security-policy']).toBeDefined();
+  });
+
+  it('should set default-src to self in CSP header', async () => {
+    // Arrange
+    const app = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/auth/me' });
+
+    // Assert
+    expect(res.headers['content-security-policy']).toMatch(/default-src 'self'/);
+  });
+
+  it('should set object-src to none in CSP header', async () => {
+    // Arrange
+    const app = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/auth/me' });
+
+    // Assert
+    expect(res.headers['content-security-policy']).toMatch(/object-src 'none'/);
+  });
 });
 
 describe('CORS (@fastify/cors)', () => {
@@ -106,5 +139,81 @@ describe('Rate limit (@fastify/rate-limit)', () => {
 
     // Assert
     expect(res.statusCode).toBe(429);
+  });
+});
+
+describe('CSRF protection (Origin validation)', () => {
+  it('should allow POST from configured allowed origin', async () => {
+    // Arrange
+    const app = await makeApp({ allowedOrigins: ['http://localhost:3000'] });
+
+    // Act
+    const res = await app.inject({
+      method: 'POST', url: '/api/auth/login',
+      headers: { origin: 'http://localhost:3000', 'content-type': 'application/json' },
+      payload: { username: 'admin', password: 'wrongpass' }
+    });
+
+    // Assert – 401 (wrong credentials) not 403 (CSRF blocked)
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should return 403 for POST from disallowed origin', async () => {
+    // Arrange
+    const app = await makeApp({ allowedOrigins: ['http://localhost:3000'] });
+
+    // Act
+    const res = await app.inject({
+      method: 'POST', url: '/api/auth/login',
+      headers: { origin: 'http://evil.example.com', 'content-type': 'application/json' },
+      payload: { username: 'admin', password: 'pass' }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('should allow POST without Origin header (server-to-server / same-origin)', async () => {
+    // Arrange
+    const app = await makeApp({ allowedOrigins: ['http://localhost:3000'] });
+
+    // Act – app.inject does not set Origin (simulates same-origin or server call)
+    const res = await app.inject({
+      method: 'POST', url: '/api/auth/login',
+      headers: { 'content-type': 'application/json' },
+      payload: { username: 'admin', password: 'wrongpass' }
+    });
+
+    // Assert – 401 not 403
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should allow GET requests regardless of origin', async () => {
+    // Arrange
+    const app = await makeApp({ allowedOrigins: ['http://localhost:3000'] });
+
+    // Act
+    const res = await app.inject({
+      method: 'GET', url: '/api/auth/me',
+      headers: { origin: 'http://evil.example.com' }
+    });
+
+    // Assert – GET is not a state-changing request, CSRF check is skipped
+    expect(res.statusCode).not.toBe(403);
+  });
+
+  it('should not enforce CSRF when allowedOrigins is not configured', async () => {
+    // Arrange
+    const app = await makeApp(); // no allowedOrigins
+
+    // Act
+    const res = await app.inject({
+      method: 'POST', url: '/api/auth/login',
+      headers: { origin: 'http://any-origin.example.com', 'content-type': 'application/json' },
+      payload: { username: 'admin', password: 'wrongpass' }
+    });
+
+    // Assert – 401 not 403 (CSRF not active)
+    expect(res.statusCode).toBe(401);
   });
 });

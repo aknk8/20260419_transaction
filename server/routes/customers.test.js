@@ -33,6 +33,9 @@ const makeAuthToken = async () => {
   return app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
 };
 
+const makeMasterEditToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: 'システム管理者', permissions: ['master:edit'] });
+
 describe('GET /api/customers', () => {
   it('should return 200 with customer list when authenticated', async () => {
     // Arrange
@@ -106,7 +109,7 @@ describe('POST /api/customers', () => {
   it('should return 201 with created customer', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({
@@ -128,7 +131,7 @@ describe('POST /api/customers', () => {
     const { app } = await makeApp({
       registerCustomer: vi.fn().mockRejectedValue(validationErr)
     });
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({
@@ -162,7 +165,7 @@ describe('PATCH /api/customers/:code', () => {
   it('should return 200 with updated customer', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({
@@ -183,7 +186,7 @@ describe('PATCH /api/customers/:code', () => {
     const { app } = await makeApp({
       updateCustomer: vi.fn().mockRejectedValue(notFoundErr)
     });
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({

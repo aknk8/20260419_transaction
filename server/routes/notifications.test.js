@@ -16,6 +16,7 @@ const makeApp = async (serviceOverrides = {}) => {
   const mockNotificationService = {
     getNotificationsForUser: vi.fn().mockResolvedValue([sampleNotification]),
     markAsRead: vi.fn().mockResolvedValue({ ...sampleNotification, isRead: true }),
+    markAllAsRead: vi.fn().mockResolvedValue(undefined),
     notifyApprovalRequest: vi.fn().mockResolvedValue(undefined),
     notifyApprovalComplete: vi.fn().mockResolvedValue(undefined),
     notifyRejection: vi.fn().mockResolvedValue(undefined),
@@ -110,5 +111,75 @@ describe('PUT /api/notifications/:id/read', () => {
 
     // Assert
     expect(res.statusCode).toBe(404);
+  });
+
+  it('should return 404 when notification belongs to another user', async () => {
+    // Arrange
+    const err = Object.assign(new Error('通知が見つかりません'), { statusCode: 404 });
+    const { app } = await makeApp({ markAsRead: vi.fn().mockRejectedValue(err) });
+
+    // Act
+    const res = await app.inject({
+      method: 'PUT', url: '/api/notifications/uuid-001/read',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('should pass requesting user id to markAsRead', async () => {
+    // Arrange
+    const { app, mockNotificationService } = await makeApp();
+
+    // Act
+    await app.inject({
+      method: 'PUT', url: '/api/notifications/uuid-001/read',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(mockNotificationService.markAsRead).toHaveBeenCalledWith('uuid-001', 'user01', expect.anything());
+  });
+});
+
+describe('POST /api/notifications/read-all', () => {
+  it('should return 200 when all notifications marked as read', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({
+      method: 'POST', url: '/api/notifications/read-all',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('should return 401 when not authenticated', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'POST', url: '/api/notifications/read-all' });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should call markAllAsRead with current user id', async () => {
+    // Arrange
+    const { app, mockNotificationService } = await makeApp();
+
+    // Act
+    await app.inject({
+      method: 'POST', url: '/api/notifications/read-all',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(mockNotificationService.markAllAsRead).toHaveBeenCalledWith('user01', expect.anything());
   });
 });

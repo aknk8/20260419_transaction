@@ -236,3 +236,69 @@ test.describe('S-07 一部納品対応', () => {
     await expect(page.locator('.status-badge')).toHaveText('納品済');
   });
 });
+
+test.describe('P10-RT-04 発注→納品→請求 データ連鎖整合性', () => {
+  test('should show 一部納品 and keep delivery registration available after partial delivery', async ({ page }) => {
+    // Arrange: POD-00002 → 発注済 → partial delivery (qty=0 for line 1)
+    await page.click('[data-action-detail-purchase-order="POD-00002"]');
+    await page.click('[data-action-pod-status="発注済"]');
+    await page.click('[data-action-delivery-register="POD-00002"]');
+
+    // Act: submit with qty 0 (partial delivery)
+    await page.fill('#f-dlv-date', '2026-06-20');
+    await page.fill('#f-dlv-qty-1', '0');
+    await page.click('button[type="submit"]');
+
+    // Assert: status reflects partial delivery; further delivery remains possible
+    await expect(page.locator('.status-badge')).toHaveText('一部納品');
+    await expect(page.locator('[data-action-delivery-register="POD-00002"]')).toBeVisible();
+  });
+
+  test('should show complete delivery history for POD-00003 in 納品済 state', async ({ page }) => {
+    // Arrange: POD-00003 is already 納品済 with DLV-00001 in initial data
+
+    // Act
+    await page.click('[data-action-detail-purchase-order="POD-00003"]');
+
+    // Assert: delivery chain is complete
+    await expect(page.locator('.status-badge')).toHaveText('納品済');
+    await expect(page.locator('[data-delivery-code="DLV-00001"]')).toBeVisible();
+  });
+
+  test('should list ORD-00003 in billable orders after POD-00003 delivery chain is complete', async ({ page }) => {
+    // Chain: POD-00003 (納品済) → ORD-00003 (billingTarget: true) → appears in billable list
+
+    // Act: navigate to invoice extract
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.click('#invoice-extract-btn');
+
+    // Assert: ORD-00003 is listed for invoicing
+    await expect(page.locator('[data-billable-order="ORD-00003"]')).toBeVisible();
+  });
+
+  test('should display correct invoice amount for ORD-00003 matching its order total', async ({ page }) => {
+    // Invoice amount integrity: billable list must show the order total (132,000 円)
+
+    // Act
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.click('#invoice-extract-btn');
+
+    // Assert: amount shown matches ORD-00003 total
+    await expect(page.locator('[data-billable-order="ORD-00003"]')).toContainText('132,000');
+  });
+
+  test('should exclude ORD-00002 from billable list when billing target is not set', async ({ page }) => {
+    // Chain integrity: delivery alone does not make an order billable
+    // POD-00005 is 納品済 and links to ORD-00002, but ORD-00002 has billingTarget: false
+
+    // Act
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.click('#invoice-extract-btn');
+
+    // Assert: ORD-00002 is not in the billable list
+    await expect(page.locator('[data-billable-order="ORD-00002"]')).not.toBeVisible();
+  });
+});

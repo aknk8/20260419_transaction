@@ -120,4 +120,45 @@ describe('createNotificationRepository', () => {
       expect(whereMock).toHaveBeenCalledOnce();
     });
   });
+
+  describe('findById', () => {
+    it('should return notification for the given id', async () => {
+      // Arrange
+      const db = makeMockDb({
+        query: {
+          notifications: {
+            findMany: vi.fn().mockResolvedValue([sampleRow]),
+            findFirst: vi.fn().mockResolvedValue(sampleRow)
+          }
+        }
+      });
+      const repo = createNotificationRepository(db);
+
+      // Act
+      const result = await repo.findById('uuid-001');
+
+      // Assert
+      expect(result).toEqual(sampleRow);
+      expect(db.query.notifications.findFirst).toHaveBeenCalledOnce();
+    });
+
+    it('should return null when notification does not exist', async () => {
+      // Arrange
+      const db = makeMockDb({
+        query: {
+          notifications: {
+            findMany: vi.fn().mockResolvedValue([]),
+            findFirst: vi.fn().mockResolvedValue(undefined)
+          }
+        }
+      });
+      const repo = createNotificationRepository(db);
+
+      // Act
+      const result = await repo.findById('no-such-id');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
 });

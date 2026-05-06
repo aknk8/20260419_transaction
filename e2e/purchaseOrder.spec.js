@@ -316,14 +316,18 @@ test.describe('S-06 発注承認依頼', () => {
     await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
     await page.locator('#pod-submit-approval-btn').click();
 
-    await expect(page.locator('[data-action-pod-status="却下"]')).toBeVisible();
+    await expect(page.locator('#pod-reject-btn')).toBeVisible();
   });
 
   test('should update status to 却下 when 却下 is clicked', async ({ page }) => {
     await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
     await page.locator('#pod-submit-approval-btn').click();
-    await page.locator('[data-action-pod-status="却下"]').click();
-
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('テスト却下理由');
+    await page.locator('#approval-confirm-reject').click();
+    // After rejection, navigateBackToApproval() fires; navigate back to verify status
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('却下');
   });
 
@@ -451,5 +455,46 @@ test.describe('S-06 発注 権限制御', () => {
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
     await expect(page.locator('[data-route="purchase-order"]')).not.toBeVisible();
+  });
+});
+
+test.describe('P10-RT-01 発注却下フロー', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="purchase-order"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should show 却下 status in purchase order list after rejection', async ({ page }) => {
+    // Submit POD-00001 for approval then reject it
+    await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
+    await page.locator('#pod-submit-approval-btn').click();
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('発注内容を修正してください');
+    await page.locator('#approval-confirm-reject').click();
+    // After rejection, navigateBackToApproval fires; navigate back to purchase-order list
+    await page.locator('[data-route="purchase-order"]').click();
+
+    await expect(
+      page.locator('[data-action-detail-purchase-order="POD-00001"]')
+        .locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')
+    ).toContainText('却下');
+  });
+
+  test('should show 却下 status badge in purchase order detail after rejection', async ({ page }) => {
+    // Submit POD-00001 for approval then reject it
+    await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
+    await page.locator('#pod-submit-approval-btn').click();
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('発注内容を修正してください');
+    await page.locator('#approval-confirm-reject').click();
+    // Navigate back to the rejected PO detail
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
+
+    await expect(page.locator('.status-badge').first()).toContainText('却下');
   });
 });

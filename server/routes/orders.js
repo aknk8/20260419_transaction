@@ -35,7 +35,7 @@ export default async function orderRoutes(fastify, { orderService, notificationS
     }
   });
 
-  fastify.post('/api/orders/:code/submit-approval', { preHandler: [fastify.authenticate], config: { entityType: 'order', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
+  fastify.post('/api/orders/:code/submit-approval', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:apply')], config: { entityType: 'order', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
     try {
       const result = await orderService.submitOrderApproval(req.params.code, {
         repository: repo(req),
@@ -52,7 +52,7 @@ export default async function orderRoutes(fastify, { orderService, notificationS
     }
   });
 
-  fastify.post('/api/orders/:code/approve', { preHandler: [fastify.authenticate], config: { entityType: 'order', action: 'APPROVE' } }, async (req, reply) => {
+  fastify.post('/api/orders/:code/approve', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'order', action: 'APPROVE' } }, async (req, reply) => {
     try {
       const result = await orderService.approveOrder(req.params.code, req.body?.comment, { repository: repo(req) });
       if (notificationService && result.submittedBy) {
@@ -64,7 +64,7 @@ export default async function orderRoutes(fastify, { orderService, notificationS
     }
   });
 
-  fastify.post('/api/orders/:code/reject', { preHandler: [fastify.authenticate], config: { entityType: 'order', action: 'REJECT' } }, async (req, reply) => {
+  fastify.post('/api/orders/:code/reject', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'order', action: 'REJECT' } }, async (req, reply) => {
     try {
       const result = await orderService.rejectOrder(req.params.code, req.body?.reason, { repository: repo(req) });
       if (notificationService && result.submittedBy) {

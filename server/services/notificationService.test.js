@@ -1,8 +1,18 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createNotificationService } from './notificationService.js';
 
+const sampleNotification = {
+  id: 'uuid-001',
+  type: 'N-01',
+  recipientId: 'user01',
+  docCode: 'QUO-00001',
+  message: 'テスト',
+  isRead: false
+};
+
 const makeRepo = (overrides = {}) => ({
   findByRecipientId: vi.fn().mockResolvedValue([]),
+  findById: vi.fn().mockResolvedValue(sampleNotification),
   save: vi.fn().mockImplementation(async (n) => ({ id: 'uuid-001', ...n })),
   markAsRead: vi.fn().mockResolvedValue({ id: 'uuid-001', isRead: true }),
   ...overrides
@@ -133,17 +143,51 @@ describe('createNotificationService', () => {
   });
 
   describe('markAsRead', () => {
-    it('should call repository markAsRead with given id', async () => {
+    it('should mark notification as read when user is the owner', async () => {
       // Arrange
       const repo = makeRepo();
       const svc = createNotificationService();
 
       // Act
-      const result = await svc.markAsRead('uuid-001', { repository: repo });
+      const result = await svc.markAsRead('uuid-001', 'user01', { repository: repo });
 
       // Assert
       expect(repo.markAsRead).toHaveBeenCalledWith('uuid-001');
       expect(result.isRead).toBe(true);
+    });
+
+    it('should throw 404 when notification does not exist', async () => {
+      // Arrange
+      const repo = makeRepo({ findById: vi.fn().mockResolvedValue(null) });
+      const svc = createNotificationService();
+
+      // Act & Assert
+      await expect(svc.markAsRead('no-such-id', 'user01', { repository: repo }))
+        .rejects.toMatchObject({ statusCode: 404 });
+    });
+
+    it('should throw 404 when requesting user is not the owner', async () => {
+      // Arrange
+      const repo = makeRepo();
+      const svc = createNotificationService();
+
+      // Act & Assert
+      await expect(svc.markAsRead('uuid-001', 'other-user', { repository: repo }))
+        .rejects.toMatchObject({ statusCode: 404 });
+    });
+  });
+
+  describe('markAllAsRead', () => {
+    it('should call repository markAllAsRead with given userId', async () => {
+      // Arrange
+      const repo = makeRepo({ markAllAsRead: vi.fn().mockResolvedValue(undefined) });
+      const svc = createNotificationService();
+
+      // Act
+      await svc.markAllAsRead('user01', { repository: repo });
+
+      // Assert
+      expect(repo.markAllAsRead).toHaveBeenCalledWith('user01');
     });
   });
 

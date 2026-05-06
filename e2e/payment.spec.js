@@ -195,7 +195,7 @@ test.describe('S-10 支払承認', () => {
     await page.click('button[type="submit"]');
     await page.click('[data-action-detail-payment="PMT-00003"]');
     await page.click('[data-action-payment-status="承認待ち"]');
-    await expect(page.locator('[data-action-payment-status="承認済"]')).toBeVisible();
+    await expect(page.locator('#payment-approve-btn')).toBeVisible();
   });
 
   test('should update status to 承認済 when 承認 is clicked', async ({ page }) => {
@@ -205,19 +205,28 @@ test.describe('S-10 支払承認', () => {
     await page.click('button[type="submit"]');
     await page.click('[data-action-detail-payment="PMT-00003"]');
     await page.click('[data-action-payment-status="承認待ち"]');
-    await page.click('[data-action-payment-status="承認済"]');
+    await page.click('#payment-approve-btn');
+    await page.locator('#approval-confirm-approve').click();
+    // After approval, navigateBackToApproval() fires; navigate back to verify status
+    await page.locator('[data-route="payment"]').click();
+    await page.click('[data-action-detail-payment="PMT-00003"]');
     await expect(page.locator('.status-badge')).toHaveText('承認済');
   });
 
-  test('should update status to 差戻し when 差戻し is clicked', async ({ page }) => {
+  test('should update status to 却下 when 却下 is clicked', async ({ page }) => {
     await page.click('#payment-create-btn');
     await page.click('[data-action-create-payment="POD-00005"]');
     await page.fill('#f-pmt-date', '2026-05-31');
     await page.click('button[type="submit"]');
     await page.click('[data-action-detail-payment="PMT-00003"]');
     await page.click('[data-action-payment-status="承認待ち"]');
-    await page.click('[data-action-payment-status="差戻し"]');
-    await expect(page.locator('.status-badge')).toHaveText('差戻し');
+    await page.click('#payment-reject-btn');
+    await page.locator('#approval-comment-input').fill('テスト却下理由');
+    await page.locator('#approval-confirm-reject').click();
+    // After rejection, navigateBackToApproval() fires; navigate back to verify status
+    await page.locator('[data-route="payment"]').click();
+    await page.click('[data-action-detail-payment="PMT-00003"]');
+    await expect(page.locator('.status-badge')).toHaveText('却下');
   });
 
   test('should return to payment list when 一覧に戻る is clicked from detail', async ({ page }) => {
@@ -242,7 +251,11 @@ test.describe('S-10 支払登録', () => {
     await page.click('button[type="submit"]');
     await page.click('[data-action-detail-payment="PMT-00003"]');
     await page.click('[data-action-payment-status="承認待ち"]');
-    await page.click('[data-action-payment-status="承認済"]');
+    await page.click('#payment-approve-btn');
+    await page.locator('#approval-confirm-approve').click();
+    // After approval, navigateBackToApproval() fires; navigate back to payment detail
+    await page.locator('[data-route="payment"]').click();
+    await page.click('[data-action-detail-payment="PMT-00003"]');
   });
 
   test('should show 支払登録 button for 承認済 payment', async ({ page }) => {
@@ -296,5 +309,50 @@ test.describe('S-10 支払登録', () => {
     await page.click('#payment-register-btn');
     await page.click('#payment-exec-cancel');
     await expect(page.locator('.panel-label').filter({ hasText: 'S-10 支払依頼詳細' })).toBeVisible();
+  });
+});
+
+test.describe('P10-RT-01 支払却下フロー', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'finance01');
+    await page.fill('#password', 'finance123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="payment"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    // Create PMT-00003 and submit for approval
+    await page.click('#payment-create-btn');
+    await page.click('[data-action-create-payment="POD-00005"]');
+    await page.fill('#f-pmt-date', '2026-05-31');
+    await page.click('button[type="submit"]');
+    await page.click('[data-action-detail-payment="PMT-00003"]');
+    await page.click('[data-action-payment-status="承認待ち"]');
+  });
+
+  test('should show 却下 status in payment detail after rejection', async ({ page }) => {
+    // Arrange: reject PMT-00003
+    await page.click('#payment-reject-btn');
+    await page.locator('#approval-comment-input').fill('支払金額を確認してください');
+    await page.locator('#approval-confirm-reject').click();
+    // Navigate back to payment and open detail
+    await page.locator('[data-route="payment"]').click();
+    await page.click('[data-action-detail-payment="PMT-00003"]');
+
+    await expect(page.locator('.status-badge')).toHaveText('却下');
+  });
+
+  test('should show 却下 status in payment list after rejection', async ({ page }) => {
+    // Arrange: reject PMT-00003
+    await page.click('#payment-reject-btn');
+    await page.locator('#approval-comment-input').fill('支払金額を確認してください');
+    await page.locator('#approval-confirm-reject').click();
+    // Navigate back to payment list
+    await page.locator('[data-route="payment"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+
+    await expect(
+      page.locator('[data-action-detail-payment="PMT-00003"]')
+        .locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')
+    ).toContainText('却下');
   });
 });

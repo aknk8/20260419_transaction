@@ -21,6 +21,8 @@ const makeApp = async (repoOverrides = {}) => {
 };
 
 const makeToken = (app) => app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '管理部長' });
+const makeAdminToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: 'システム管理者', permissions: ['user-permission:edit'] });
 
 describe('GET /api/approval-routes', () => {
   it('should return 200 with route list when authenticated', async () => {
@@ -80,7 +82,7 @@ describe('POST /api/approval-routes', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/approval-routes',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeAdminToken(app) },
       payload: { documentType: 'quotation', stepNumber: 1, approverUserId: 'user01' }
     });
 
@@ -109,7 +111,7 @@ describe('PATCH /api/approval-routes/:id', () => {
     // Act
     const res = await app.inject({
       method: 'PATCH', url: '/api/approval-routes/1',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeAdminToken(app) },
       payload: { isActive: false }
     });
 
@@ -124,7 +126,7 @@ describe('PATCH /api/approval-routes/:id', () => {
     // Act
     const res = await app.inject({
       method: 'PATCH', url: '/api/approval-routes/99',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeAdminToken(app) },
       payload: { isActive: false }
     });
 
@@ -141,7 +143,7 @@ describe('DELETE /api/approval-routes/:id', () => {
     // Act
     const res = await app.inject({
       method: 'DELETE', url: '/api/approval-routes/1',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeAdminToken(app) }
     });
 
     // Assert

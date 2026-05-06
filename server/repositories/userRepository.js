@@ -33,6 +33,15 @@ export function createUserRepository(db) {
         .where(eq(users.id, id))
         .returning();
       return row;
+    },
+
+    async updateLoginState(id, { failedLoginCount, lockedUntil }) {
+      const [row] = await db
+        .update(users)
+        .set({ failedLoginCount, lockedUntil, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+      return row;
     }
   };
 }

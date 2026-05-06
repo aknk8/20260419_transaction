@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { notifications } from '../db/schema.js';
 
 export function createNotificationRepository(db) {
@@ -22,6 +22,20 @@ export function createNotificationRepository(db) {
         .where(eq(notifications.id, id))
         .returning();
       return updated;
+    },
+
+    async markAllAsRead(userId) {
+      await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(and(eq(notifications.recipientId, userId), eq(notifications.isRead, false)));
+    },
+
+    async findById(id) {
+      const row = await db.query.notifications.findFirst({
+        where: (n, { eq }) => eq(n.id, id)
+      });
+      return row ?? null;
     }
   };
 }

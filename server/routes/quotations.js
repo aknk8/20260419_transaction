@@ -31,7 +31,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
     }
   });
 
-  fastify.post('/api/quotations/:code/submit-approval', { preHandler: [fastify.authenticate], config: { entityType: 'quotation', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
+  fastify.post('/api/quotations/:code/submit-approval', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:apply')], config: { entityType: 'quotation', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
     try {
       const result = await quotationService.submitQuotationApproval(req.params.code, {
         repository: repo(req),
@@ -48,7 +48,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
     }
   });
 
-  fastify.post('/api/quotations/:code/approve', { preHandler: [fastify.authenticate], config: { entityType: 'quotation', action: 'APPROVE' } }, async (req, reply) => {
+  fastify.post('/api/quotations/:code/approve', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'quotation', action: 'APPROVE' } }, async (req, reply) => {
     try {
       const result = await quotationService.approveQuotation(req.params.code, req.body?.comment, { repository: repo(req) });
       if (notificationService && result.submittedBy) {
@@ -60,7 +60,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
     }
   });
 
-  fastify.post('/api/quotations/:code/reject', { preHandler: [fastify.authenticate], config: { entityType: 'quotation', action: 'REJECT' } }, async (req, reply) => {
+  fastify.post('/api/quotations/:code/reject', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'quotation', action: 'REJECT' } }, async (req, reply) => {
     try {
       const result = await quotationService.rejectQuotation(req.params.code, req.body?.reason, { repository: repo(req) });
       if (notificationService && result.submittedBy) {

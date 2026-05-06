@@ -18,7 +18,7 @@ export default async function supplierRoutes(fastify, { supplierService }) {
   });
 
   fastify.post('/api/suppliers', {
-    preHandler: [fastify.authenticate]
+    preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
       const supplier = await supplierService.registerSupplier(request.body, {
@@ -31,7 +31,7 @@ export default async function supplierRoutes(fastify, { supplierService }) {
   });
 
   fastify.patch('/api/suppliers/:code', {
-    preHandler: [fastify.authenticate]
+    preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
       return await supplierService.updateSupplier(request.params.code, request.body, {

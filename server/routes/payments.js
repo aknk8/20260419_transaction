@@ -30,7 +30,7 @@ export default async function paymentRoutes(fastify, { paymentService }) {
     }
   });
 
-  fastify.post('/api/payments/:code/submit-approval', { preHandler: [fastify.authenticate], config: { entityType: 'payment', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
+  fastify.post('/api/payments/:code/submit-approval', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:apply')], config: { entityType: 'payment', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
     try {
       return await svc.submitPaymentApproval(req.params.code, { repository: null });
     } catch (err) {
@@ -38,7 +38,7 @@ export default async function paymentRoutes(fastify, { paymentService }) {
     }
   });
 
-  fastify.post('/api/payments/:code/approve', { preHandler: [fastify.authenticate], config: { entityType: 'payment', action: 'APPROVE' } }, async (req, reply) => {
+  fastify.post('/api/payments/:code/approve', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'payment', action: 'APPROVE' } }, async (req, reply) => {
     try {
       return await svc.approvePayment(req.params.code, req.body?.comment, { repository: null });
     } catch (err) {
@@ -46,7 +46,7 @@ export default async function paymentRoutes(fastify, { paymentService }) {
     }
   });
 
-  fastify.post('/api/payments/:code/reject', { preHandler: [fastify.authenticate], config: { entityType: 'payment', action: 'REJECT' } }, async (req, reply) => {
+  fastify.post('/api/payments/:code/reject', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'payment', action: 'REJECT' } }, async (req, reply) => {
     try {
       return await svc.rejectPayment(req.params.code, req.body?.reason, { repository: null });
     } catch (err) {
@@ -54,7 +54,7 @@ export default async function paymentRoutes(fastify, { paymentService }) {
     }
   });
 
-  fastify.post('/api/payments/:code/register', { preHandler: [fastify.authenticate], config: { entityType: 'payment', action: 'REGISTER' } }, async (req, reply) => {
+  fastify.post('/api/payments/:code/register', { preHandler: [fastify.authenticate, fastify.requirePermission('payment:edit')], config: { entityType: 'payment', action: 'REGISTER' } }, async (req, reply) => {
     try {
       return await svc.registerPaymentResult(req.params.code, { repository: null });
     } catch (err) {

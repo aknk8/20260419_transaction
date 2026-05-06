@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { buildApp } from '../app.js';
+import { createSessionRepository } from '../repositories/sessionRepository.js';
+import { createInMemoryRefreshTokenRepository } from '../repositories/refreshTokenRepository.js';
+import { createRefreshToken } from '../services/refreshTokenService.js';
 
 // bcrypt cost=1 for fast test hashing
 const PASSWORD = 'correct-password';
@@ -11,15 +14,18 @@ const validUser = {
   name: '田中 太郎',
   userType: '営業',
   passwordHash: HASH,
-  status: '有効'
+  status: '有効',
+  failedLoginCount: 0,
+  lockedUntil: null
 };
 
-const makeApp = async (userOverride = null) => {
+const makeApp = async (userOverride = null, opts = {}) => {
   const mockUserRepository = {
     findByUsername: vi.fn().mockResolvedValue(userOverride),
-    findById: vi.fn().mockResolvedValue(userOverride)
+    findById: vi.fn().mockResolvedValue(userOverride),
+    updateLoginState: vi.fn().mockResolvedValue(undefined)
   };
-  const app = await buildApp({ userRepository: mockUserRepository });
+  const app = await buildApp({ userRepository: mockUserRepository, ...opts });
   return { app, mockUserRepository };
 };
 
@@ -175,6 +181,84 @@ describe('POST /api/auth/login', () => {
     // Assert
     expect(res.statusCode).toBe(400);
   });
+
+  it('should return 401 when user status is not 有効', async () => {
+    // Arrange
+    const disabledUser = { ...validUser, status: '無効' };
+    const { app } = await makeApp(disabledUser);
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: PASSWORD }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should return 401 when account is locked', async () => {
+    // Arrange
+    const lockedUser = {
+      ...validUser,
+      failedLoginCount: 5,
+      lockedUntil: new Date(Date.now() + 30 * 60 * 1000)
+    };
+    const { app } = await makeApp(lockedUser);
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: PASSWORD }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should return generic error message for locked account', async () => {
+    // Arrange
+    const lockedUser = {
+      ...validUser,
+      failedLoginCount: 5,
+      lockedUntil: new Date(Date.now() + 30 * 60 * 1000)
+    };
+    const { app } = await makeApp(lockedUser);
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: PASSWORD }
+    });
+
+    // Assert
+    expect(res.json().error.message).toBe('ユーザ名またはパスワードが正しくありません');
+  });
+
+  it('should return 429 after exceeding login rate limit', async () => {
+    // Arrange
+    const { app } = await makeApp(null, { rateLimit: { max: 100, timeWindow: '1 minute' } });
+
+    // Act - 6 requests (login-specific limit is 5)
+    for (let i = 0; i < 5; i++) {
+      await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { username: 'user01', password: 'wrong' }
+      });
+    }
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: 'wrong' }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(429);
+  });
 });
 
 describe('POST /api/auth/logout', () => {
@@ -285,5 +369,245 @@ describe('GET /api/auth/me', () => {
 
     // Assert
     expect(res.json().user.userType).toBe('営業');
+  });
+
+  it('should return permissions array in /me response when token contains permissions', async () => {
+    // Arrange
+    const { app } = await makeApp(validUser);
+    const token = app.jwt.sign({
+      id: 'user01',
+      name: '田中 太郎',
+      userType: 'システム管理者',
+      permissions: ['master:edit', 'approval:act']
+    });
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/auth/me',
+      cookies: { token }
+    });
+
+    // Assert
+    expect(res.json().user.permissions).toBeDefined();
+    expect(res.json().user.permissions).toContain('master:edit');
+  });
+
+  it('should include permissions in login response', async () => {
+    // Arrange
+    const adminUser = { ...validUser, userType: 'システム管理者' };
+    const { app } = await makeApp(adminUser);
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: PASSWORD }
+    });
+
+    // Assert
+    expect(res.json().user.permissions).toBeDefined();
+    expect(res.json().user.permissions).toContain('master:edit');
+  });
+});
+
+describe('POST /api/auth/login (session management)', () => {
+  it('should save session to sessionRepository on successful login', async () => {
+    // Arrange
+    const mockSessionRepository = { save: vi.fn(), findByJti: vi.fn(), revoke: vi.fn() };
+    const { app } = await makeApp(validUser, { sessionRepository: mockSessionRepository });
+
+    // Act
+    await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: PASSWORD }
+    });
+
+    // Assert
+    expect(mockSessionRepository.save).toHaveBeenCalledOnce();
+    expect(mockSessionRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user01', revoked: false })
+    );
+  });
+
+  it('should include jti in JWT token when sessionRepository is provided', async () => {
+    // Arrange
+    let savedJti = null;
+    const mockSessionRepository = {
+      save: vi.fn((s) => { savedJti = s.jti; }),
+      findByJti: vi.fn(),
+      revoke: vi.fn()
+    };
+    const { app } = await makeApp(validUser, { sessionRepository: mockSessionRepository });
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: PASSWORD }
+    });
+
+    // Assert
+    const cookieHeader = res.headers['set-cookie'];
+    const tokenMatch = String(cookieHeader).match(/token=([^;]+)/);
+    const decoded = app.jwt.decode(decodeURIComponent(tokenMatch[1]));
+    expect(decoded.jti).toBeDefined();
+    expect(decoded.jti).toBe(savedJti);
+  });
+
+  it('should not call sessionRepository.save when sessionRepository is not provided', async () => {
+    // Arrange
+    const { app } = await makeApp(validUser);
+
+    // Act & Assert (no error thrown means sessionRepository is optional)
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { username: 'user01', password: PASSWORD }
+    });
+    expect(res.statusCode).toBe(200);
+  });
+});
+
+describe('POST /api/auth/logout (session management)', () => {
+  it('should revoke session when valid token with jti is present', async () => {
+    // Arrange
+    const mockSessionRepository = { save: vi.fn(), findByJti: vi.fn(), revoke: vi.fn() };
+    const { app } = await makeApp(null, { sessionRepository: mockSessionRepository });
+    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業', jti: 'test-jti-123' });
+
+    // Act
+    await app.inject({
+      method: 'POST',
+      url: '/api/auth/logout',
+      cookies: { token }
+    });
+
+    // Assert
+    expect(mockSessionRepository.revoke).toHaveBeenCalledWith('test-jti-123');
+  });
+
+  it('should return 200 even when token is missing', async () => {
+    // Arrange
+    const { app } = await makeApp(null);
+
+    // Act
+    const res = await app.inject({ method: 'POST', url: '/api/auth/logout' });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('should return 200 even when token is invalid', async () => {
+    // Arrange
+    const { app } = await makeApp(null);
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/logout',
+      cookies: { token: 'invalid.token.value' }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+  });
+});
+
+describe('GET /api/auth/me (session management)', () => {
+  it('should return 401 when session is revoked', async () => {
+    // Arrange
+    const sessionRepo = createSessionRepository();
+    const { app } = await makeApp(validUser, { sessionRepository: sessionRepo });
+    const jti = 'test-jti-revoked';
+    sessionRepo.save({ jti, userId: 'user01', expiresAt: new Date(Date.now() + 3600000), revoked: false });
+    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業', jti });
+    sessionRepo.revoke(jti);
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/auth/me',
+      cookies: { token }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should return 200 when session is valid and not revoked', async () => {
+    // Arrange
+    const sessionRepo = createSessionRepository();
+    const { app } = await makeApp(validUser, { sessionRepository: sessionRepo });
+    const jti = 'test-jti-valid';
+    sessionRepo.save({ jti, userId: 'user01', expiresAt: new Date(Date.now() + 3600000), revoked: false });
+    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業', jti });
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/auth/me',
+      cookies: { token }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+  });
+});
+
+describe('POST /api/auth/refresh-token', () => {
+  it('should return 200 and set new cookies when refresh token is valid', async () => {
+    // Arrange
+    const refreshTokenRepo = createInMemoryRefreshTokenRepository();
+    const { app } = await makeApp(validUser, { refreshTokenRepository: refreshTokenRepo });
+    const tokenId = await createRefreshToken('user01', { repository: refreshTokenRepo });
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/refresh-token',
+      cookies: { refreshToken: tokenId }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('should return 401 when refresh token cookie is missing', async () => {
+    // Arrange
+    const refreshTokenRepo = createInMemoryRefreshTokenRepository();
+    const { app } = await makeApp(validUser, { refreshTokenRepository: refreshTokenRepo });
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/refresh-token'
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should return 401 when refresh token is already used', async () => {
+    // Arrange
+    const refreshTokenRepo = createInMemoryRefreshTokenRepository();
+    const { app } = await makeApp(validUser, { refreshTokenRepository: refreshTokenRepo });
+    const tokenId = await createRefreshToken('user01', { repository: refreshTokenRepo });
+    await app.inject({
+      method: 'POST',
+      url: '/api/auth/refresh-token',
+      cookies: { refreshToken: tokenId }
+    });
+
+    // Act - use the same (now revoked) token again
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/refresh-token',
+      cookies: { refreshToken: tokenId }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
   });
 });

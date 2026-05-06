@@ -162,3 +162,63 @@ test.describe('S-11 ユーザ管理 権限制御', () => {
     await expect(page.locator('#feedback')).toContainText('停止');
   });
 });
+
+test.describe('P10-RT-02 ユーザ管理 バリデーション', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="master"]').click();
+    await page.locator('[data-master-tab="user"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.locator('#new-user-btn').click();
+    await expect(page.locator('#user-register-form')).toBeVisible();
+  });
+
+  test('should show ユーザIDは必須です error when user ID is empty on submit', async ({ page }) => {
+    // Arrange: fill all required fields except user ID
+    await page.fill('#f-user-name', 'テスト ユーザ');
+    await page.fill('#f-password', 'test123');
+    await page.selectOption('#f-user-type', '一般ユーザ');
+    await page.selectOption('#f-user-department', '営業部門');
+    await page.fill('#f-position', '担当者');
+
+    // Act
+    await page.locator('#user-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: 'ユーザIDは必須です。' })).toBeVisible();
+  });
+
+  test('should show ユーザIDはすでに使用されています error when duplicate user ID is entered', async ({ page }) => {
+    // Arrange: enter existing user ID 'admin'
+    await page.fill('#f-user-id', 'admin');
+    await page.fill('#f-user-name', 'テスト ユーザ');
+    await page.fill('#f-password', 'test123');
+    await page.selectOption('#f-user-type', '一般ユーザ');
+    await page.selectOption('#f-user-department', '営業部門');
+    await page.fill('#f-position', '担当者');
+
+    // Act
+    await page.locator('#user-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: 'ユーザIDはすでに使用されています。' })).toBeVisible();
+  });
+
+  test('should show 氏名は必須です error when name is empty on submit', async ({ page }) => {
+    // Arrange: fill required fields except name
+    await page.fill('#f-user-id', 'validuser01');
+    await page.fill('#f-password', 'test123');
+    await page.selectOption('#f-user-type', '一般ユーザ');
+    await page.selectOption('#f-user-department', '営業部門');
+    await page.fill('#f-position', '担当者');
+
+    // Act
+    await page.locator('#user-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '氏名は必須です。' })).toBeVisible();
+  });
+});

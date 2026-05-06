@@ -82,7 +82,7 @@ describe('registerUser', () => {
     const formData = {
       id: 'user01',
       name: '田中 太郎',
-      password: 'plaintext',
+      password: 'Plaintext1',
       userType: '営業',
       department: '営業部',
       position: '担当者',
@@ -93,7 +93,7 @@ describe('registerUser', () => {
     const result = await registerUser(formData, { repository, hashPassword: mockHashPassword });
 
     // Assert
-    expect(mockHashPassword).toHaveBeenCalledWith('plaintext');
+    expect(mockHashPassword).toHaveBeenCalledWith('Plaintext1');
     expect(repository.save).toHaveBeenCalledOnce();
     const savedArg = repository.save.mock.calls[0][0];
     expect(savedArg.passwordHash).toBe('$2b$10$hashedvalue');
@@ -106,7 +106,7 @@ describe('registerUser', () => {
 
     // Act
     const result = await registerUser(
-      { id: 'user01', name: '田中 太郎', password: 'pass', userType: '営業', status: '有効' },
+      { id: 'user01', name: '田中 太郎', password: 'Passw0rd', userType: '営業', status: '有効' },
       { repository, hashPassword: mockHashPassword }
     );
 
@@ -140,6 +140,42 @@ describe('registerUser', () => {
     await expect(registerUser({ id: 'u1', name: '田中', userType: '営業' }, { repository, hashPassword: mockHashPassword }))
       .rejects.toMatchObject({ statusCode: 400 });
   });
+
+  it('should throw 400 when password is shorter than 8 chars', async () => {
+    // Arrange
+    const repository = makeRepo();
+
+    // Act & Assert
+    await expect(registerUser({ id: 'u1', name: '田中', password: 'Ab1', userType: '営業' }, { repository, hashPassword: mockHashPassword }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should throw 400 when password lacks uppercase letter', async () => {
+    // Arrange
+    const repository = makeRepo();
+
+    // Act & Assert
+    await expect(registerUser({ id: 'u1', name: '田中', password: 'abcdef12', userType: '営業' }, { repository, hashPassword: mockHashPassword }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should throw 400 when password lacks digit', async () => {
+    // Arrange
+    const repository = makeRepo();
+
+    // Act & Assert
+    await expect(registerUser({ id: 'u1', name: '田中', password: 'ABCDefgh', userType: '営業' }, { repository, hashPassword: mockHashPassword }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should succeed when password meets complexity requirements', async () => {
+    // Arrange
+    const repository = makeRepo({ save: vi.fn().mockResolvedValue(storedUser) });
+
+    // Act & Assert
+    await expect(registerUser({ id: 'u1', name: '田中', password: 'Passw0rd', userType: '営業' }, { repository, hashPassword: mockHashPassword }))
+      .resolves.toBeDefined();
+  });
 });
 
 describe('updateUser', () => {
@@ -164,10 +200,10 @@ describe('updateUser', () => {
     });
 
     // Act
-    await updateUser('user01', { password: 'newpass' }, { repository, hashPassword: mockHashPassword });
+    await updateUser('user01', { password: 'Newpass1' }, { repository, hashPassword: mockHashPassword });
 
     // Assert
-    expect(mockHashPassword).toHaveBeenCalledWith('newpass');
+    expect(mockHashPassword).toHaveBeenCalledWith('Newpass1');
     const updateArg = repository.update.mock.calls[0][1];
     expect(updateArg.passwordHash).toBe('$2b$10$hashedvalue');
     expect(updateArg.password).toBeUndefined();
@@ -180,5 +216,23 @@ describe('updateUser', () => {
     // Act & Assert
     await expect(updateUser('unknown', { name: 'X' }, { repository, hashPassword: mockHashPassword }))
       .rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it('should throw 400 when updating with password shorter than 8 chars', async () => {
+    // Arrange
+    const repository = makeRepo();
+
+    // Act & Assert
+    await expect(updateUser('user01', { password: 'Ab1' }, { repository, hashPassword: mockHashPassword }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should succeed when updating with valid complex password', async () => {
+    // Arrange
+    const repository = makeRepo({ update: vi.fn().mockResolvedValue(storedUser) });
+
+    // Act & Assert
+    await expect(updateUser('user01', { password: 'Newp@ss1' }, { repository, hashPassword: mockHashPassword }))
+      .resolves.toBeDefined();
   });
 });

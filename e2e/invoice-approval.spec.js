@@ -124,3 +124,68 @@ test.describe('P0-09 請求承認フロー（3段階）', () => {
     await expect(page.locator('#invoice-detail-back')).toContainText('承認一覧に戻る');
   });
 });
+
+test.describe('P10-RT-01 請求却下→修正→再申請', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should show 下書きに戻す button on invoice detail after rejection', async ({ page }) => {
+    // Submit INV-00003 (下書き) for approval then reject it
+    await page.locator('[data-action-detail-invoice="INV-00003"]').click();
+    await page.locator('#invoice-submit-approval-btn').click();
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="請求:INV-00003"]').click();
+    await page.locator('#invoice-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('金額に誤りがあります');
+    await page.locator('#approval-confirm-reject').click();
+    // Navigate to invoice detail
+    await page.locator('[data-route="invoice"]').click();
+    await page.locator('[data-action-detail-invoice="INV-00003"]').click();
+
+    await expect(page.locator('#invoice-return-draft-btn')).toBeVisible();
+  });
+
+  test('should complete full reject→return-to-draft→resubmit→approve flow for invoice', async ({ page }) => {
+    // Step 1: Submit INV-00003 for approval
+    await page.locator('[data-action-detail-invoice="INV-00003"]').click();
+    await page.locator('#invoice-submit-approval-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+
+    // Step 2: Reject from approval screen
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="請求:INV-00003"]').click();
+    await page.locator('#invoice-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('金額に誤りがあります');
+    await page.locator('#approval-confirm-reject').click();
+
+    // Step 3: Verify 却下 status
+    await page.locator('[data-route="invoice"]').click();
+    await page.locator('[data-action-detail-invoice="INV-00003"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('却下');
+
+    // Step 4: Return to draft
+    await page.locator('#invoice-return-draft-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('下書き');
+
+    // Step 5: Re-submit for approval
+    await page.locator('#invoice-submit-approval-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+
+    // Step 6: Approve from approval screen
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="請求:INV-00003"]').click();
+    await page.locator('#invoice-approve-btn').click();
+    await page.locator('#approval-confirm-approve').click();
+
+    // Step 7: Verify final approved status
+    await page.locator('[data-route="invoice"]').click();
+    await page.locator('[data-action-detail-invoice="INV-00003"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認済み');
+  });
+});

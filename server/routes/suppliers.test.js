@@ -25,6 +25,9 @@ const makeApp = async (serviceOverrides = {}) => {
   return { app, mockSupplierService };
 };
 
+const makeMasterEditToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: 'システム管理者', permissions: ['master:edit'] });
+
 describe('GET /api/suppliers', () => {
   it('should return 200 with supplier list when authenticated', async () => {
     // Arrange
@@ -96,7 +99,7 @@ describe('POST /api/suppliers', () => {
   it('should return 201 with created supplier', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({
@@ -116,7 +119,7 @@ describe('POST /api/suppliers', () => {
     const validationErr = new Error('仕入先名は必須です');
     validationErr.statusCode = 400;
     const { app } = await makeApp({ registerSupplier: vi.fn().mockRejectedValue(validationErr) });
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({
@@ -150,7 +153,7 @@ describe('PATCH /api/suppliers/:code', () => {
   it('should return 200 with updated supplier', async () => {
     // Arrange
     const { app } = await makeApp();
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({
@@ -169,7 +172,7 @@ describe('PATCH /api/suppliers/:code', () => {
     const notFoundErr = new Error('Not found');
     notFoundErr.statusCode = 404;
     const { app } = await makeApp({ updateSupplier: vi.fn().mockRejectedValue(notFoundErr) });
-    const token = app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+    const token = makeMasterEditToken(app);
 
     // Act
     const res = await app.inject({

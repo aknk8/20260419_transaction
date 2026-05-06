@@ -135,3 +135,55 @@ test.describe('S-11 顧客マスタ', () => {
     await expect(page.locator('#customer-register-form')).not.toBeVisible();
   });
 });
+
+test.describe('P10-RT-02 顧客マスタ バリデーション', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupPage(page);
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="master"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.locator('#new-customer-btn').click();
+    await expect(page.locator('#customer-register-form')).toBeVisible();
+  });
+
+  test('should show 顧客名は必須です error when name is empty on submit', async ({ page }) => {
+    // Arrange: select required fields, leave name empty
+    await page.selectOption('#f-department', '営業部門');
+    await page.selectOption('#f-closing-day', '末日');
+    await page.fill('#f-payment-site', '翌月末');
+
+    // Act
+    await page.locator('#customer-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '顧客名は必須です。' })).toBeVisible();
+  });
+
+  test('should show multiple field errors when all required fields are empty on submit', async ({ page }) => {
+    // Arrange: all fields at defaults (name empty, selects at placeholder)
+
+    // Act
+    await page.locator('#customer-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '顧客名は必須です。' })).toBeVisible();
+    await expect(page.locator('.field-error').filter({ hasText: '主管部門は必須です。' })).toBeVisible();
+  });
+
+  test('should show 顧客コードはすでに使用されています error when duplicate code is entered', async ({ page }) => {
+    // Arrange: change auto-filled code to existing CUS-001
+    await page.fill('#f-code', 'CUS-001');
+    await page.fill('#f-name', 'テスト顧客');
+    await page.selectOption('#f-department', '営業部門');
+    await page.selectOption('#f-closing-day', '末日');
+    await page.fill('#f-payment-site', '翌月末');
+
+    // Act
+    await page.locator('#customer-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '顧客コードはすでに使用されています。' })).toBeVisible();
+  });
+});

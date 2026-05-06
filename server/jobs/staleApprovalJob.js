@@ -1,6 +1,9 @@
+import cron from 'node-cron';
 import { createNotificationService } from '../services/notificationService.js';
 
 const PENDING_STATUS = '承認依頼中';
+// 平日9:00 JST: cron expression in Asia/Tokyo timezone
+const WEEKDAY_9AM_JST = '0 9 * * 1-5';
 
 export function createStaleApprovalJob({
   quotationRepository,
@@ -56,11 +59,11 @@ export function createStaleApprovalJob({
     });
   }
 
-  function start(intervalMs = 24 * 60 * 60 * 1000) {
-    run().catch((err) => console.error('[staleApprovalJob] run failed:', err.message));
-    return setInterval(() => {
+  function start() {
+    const task = cron.schedule(WEEKDAY_9AM_JST, () => {
       run().catch((err) => console.error('[staleApprovalJob] run failed:', err.message));
-    }, intervalMs);
+    }, { timezone: 'Asia/Tokyo' });
+    return task;
   }
 
   return { run, start };

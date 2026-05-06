@@ -3,15 +3,17 @@ import { pgTable, varchar, text, timestamp, boolean, integer, numeric, serial, u
 const tstz = (name) => timestamp(name, { withTimezone: true });
 
 export const users = pgTable('users', {
-  id:           varchar('id', { length: 50 }).primaryKey(),
-  name:         varchar('name', { length: 100 }).notNull(),
-  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  userType:     varchar('user_type', { length: 50 }).notNull(),
-  department:   varchar('department', { length: 100 }),
-  position:     varchar('position', { length: 100 }),
-  status:       varchar('status', { length: 20 }).notNull().default('有効'),
-  createdAt:    tstz('created_at').notNull().defaultNow(),
-  updatedAt:    tstz('updated_at').notNull().defaultNow()
+  id:               varchar('id', { length: 50 }).primaryKey(),
+  name:             varchar('name', { length: 100 }).notNull(),
+  passwordHash:     varchar('password_hash', { length: 255 }).notNull(),
+  userType:         varchar('user_type', { length: 50 }).notNull(),
+  department:       varchar('department', { length: 100 }),
+  position:         varchar('position', { length: 100 }),
+  status:           varchar('status', { length: 20 }).notNull().default('有効'),
+  failedLoginCount: integer('failed_login_count').notNull().default(0),
+  lockedUntil:      tstz('locked_until'),
+  createdAt:        tstz('created_at').notNull().defaultNow(),
+  updatedAt:        tstz('updated_at').notNull().defaultNow()
 });
 
 export const refreshTokens = pgTable('refresh_tokens', {

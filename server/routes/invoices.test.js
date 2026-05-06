@@ -35,6 +35,10 @@ const makeApp = async (serviceOverrides = {}, { notificationService, approvalRou
 };
 
 const makeToken = (app) => app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+const makeApplyToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '一般ユーザ', permissions: ['approval:apply'] });
+const makeActToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: 'システム管理者', permissions: ['approval:act'] });
 
 describe('GET /api/invoices', () => {
   it('should return 200 with invoice list when authenticated', async () => {
@@ -103,7 +107,7 @@ describe('POST /api/invoices/:code/submit-approval', () => {
     const { app } = await makeApp();
     const res = await app.inject({
       method: 'POST', url: '/api/invoices/INV-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().status).toBe('承認依頼中');
@@ -114,7 +118,7 @@ describe('POST /api/invoices/:code/submit-approval', () => {
     const { app } = await makeApp({ submitInvoiceApproval: vi.fn().mockRejectedValue(err) });
     const res = await app.inject({
       method: 'POST', url: '/api/invoices/INV-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
     expect(res.statusCode).toBe(400);
   });
@@ -125,7 +129,7 @@ describe('POST /api/invoices/:code/approve', () => {
     const { app } = await makeApp();
     const res = await app.inject({
       method: 'POST', url: '/api/invoices/INV-00001/approve',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { comment: 'LGTM' }
     });
     expect(res.statusCode).toBe(200);
@@ -138,7 +142,7 @@ describe('POST /api/invoices/:code/reject', () => {
     const { app } = await makeApp();
     const res = await app.inject({
       method: 'POST', url: '/api/invoices/INV-00001/reject',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { reason: '要再確認' }
     });
     expect(res.statusCode).toBe(200);
@@ -158,7 +162,7 @@ describe('POST /api/invoices/:code/submit-approval (N-01通知)', () => {
     // Act
     await app.inject({
       method: 'POST', url: '/api/invoices/INV-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
 
     // Assert
@@ -181,7 +185,7 @@ describe('POST /api/invoices/:code/approve (N-02通知)', () => {
     // Act
     await app.inject({
       method: 'POST', url: '/api/invoices/INV-00001/approve',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { comment: 'LGTM' }
     });
 
@@ -204,7 +208,7 @@ describe('POST /api/invoices/:code/reject (N-03通知)', () => {
     // Act
     await app.inject({
       method: 'POST', url: '/api/invoices/INV-00001/reject',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { reason: '要再確認' }
     });
 

@@ -93,6 +93,20 @@ test.describe('S-05 受注作成', () => {
     await expect(page.locator('.field-error').filter({ hasText: '受注日は必須です。' })).toBeVisible();
   });
 
+  test('should show validation error when order title is cleared on submit', async ({ page }) => {
+    // Arrange: open form and clear the pre-filled title
+    await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
+    await page.locator('[data-action-create-order="QUO-00001"]').click();
+    await page.fill('#f-order-title', '');
+    await page.fill('#f-order-date', '2026-05-10');
+
+    // Act
+    await page.getByRole('button', { name: '受注登録' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '受注件名は必須です。' })).toBeVisible();
+  });
+
   test('should save order and show it in order list when 受注登録 is clicked', async ({ page }) => {
     await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
     await page.locator('[data-action-create-order="QUO-00001"]').click();

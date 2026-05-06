@@ -35,6 +35,10 @@ const makeApp = async (serviceOverrides = {}, { notificationService, approvalRou
 };
 
 const makeToken = (app) => app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+const makeApplyToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '一般ユーザ', permissions: ['approval:apply'] });
+const makeActToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: 'システム管理者', permissions: ['approval:act'] });
 
 describe('GET /api/orders', () => {
   it('should return 200 with order list when authenticated', async () => {
@@ -157,7 +161,7 @@ describe('POST /api/orders/:code/submit-approval', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/orders/ORD-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
 
     // Assert
@@ -173,7 +177,7 @@ describe('POST /api/orders/:code/submit-approval', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/orders/ORD-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
 
     // Assert
@@ -189,7 +193,7 @@ describe('POST /api/orders/:code/approve', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/orders/ORD-00001/approve',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { comment: 'LGTM' }
     });
 
@@ -207,7 +211,7 @@ describe('POST /api/orders/:code/reject', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/orders/ORD-00001/reject',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { reason: '要再見積' }
     });
 
@@ -229,7 +233,7 @@ describe('POST /api/orders/:code/submit-approval (N-01通知)', () => {
     // Act
     await app.inject({
       method: 'POST', url: '/api/orders/ORD-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
 
     // Assert
@@ -252,7 +256,7 @@ describe('POST /api/orders/:code/approve (N-02通知)', () => {
     // Act
     await app.inject({
       method: 'POST', url: '/api/orders/ORD-00001/approve',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { comment: 'LGTM' }
     });
 
@@ -275,7 +279,7 @@ describe('POST /api/orders/:code/reject (N-03通知)', () => {
     // Act
     await app.inject({
       method: 'POST', url: '/api/orders/ORD-00001/reject',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { reason: '要再見積' }
     });
 

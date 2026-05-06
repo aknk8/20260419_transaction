@@ -1,6 +1,10 @@
 import 'dotenv/config';
+import { assertProductionSecrets } from './startupGuards.js';
+assertProductionSecrets();
 import { buildApp } from './app.js';
 import { createAuditLogRepository } from './repositories/auditLogRepository.js';
+import { createSessionRepository } from './repositories/sessionRepository.js';
+import { createInMemoryRefreshTokenRepository } from './repositories/refreshTokenRepository.js';
 
 // --- In-memory repositories (P1〜P4実装済み・本番ではDB接続リポジトリに差し替え) ---
 import { createUserRepository } from './repositories/userRepository.js';
@@ -38,6 +42,7 @@ import { createStaleApprovalJob } from './jobs/staleApprovalJob.js';
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
 const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10);
+const ALLOWED_ORIGINS = CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean);
 
 const userRepo           = createUserRepository([]);
 const customerRepo       = createCustomerRepository([]);
@@ -55,7 +60,9 @@ const deliveryRepo       = createDeliveryRepository([]);
 const settingsRepo       = createSettingsRepository();
 const auditLogRepo       = createAuditLogRepository([]);
 const notificationRepo   = createNotificationRepository([]);
-const notificationSvc    = createNotificationService();
+const notificationSvc       = createNotificationService();
+const sessionRepo           = createSessionRepository();
+const refreshTokenRepo      = createInMemoryRefreshTokenRepository();
 
 const bindRepo = (svc, repo) =>
   Object.fromEntries(
@@ -66,6 +73,8 @@ const bindRepo = (svc, repo) =>
   );
 
 const app = await buildApp({
+  sessionRepository:      sessionRepo,
+  refreshTokenRepository: refreshTokenRepo,
   userRepository:        userRepo,
   customerService:       bindRepo(customerService, customerRepo),
   supplierService:       bindRepo(supplierService, supplierRepo),
@@ -84,7 +93,8 @@ const app = await buildApp({
   notificationService:   notificationSvc,
   auditLogRepository:    auditLogRepo,
   corsOrigin:            CORS_ORIGIN,
-  rateLimit:             { max: RATE_LIMIT_MAX, timeWindow: '1 minute' }
+  rateLimit:             { max: RATE_LIMIT_MAX, timeWindow: '1 minute' },
+  allowedOrigins:        ALLOWED_ORIGINS
 });
 
 const STALE_DAYS = parseInt(process.env.APPROVAL_STALE_DAYS ?? '3', 10);

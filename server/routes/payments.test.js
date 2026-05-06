@@ -21,6 +21,12 @@ const makeApp = async (serviceOverrides = {}) => {
 };
 
 const makeToken = (app) => app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '営業' });
+const makeApplyToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: '一般ユーザ', permissions: ['approval:apply'] });
+const makeActToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: 'システム管理者', permissions: ['approval:act'] });
+const makePaymentEditToken = (app) =>
+  app.jwt.sign({ id: 'user01', name: '田中 太郎', userType: 'システム管理者', permissions: ['payment:edit'] });
 
 describe('GET /api/payments/:code', () => {
   it('should return 200 with payment when authenticated', async () => {
@@ -67,7 +73,7 @@ describe('POST /api/payments/:code/submit-approval', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/payments/PMT-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
 
     // Assert
@@ -83,7 +89,7 @@ describe('POST /api/payments/:code/submit-approval', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/payments/PMT-00001/submit-approval',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeApplyToken(app) }
     });
 
     // Assert
@@ -99,7 +105,7 @@ describe('POST /api/payments/:code/reject', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/payments/PMT-00001/reject',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { reason: '予算超過' }
     });
 
@@ -116,7 +122,7 @@ describe('POST /api/payments/:code/reject', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/payments/PMT-00001/reject',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeActToken(app) }
     });
 
     // Assert
@@ -186,7 +192,7 @@ describe('POST /api/payments/:code/approve', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/payments/PMT-00001/approve',
-      cookies: { token: makeToken(app) },
+      cookies: { token: makeActToken(app) },
       payload: { comment: 'LGTM' }
     });
 
@@ -203,7 +209,7 @@ describe('POST /api/payments/:code/approve', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/payments/PMT-00001/approve',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makeActToken(app) }
     });
 
     // Assert
@@ -262,7 +268,7 @@ describe('POST /api/payments/:code/register', () => {
     // Act
     const res = await app.inject({
       method: 'POST', url: '/api/payments/PMT-00001/register',
-      cookies: { token: makeToken(app) }
+      cookies: { token: makePaymentEditToken(app) }
     });
 
     // Assert

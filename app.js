@@ -1493,9 +1493,12 @@ async function initSession() {
     const res = await fetch('/api/auth/me', { credentials: 'include' });
     if (res.ok) {
       const { user: apiUser } = await res.json();
-      // API認証済みユーザと権限定義をマージ（P2で権限APIが実装されたら不要）
       const localUser = users.find(function (u) { return u.id === apiUser.id; });
-      currentUser = Object.assign({}, apiUser, { permissions: localUser ? localUser.permissions : [] });
+      // VA-08: サーバーが permissions を返す場合はそれを優先し、なければローカル定義にフォールバック
+      const permissions = Array.isArray(apiUser.permissions) && apiUser.permissions.length > 0
+        ? apiUser.permissions
+        : (localUser ? localUser.permissions : []);
+      currentUser = Object.assign({}, localUser || {}, apiUser, { permissions });
       await refreshSettings();
     } else {
       currentUser = null;
@@ -5208,15 +5211,15 @@ function sampleUsersHtml() {
   return users.map(function (user) {
     return (
       '<article class="sample-user">' +
-        '<div class="sample-user-name">' + user.name + "</div>" +
+        '<div class="sample-user-name">' + escapeHtml(user.name) + "</div>" +
         '<div class="sample-user-meta">' +
-          "ID: " + user.id + "<br>" +
-          "区分: " + user.userType + "<br>" +
-          "所属: " + user.department + " / 役職: " + user.position +
+          "ID: " + escapeHtml(user.id) + "<br>" +
+          "区分: " + escapeHtml(user.userType) + "<br>" +
+          "所属: " + escapeHtml(user.department) + " / 役職: " + escapeHtml(user.position) +
         "</div>" +
         '<div class="sample-user-permissions">' +
           user.permissions.slice(0, 4).map(function (permission) {
-            return '<span class="chip">' + permission + "</span>";
+            return '<span class="chip">' + escapeHtml(permission) + "</span>";
           }).join("") +
         "</div>" +
       "</article>"
@@ -6808,8 +6811,6 @@ function bindAppEvents() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ comment: comment })
           });
-          var invToApprove = invoices.find(function(i) { return i.code === invCode; });
-          if (invToApprove) invToApprove.status = '承認済み';
           await refreshInvoices();
           viewState.invoiceView = 'list';
           viewState.invoiceDetailCode = null;
@@ -7182,17 +7183,11 @@ function bindAppEvents() {
         return;
       }
       try {
-        const newDelivery = await apiFetch('/api/deliveries', {
+        await apiFetch('/api/deliveries', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ purchaseOrderCode: data.purchaseOrderCode, deliveryDate: deliveryDate, notes: notes })
         });
-
-        // Optimistic: add new delivery to local array
-        var newDlvCode = generateDeliveryCode(deliveries.map(function(d) { return d.code; }));
-        var localDelivery = createDelivery(newDlvCode, data.purchaseOrderCode, deliveryDate, notes);
-        localDelivery.details = formDetails;
-        deliveries.push(localDelivery);
 
         await refreshDeliveries();
 
@@ -7244,8 +7239,6 @@ function bindAppEvents() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: '検収済' })
         });
-        var dlv = deliveries.find(function(d) { return d.code === dlvCode; });
-        if (dlv) { dlv.status = '検収済'; }
         await refreshDeliveries();
         renderApp();
       } catch (err) {
@@ -7264,8 +7257,6 @@ function bindAppEvents() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: '検収NG' })
         });
-        var dlv = deliveries.find(function(d) { return d.code === dlvCode; });
-        if (dlv) { dlv.status = '検収NG'; }
         await refreshDeliveries();
         renderApp();
       } catch (err) {
@@ -7309,8 +7300,6 @@ function bindAppEvents() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
         });
-        var inv = invoices.find(function(i) { return i.code === viewState.invoiceDetailCode; });
-        if (inv) inv.status = '承認依頼中';
         await refreshInvoices();
         renderApp();
       } catch (err) {

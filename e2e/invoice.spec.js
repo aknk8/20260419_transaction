@@ -206,3 +206,44 @@ test.describe('S-08 請求詳細', () => {
     await expect(page.locator('[data-action-print-invoice="INV-00001"]')).toBeVisible();
   });
 });
+
+test.describe('P10-RT-02 請求起票 バリデーション', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.click('#invoice-extract-btn');
+    await expect(page.locator('[data-billable-order]')).toBeVisible();
+  });
+
+  test('should not create invoice when invoiceDate is cleared before clicking 請求起票', async ({ page }) => {
+    // Arrange: clear the invoice date for the first billable order
+    const orderCode = await page.locator('[data-billable-order]').first().getAttribute('data-billable-order');
+    await page.fill('[data-inv-date-for="' + orderCode + '"]', '');
+    const countBefore = await page.locator('[data-billable-order]').count();
+
+    // Act
+    await page.locator('[data-action-create-invoice]').first().click();
+
+    // Assert: billable order count unchanged (invoice creation silently blocked)
+    const countAfter = await page.locator('[data-billable-order]').count();
+    expect(countAfter).toBe(countBefore);
+  });
+
+  test('should not create invoice when dueDate is cleared before clicking 請求起票', async ({ page }) => {
+    // Arrange: clear the due date for the first billable order
+    const orderCode = await page.locator('[data-billable-order]').first().getAttribute('data-billable-order');
+    await page.fill('[data-inv-due-date-for="' + orderCode + '"]', '');
+    const countBefore = await page.locator('[data-billable-order]').count();
+
+    // Act
+    await page.locator('[data-action-create-invoice]').first().click();
+
+    // Assert: billable order count unchanged (invoice creation silently blocked)
+    const countAfter = await page.locator('[data-billable-order]').count();
+    expect(countAfter).toBe(countBefore);
+  });
+});

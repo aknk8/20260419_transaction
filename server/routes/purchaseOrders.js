@@ -31,7 +31,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
     }
   });
 
-  fastify.post('/api/purchase-orders/:code/submit-approval', { preHandler: [fastify.authenticate], config: { entityType: 'purchaseOrder', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
+  fastify.post('/api/purchase-orders/:code/submit-approval', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:apply')], config: { entityType: 'purchaseOrder', action: 'SUBMIT_APPROVAL' } }, async (req, reply) => {
     try {
       const result = await svc.submitPurchaseOrderApproval(req.params.code, {
         repository: null,
@@ -48,7 +48,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
     }
   });
 
-  fastify.post('/api/purchase-orders/:code/approve', { preHandler: [fastify.authenticate], config: { entityType: 'purchaseOrder', action: 'APPROVE' } }, async (req, reply) => {
+  fastify.post('/api/purchase-orders/:code/approve', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'purchaseOrder', action: 'APPROVE' } }, async (req, reply) => {
     try {
       const result = await svc.approvePurchaseOrder(req.params.code, req.body?.comment, { repository: null });
       if (notificationService && result.submittedBy) {
@@ -60,7 +60,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
     }
   });
 
-  fastify.post('/api/purchase-orders/:code/reject', { preHandler: [fastify.authenticate], config: { entityType: 'purchaseOrder', action: 'REJECT' } }, async (req, reply) => {
+  fastify.post('/api/purchase-orders/:code/reject', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'purchaseOrder', action: 'REJECT' } }, async (req, reply) => {
     try {
       const result = await svc.rejectPurchaseOrder(req.params.code, req.body?.reason, { repository: null });
       if (notificationService && result.submittedBy) {

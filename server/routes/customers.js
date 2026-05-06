@@ -18,7 +18,7 @@ export default async function customerRoutes(fastify, { customerService }) {
   });
 
   fastify.post('/api/customers', {
-    preHandler: [fastify.authenticate]
+    preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
       const customer = await customerService.registerCustomer(request.body, {
@@ -31,7 +31,7 @@ export default async function customerRoutes(fastify, { customerService }) {
   });
 
   fastify.patch('/api/customers/:code', {
-    preHandler: [fastify.authenticate]
+    preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     const { code } = request.params;
     try {
