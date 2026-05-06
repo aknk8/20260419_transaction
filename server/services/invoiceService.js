@@ -1,5 +1,6 @@
 import { createInvoice } from '../../src/invoice.js';
 import { generateCode } from './sequenceService.js';
+import { withTransaction } from '../db/transaction.js';
 
 function notFound(msg) { return Object.assign(new Error(msg), { statusCode: 404 }); }
 function validationError(msg) { return Object.assign(new Error(msg), { statusCode: 400 }); }
@@ -14,43 +15,46 @@ export async function getInvoiceByCode(code, { repository }) {
   return invoice;
 }
 
-export async function registerInvoice(formData, { repository, sequenceRepository, orderRepository }) {
-  const code = await generateCode('invoice', { sequenceRepository });
+export async function registerInvoice(formData, { repository, sequenceRepository, orderRepository, db }) {
+  // INF-10: wrap sequence generation + invoice save in single transaction
+  return withTransaction(db ?? null, async () => {
+    const code = await generateCode('invoice', { sequenceRepository });
 
-  const orderCodes = formData.orderCodes ?? (formData.orderCode ? [formData.orderCode] : []);
+    const orderCodes = formData.orderCodes ?? (formData.orderCode ? [formData.orderCode] : []);
 
-  let details, subtotal, taxAmount, total;
+    let details, subtotal, taxAmount, total;
 
-  if (formData.details !== undefined) {
-    // Partial invoice: use explicitly specified details and totals
-    details = formData.details;
-    subtotal = Number(formData.subtotal ?? 0);
-    taxAmount = Number(formData.taxAmount ?? 0);
-    total = Number(formData.total ?? (subtotal + taxAmount));
-  } else if (orderRepository && orderCodes.length > 0) {
-    // Multi-order merge: calculate tax one-shot on combined subtotal (BL-02)
-    const fetchedOrders = await Promise.all(orderCodes.map((c) => orderRepository.findByCode(c)));
-    details = fetchedOrders.flatMap((o) => (o?.details ?? []).map((d) => ({ ...d })));
-    subtotal = fetchedOrders.reduce((sum, o) => sum + Number(o?.subtotal ?? 0), 0);
-    const taxRate = details.length > 0 ? Number(details[0].taxRate ?? 0.10) : 0.10;
-    taxAmount = Math.floor(subtotal * taxRate);
-    total = subtotal + taxAmount;
-  } else {
-    details = [];
-    subtotal = Number(formData.subtotal ?? 0);
-    taxAmount = Number(formData.taxAmount ?? 0);
-    total = Number(formData.total ?? (subtotal + taxAmount));
-  }
+    if (formData.details !== undefined) {
+      // Partial invoice: use explicitly specified details and totals
+      details = formData.details;
+      subtotal = Number(formData.subtotal ?? 0);
+      taxAmount = Number(formData.taxAmount ?? 0);
+      total = Number(formData.total ?? (subtotal + taxAmount));
+    } else if (orderRepository && orderCodes.length > 0) {
+      // Multi-order merge: calculate tax one-shot on combined subtotal (BL-02)
+      const fetchedOrders = await Promise.all(orderCodes.map((c) => orderRepository.findByCode(c)));
+      details = fetchedOrders.flatMap((o) => (o?.details ?? []).map((d) => ({ ...d })));
+      subtotal = fetchedOrders.reduce((sum, o) => sum + Number(o?.subtotal ?? 0), 0);
+      const taxRate = details.length > 0 ? Number(details[0].taxRate ?? 0.10) : 0.10;
+      taxAmount = Math.floor(subtotal * taxRate);
+      total = subtotal + taxAmount;
+    } else {
+      details = [];
+      subtotal = Number(formData.subtotal ?? 0);
+      taxAmount = Number(formData.taxAmount ?? 0);
+      total = Number(formData.total ?? (subtotal + taxAmount));
+    }
 
-  const invoice = createInvoice(
-    code,
-    orderCodes[0] ?? null,
-    formData.customerId,
-    formData.title,
-    formData.invoiceDate,
-    formData.dueDate
-  );
-  return repository.save({ ...invoice, subtotal, taxAmount, total, details });
+    const invoice = createInvoice(
+      code,
+      orderCodes[0] ?? null,
+      formData.customerId,
+      formData.title,
+      formData.invoiceDate,
+      formData.dueDate
+    );
+    return repository.save({ ...invoice, subtotal, taxAmount, total, details });
+  });
 }
 
 export async function updateInvoice(code, data, { repository }) {
@@ -66,25 +70,28 @@ export async function submitInvoiceApproval(code, { repository, submittedBy }) {
   return repository.update(code, updateData);
 }
 
-export async function approveInvoice(code, comment, { repository, auditLogRepository, actor }) {
+export async function approveInvoice(code, comment, { repository, auditLogRepository, actor, db }) {
   const invoice = await repository.findByCode(code);
   if (!invoice) throw notFound('請求が見つかりません');
   if (invoice.status !== '承認依頼中') throw validationError('承認依頼中状態のみ承認できます');
-  const result = await repository.update(code, { status: '確定', approvalComment: comment ?? null });
 
-  // INF-10: atomically record audit log on invoice finalization
-  if (auditLogRepository) {
-    await auditLogRepository.save({
-      userId: actor?.userId ?? null,
-      userName: actor?.userName ?? null,
-      action: 'INVOICE_APPROVE',
-      entityType: 'invoice',
-      entityId: code,
-      result: 'SUCCESS'
-    });
-  }
+  // INF-10: wrap status update + audit log in single transaction
+  return withTransaction(db ?? null, async () => {
+    const result = await repository.update(code, { status: '確定', approvalComment: comment ?? null });
 
-  return result;
+    if (auditLogRepository) {
+      await auditLogRepository.save({
+        userId: actor?.userId ?? null,
+        userName: actor?.userName ?? null,
+        action: 'INVOICE_APPROVE',
+        entityType: 'invoice',
+        entityId: code,
+        result: 'SUCCESS'
+      });
+    }
+
+    return result;
+  });
 }
 
 export async function rejectInvoice(code, reason, { repository }) {

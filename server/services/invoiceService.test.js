@@ -217,6 +217,48 @@ describe('rejectInvoice', () => {
   });
 });
 
+describe('registerInvoice - transaction rollback', () => {
+  it('should rollback all changes when sequence numbering fails', async () => {
+    // Arrange
+    const repository = makeRepo({ save: vi.fn() });
+    const sequenceRepository = {
+      nextVal: vi.fn().mockRejectedValue(new Error('sequence counter failed'))
+    };
+    const db = {
+      transaction: vi.fn().mockImplementation((fn) => fn({ isTransaction: true }))
+    };
+
+    // Act & Assert
+    await expect(registerInvoice(
+      { orderCode: 'ORD-00001', customerId: 'CUS-001', title: '請求', invoiceDate: '2026-05-05', dueDate: '2026-05-31' },
+      { repository, sequenceRepository, db }
+    )).rejects.toThrow('sequence counter failed');
+    expect(repository.save).not.toHaveBeenCalled();
+    expect(db.transaction).toHaveBeenCalledOnce();
+  });
+});
+
+describe('approveInvoice - transaction rollback', () => {
+  it('should rollback all changes when audit log insert fails', async () => {
+    // Arrange
+    const repository = makeRepo({
+      findByCode: vi.fn().mockResolvedValue({ ...sampleInvoice, status: '承認依頼中' }),
+      update: vi.fn().mockResolvedValue({ ...sampleInvoice, status: '確定' })
+    });
+    const auditLogRepository = {
+      save: vi.fn().mockRejectedValue(new Error('audit log insert failed'))
+    };
+    const db = {
+      transaction: vi.fn().mockImplementation((fn) => fn({ isTransaction: true }))
+    };
+
+    // Act & Assert
+    await expect(approveInvoice('INV-00001', 'OK', { repository, auditLogRepository, db }))
+      .rejects.toThrow('audit log insert failed');
+    expect(db.transaction).toHaveBeenCalledOnce();
+  });
+});
+
 describe('registerInvoice - BL-02 multi-order invoice', () => {
   const makeOrderRepo = (ordersMap = {}) => ({
     findByCode: vi.fn().mockImplementation(async (code) => ordersMap[code] ?? null)

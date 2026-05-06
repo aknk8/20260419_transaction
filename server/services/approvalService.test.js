@@ -317,6 +317,48 @@ describe('approveDocument', () => {
   });
 });
 
+describe('approveDocument - transaction rollback', () => {
+  it('should rollback all changes when approval history insert fails', async () => {
+    // Arrange
+    const approvalHistoryRepository = {
+      save: vi.fn().mockRejectedValue(new Error('history insert failed'))
+    };
+    const db = {
+      transaction: vi.fn().mockImplementation((fn) => fn({ isTransaction: true }))
+    };
+    const svcs = makeServices({ approvalHistoryRepository, db });
+
+    // Act & Assert
+    await expect(approveDocument('ORD-00001', 'OK', svcs))
+      .rejects.toThrow('history insert failed');
+    expect(db.transaction).toHaveBeenCalledOnce();
+  });
+
+  it('should rollback all changes when notification insert fails', async () => {
+    // Arrange
+    const notificationRepository = {
+      save: vi.fn().mockRejectedValue(new Error('notification insert failed'))
+    };
+    const db = {
+      transaction: vi.fn().mockImplementation((fn) => fn({ isTransaction: true }))
+    };
+    const svcs = makeServices({
+      notificationRepository,
+      db,
+      orderService: {
+        listOrders: vi.fn().mockResolvedValue([]),
+        approveOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '承認済み', submittedBy: 'user01' }),
+        rejectOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '却下' })
+      }
+    });
+
+    // Act & Assert
+    await expect(approveDocument('ORD-00001', 'OK', svcs))
+      .rejects.toThrow('notification insert failed');
+    expect(db.transaction).toHaveBeenCalledOnce();
+  });
+});
+
 describe('rejectDocument', () => {
   it('should call rejectQuotation for QUO- prefix code', async () => {
     // Arrange

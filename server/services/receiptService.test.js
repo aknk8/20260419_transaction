@@ -141,6 +141,29 @@ describe('registerReceipt', () => {
     expect(invoiceRepository.update).toHaveBeenCalledWith('INV-00001', expect.objectContaining({ status: '消込済み' }));
   });
 
+  it('should rollback all changes when payment status update fails', async () => {
+    // Arrange
+    const invoice = { code: 'INV-00001', total: '5500.00', status: '承認依頼中' };
+    const invoiceRepository = {
+      findByCode: vi.fn().mockResolvedValue(invoice),
+      update: vi.fn().mockRejectedValue(new Error('invoice status update failed'))
+    };
+    const receiptRepository = {
+      save: vi.fn().mockResolvedValue(sampleReceipt),
+      findByInvoiceCode: vi.fn().mockResolvedValue([])
+    };
+    const db = {
+      transaction: vi.fn().mockImplementation((fn) => fn({ isTransaction: true }))
+    };
+
+    // Act & Assert
+    await expect(registerReceipt(
+      { invoiceCode: 'INV-00001', receiptDate: '2026-05-10', amount: 5500, fee: 0 },
+      { repository: receiptRepository, invoiceRepository, sequenceRepository: makeSequenceRepo(1), db }
+    )).rejects.toThrow('invoice status update failed');
+    expect(db.transaction).toHaveBeenCalledOnce();
+  });
+
   it('should not update invoice status when invoiceRepository is not provided', async () => {
     // Arrange
     const repository = makeRepo();

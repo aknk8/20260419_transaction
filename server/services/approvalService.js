@@ -1,3 +1,5 @@
+import { withTransaction } from '../db/transaction.js';
+
 const PENDING = '承認依頼中';
 
 const CODE_PREFIX_MAP = {
@@ -52,41 +54,42 @@ export async function approveDocument(code, comment, services) {
   const docType = resolveDocType(code);
   if (!docType) throw unknownCode(code);
 
-  const approvers = {
-    quotation: () => services.quotationService.approveQuotation(code, comment),
-    order: () => services.orderService.approveOrder(code, comment),
-    purchaseOrder: () => services.purchaseOrderService.approvePurchaseOrder(code, comment),
-    invoice: () => services.invoiceService.approveInvoice(code, comment),
-    payment: () => services.paymentService.approvePayment(code, comment)
-  };
+  // INF-10: wrap approval + history + notification in single transaction
+  return withTransaction(services.db ?? null, async () => {
+    const approvers = {
+      quotation: () => services.quotationService.approveQuotation(code, comment),
+      order: () => services.orderService.approveOrder(code, comment),
+      purchaseOrder: () => services.purchaseOrderService.approvePurchaseOrder(code, comment),
+      invoice: () => services.invoiceService.approveInvoice(code, comment),
+      payment: () => services.paymentService.approvePayment(code, comment)
+    };
 
-  const result = await approvers[docType]();
+    const result = await approvers[docType]();
 
-  // INF-10: atomically record approval history
-  if (services.approvalHistoryRepository) {
-    await services.approvalHistoryRepository.save({
-      documentType: docType,
-      documentId: code,
-      stepNumber: 1,
-      action: '承認',
-      comment: comment ?? null
-    });
-  }
+    if (services.approvalHistoryRepository) {
+      await services.approvalHistoryRepository.save({
+        documentType: docType,
+        documentId: code,
+        stepNumber: 1,
+        action: '承認',
+        comment: comment ?? null
+      });
+    }
 
-  // INF-10: atomically notify the applicant
-  if (services.notificationRepository && result.submittedBy) {
-    const label = DOC_TYPE_LABEL[docType] ?? docType;
-    await services.notificationRepository.save({
-      type: 'N-02',
-      recipientId: result.submittedBy,
-      docType: label,
-      docCode: code,
-      message: `${label} ${code} が承認されました`,
-      isRead: false
-    });
-  }
+    if (services.notificationRepository && result.submittedBy) {
+      const label = DOC_TYPE_LABEL[docType] ?? docType;
+      await services.notificationRepository.save({
+        type: 'N-02',
+        recipientId: result.submittedBy,
+        docType: label,
+        docCode: code,
+        message: `${label} ${code} が承認されました`,
+        isRead: false
+      });
+    }
 
-  return result;
+    return result;
+  });
 }
 
 export async function rejectDocument(code, reason, services) {
@@ -99,39 +102,40 @@ export async function rejectDocument(code, reason, services) {
     throw err;
   }
 
-  const rejecters = {
-    quotation: () => services.quotationService.rejectQuotation(code, reason),
-    order: () => services.orderService.rejectOrder(code, reason),
-    purchaseOrder: () => services.purchaseOrderService.rejectPurchaseOrder(code, reason),
-    invoice: () => services.invoiceService.rejectInvoice(code, reason),
-    payment: () => services.paymentService.rejectPayment(code, reason)
-  };
+  // INF-10: wrap rejection + history + notification in single transaction
+  return withTransaction(services.db ?? null, async () => {
+    const rejecters = {
+      quotation: () => services.quotationService.rejectQuotation(code, reason),
+      order: () => services.orderService.rejectOrder(code, reason),
+      purchaseOrder: () => services.purchaseOrderService.rejectPurchaseOrder(code, reason),
+      invoice: () => services.invoiceService.rejectInvoice(code, reason),
+      payment: () => services.paymentService.rejectPayment(code, reason)
+    };
 
-  const result = await rejecters[docType]();
+    const result = await rejecters[docType]();
 
-  // INF-10: atomically record rejection history
-  if (services.approvalHistoryRepository) {
-    await services.approvalHistoryRepository.save({
-      documentType: docType,
-      documentId: code,
-      stepNumber: 1,
-      action: '却下',
-      comment: reason
-    });
-  }
+    if (services.approvalHistoryRepository) {
+      await services.approvalHistoryRepository.save({
+        documentType: docType,
+        documentId: code,
+        stepNumber: 1,
+        action: '却下',
+        comment: reason
+      });
+    }
 
-  // INF-10: atomically notify the applicant of rejection
-  if (services.notificationRepository && result.submittedBy) {
-    const label = DOC_TYPE_LABEL[docType] ?? docType;
-    await services.notificationRepository.save({
-      type: 'N-03',
-      recipientId: result.submittedBy,
-      docType: label,
-      docCode: code,
-      message: `${label} ${code} が却下されました：${reason}`,
-      isRead: false
-    });
-  }
+    if (services.notificationRepository && result.submittedBy) {
+      const label = DOC_TYPE_LABEL[docType] ?? docType;
+      await services.notificationRepository.save({
+        type: 'N-03',
+        recipientId: result.submittedBy,
+        docType: label,
+        docCode: code,
+        message: `${label} ${code} が却下されました：${reason}`,
+        isRead: false
+      });
+    }
 
-  return result;
+    return result;
+  });
 }
