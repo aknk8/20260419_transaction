@@ -25,7 +25,7 @@ export default async function customerRoutes(fastify, { customerService }) {
     preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
-      const customer = await customerService.registerCustomer(request.body);
+      const customer = await customerService.registerCustomer(request.body, request.log);
       reply.code(201).send(customer);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
@@ -37,7 +37,7 @@ export default async function customerRoutes(fastify, { customerService }) {
   }, async (request, reply) => {
     const { code } = request.params;
     try {
-      return await customerService.updateCustomer(code, request.body);
+      return await customerService.updateCustomer(code, request.body, request.log);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
     }

@@ -307,6 +307,45 @@ test.describe('S-05 受注 権限制御', () => {
   });
 });
 
+test.describe('P10-RT-02 受注承認依頼バリデーション', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="sales-order"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should show alert with attachment required message when submitting approval without attachment', async ({ page }) => {
+    // Arrange: ORD-00001 is 受注済み with no attachments
+    await page.locator('[data-action-detail-order="ORD-00001"]').click();
+    await expect(page.locator('.detail-grid')).toBeVisible();
+
+    // Act: register dialog handler before clicking
+    const dialogPromise = page.waitForEvent('dialog');
+    await page.locator('#order-submit-approval-btn').click();
+    const dialog = await dialogPromise;
+
+    // Assert: dialog contains the attachment required message
+    expect(dialog.message()).toContain('契約書または注文書のいずれか1ファイル以上の添付が必要です。');
+    await dialog.dismiss();
+  });
+
+  test('should keep 受注済み status when approval is blocked by missing attachment', async ({ page }) => {
+    // Arrange: ORD-00001 is 受注済み with no attachments
+    await page.locator('[data-action-detail-order="ORD-00001"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('受注済み');
+
+    // Act: dismiss the alert
+    page.once('dialog', dialog => dialog.dismiss());
+    await page.locator('#order-submit-approval-btn').click();
+
+    // Assert: status unchanged (still 受注済み)
+    await expect(page.locator('.status-badge').first()).toContainText('受注済み');
+  });
+});
+
 test.describe('P10-RT-01 受注却下→修正→再申請フロー', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');

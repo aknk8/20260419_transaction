@@ -10,7 +10,9 @@ export const csrfPlugin = fp(async (fastify, { allowedOrigins }) => {
     if (!origin) return; // same-origin or server-to-server: no Origin header
 
     if (!allowedOrigins.includes(origin)) {
-      reply.code(403).send({ error: { message: 'CSRF: リクエスト元が許可されていません' } });
+      const err = new Error('CSRF: リクエスト元が許可されていません');
+      err.statusCode = 403;
+      throw err;
     }
   });
 });

@@ -116,6 +116,53 @@ test.describe('S-11 仕入先マスタ', () => {
   });
 });
 
+test.describe('P10-RT-02 仕入先マスタ バリデーション', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="master"]').click();
+    await page.locator('[data-master-tab="supplier"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.locator('#new-supplier-btn').click();
+    await expect(page.locator('#supplier-register-form')).toBeVisible();
+  });
+
+  test('should show 仕入先名は必須です error when name is empty on submit', async ({ page }) => {
+    // Arrange: provide payment site but leave name empty
+    await page.fill('#f-payment-site', '翌月末');
+
+    // Act
+    await page.locator('#supplier-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '仕入先名は必須です。' })).toBeVisible();
+  });
+
+  test('should show multiple field errors simultaneously when all required fields are empty on submit', async ({ page }) => {
+    // Act
+    await page.locator('#supplier-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert: both required field errors shown simultaneously
+    await expect(page.locator('.field-error').filter({ hasText: '仕入先名は必須です。' })).toBeVisible();
+    await expect(page.locator('.field-error').filter({ hasText: '支払サイトは必須です。' })).toBeVisible();
+  });
+
+  test('should show 仕入先コードはすでに使用されています error when duplicate code is entered', async ({ page }) => {
+    // Arrange: change auto-filled code to existing SUP-001
+    await page.fill('#f-code', 'SUP-001');
+    await page.fill('#f-name', 'テスト仕入先');
+    await page.fill('#f-payment-site', '翌月末');
+
+    // Act
+    await page.locator('#supplier-register-form').getByRole('button', { name: '登録する' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '仕入先コードはすでに使用されています。' })).toBeVisible();
+  });
+});
+
 test.describe('S-11 仕入先マスタ 権限制御', () => {
   test('should show supplier list for sales01 user on supplier tab', async ({ page }) => {
     // Arrange

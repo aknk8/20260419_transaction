@@ -438,6 +438,57 @@ test.describe('S-06 契約処理方法', () => {
   });
 });
 
+test.describe('P10-RT-02 発注バリデーション', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="purchase-order"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.locator('#new-purchase-order-btn').click();
+    await expect(page.locator('#purchase-order-register-form')).toBeVisible();
+  });
+
+  test('should show 発注件名は必須です error when title is empty for standalone purchase order', async ({ page }) => {
+    // Arrange: provide supplier and date but leave title empty
+    await page.locator('#f-pod-supplier').selectOption('SUP-001');
+    await page.fill('#f-pod-date', '2026-05-10');
+
+    // Act
+    await page.getByRole('button', { name: '発注登録' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '発注件名は必須です。' })).toBeVisible();
+  });
+
+  test('should show all required field errors simultaneously when standalone purchase order form is submitted empty', async ({ page }) => {
+    // Act
+    await page.getByRole('button', { name: '発注登録' }).click();
+
+    // Assert: all three required fields show errors simultaneously
+    await expect(page.locator('.field-error').filter({ hasText: '発注件名は必須です。' })).toBeVisible();
+    await expect(page.locator('.field-error').filter({ hasText: '仕入先は必須です。' })).toBeVisible();
+    await expect(page.locator('.field-error').filter({ hasText: '発注日は必須です。' })).toBeVisible();
+  });
+
+  test('should clear field errors and succeed after correcting all required fields', async ({ page }) => {
+    // Arrange: trigger validation errors first
+    await page.getByRole('button', { name: '発注登録' }).click();
+    await expect(page.locator('.field-error').filter({ hasText: '発注件名は必須です。' })).toBeVisible();
+
+    // Act: fill all required fields
+    await page.fill('#f-pod-title', 'バリデーション修正テスト発注');
+    await page.locator('#f-pod-supplier').selectOption('SUP-001');
+    await page.fill('#f-pod-date', '2026-05-10');
+    await page.getByRole('button', { name: '発注登録' }).click();
+
+    // Assert: registration succeeds and returns to list
+    await expect(page.locator('.data-table')).toBeVisible();
+    await expect(page.locator('.data-table')).toContainText('バリデーション修正テスト発注');
+  });
+});
+
 test.describe('S-06 発注 権限制御', () => {
   test('should show 発注一覧 nav item for sales01', async ({ page }) => {
     await page.goto('/');

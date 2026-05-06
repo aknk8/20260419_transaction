@@ -606,6 +606,54 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
   });
 });
 
+test.describe('P10-RT-02 見積バリデーション', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="quotation"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.locator('#new-quotation-btn').click();
+    await expect(page.locator('#quotation-register-form')).toBeVisible();
+  });
+
+  test('should show 案件は必須です error when project is not selected on submit', async ({ page }) => {
+    // Arrange: fill title and date but leave project empty
+    await page.fill('#f-quo-title', 'バリデーションテスト見積');
+    await page.fill('#f-quo-issue-date', '2026-05-10');
+
+    // Act
+    await page.getByRole('button', { name: '下書き保存' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '案件は必須です。' })).toBeVisible();
+  });
+
+  test('should show 発行日は必須です error when issue date is empty on submit', async ({ page }) => {
+    // Arrange: fill title and project but leave date empty
+    await page.fill('#f-quo-title', 'バリデーションテスト見積');
+    await page.locator('[data-project-search-input]').fill('D社');
+    await page.locator('.project-search-item').click();
+
+    // Act
+    await page.getByRole('button', { name: '下書き保存' }).click();
+
+    // Assert
+    await expect(page.locator('.field-error').filter({ hasText: '発行日は必須です。' })).toBeVisible();
+  });
+
+  test('should show all required field errors simultaneously when form is submitted completely empty', async ({ page }) => {
+    // Act
+    await page.getByRole('button', { name: '下書き保存' }).click();
+
+    // Assert: all three required field errors shown simultaneously
+    await expect(page.locator('.field-error').filter({ hasText: '見積件名は必須です。' })).toBeVisible();
+    await expect(page.locator('.field-error').filter({ hasText: '案件は必須です。' })).toBeVisible();
+    await expect(page.locator('.field-error').filter({ hasText: '発行日は必須です。' })).toBeVisible();
+  });
+});
+
 test.describe('RT-05 伝票状態遷移制御 - 取消済み見積', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');

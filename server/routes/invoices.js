@@ -61,7 +61,7 @@ export default async function invoiceRoutes(fastify, { invoiceService, notificat
       if (notificationService && approvalRouteRepository) {
         const routes = await approvalRouteRepository.findByDocumentType('invoice');
         const approverIds = routes.map(r => r.approverUserId).filter(Boolean);
-        await notificationService.notifyApprovalRequest('invoice', req.params.code, approverIds);
+        await notificationService.notifyApprovalRequest('invoice', req.params.code, approverIds, req.log);
       }
       return result;
     } catch (err) {
@@ -73,7 +73,7 @@ export default async function invoiceRoutes(fastify, { invoiceService, notificat
     try {
       const result = await svc.approveInvoice(req.params.code, req.body?.comment);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyApprovalComplete('invoice', req.params.code, result.submittedBy);
+        await notificationService.notifyApprovalComplete('invoice', req.params.code, result.submittedBy, req.log);
       }
       return result;
     } catch (err) {
@@ -85,7 +85,7 @@ export default async function invoiceRoutes(fastify, { invoiceService, notificat
     try {
       const result = await svc.rejectInvoice(req.params.code, req.body?.reason);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyRejection('invoice', req.params.code, result.submittedBy, req.body?.reason);
+        await notificationService.notifyRejection('invoice', req.params.code, result.submittedBy, req.body?.reason, req.log);
       }
       return result;
     } catch (err) {

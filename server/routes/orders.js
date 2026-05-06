@@ -41,7 +41,7 @@ export default async function orderRoutes(fastify, { orderService, notificationS
       if (notificationService && approvalRouteRepository) {
         const routes = await approvalRouteRepository.findByDocumentType('order');
         const approverIds = routes.map(r => r.approverUserId).filter(Boolean);
-        await notificationService.notifyApprovalRequest('order', req.params.code, approverIds);
+        await notificationService.notifyApprovalRequest('order', req.params.code, approverIds, req.log);
       }
       return result;
     } catch (err) {
@@ -53,7 +53,7 @@ export default async function orderRoutes(fastify, { orderService, notificationS
     try {
       const result = await orderService.approveOrder(req.params.code, req.body?.comment);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyApprovalComplete('order', req.params.code, result.submittedBy);
+        await notificationService.notifyApprovalComplete('order', req.params.code, result.submittedBy, req.log);
       }
       return result;
     } catch (err) {
@@ -65,7 +65,7 @@ export default async function orderRoutes(fastify, { orderService, notificationS
     try {
       const result = await orderService.rejectOrder(req.params.code, req.body?.reason);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyRejection('order', req.params.code, result.submittedBy, req.body?.reason);
+        await notificationService.notifyRejection('order', req.params.code, result.submittedBy, req.body?.reason, req.log);
       }
       return result;
     } catch (err) {

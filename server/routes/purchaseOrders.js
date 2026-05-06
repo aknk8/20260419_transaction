@@ -43,7 +43,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
       if (notificationService && approvalRouteRepository) {
         const routes = await approvalRouteRepository.findByDocumentType('purchaseOrder');
         const approverIds = routes.map(r => r.approverUserId).filter(Boolean);
-        await notificationService.notifyApprovalRequest('purchaseOrder', req.params.code, approverIds);
+        await notificationService.notifyApprovalRequest('purchaseOrder', req.params.code, approverIds, req.log);
       }
       return result;
     } catch (err) {
@@ -55,7 +55,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
     try {
       const result = await svc.approvePurchaseOrder(req.params.code, req.body?.comment);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyApprovalComplete('purchaseOrder', req.params.code, result.submittedBy);
+        await notificationService.notifyApprovalComplete('purchaseOrder', req.params.code, result.submittedBy, req.log);
       }
       return result;
     } catch (err) {
@@ -67,7 +67,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
     try {
       const result = await svc.rejectPurchaseOrder(req.params.code, req.body?.reason);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyRejection('purchaseOrder', req.params.code, result.submittedBy, req.body?.reason);
+        await notificationService.notifyRejection('purchaseOrder', req.params.code, result.submittedBy, req.body?.reason, req.log);
       }
       return result;
     } catch (err) {

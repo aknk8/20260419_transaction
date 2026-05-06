@@ -26,6 +26,7 @@ async function setupPage(page) {
   await page.goto('/');
 }
 
+// INV-00001: 送付済, ORD-00001 連携, 合計 528,000 円（消込テスト用）
 // POD-00002: 承認済・発注待ち, ORD-00002 連携, セキュリティ診断 数量1
 // POD-00003: 納品済 (DLV-00001 済み), ORD-00003 連携
 // INV-00003: 下書き, ORD-00002 連携, 合計 385,000 円
@@ -119,5 +120,112 @@ test.describe('P10-RT-04 発注→納品→請求のデータ連鎖整合性', (
 
     // Assert: invoice total is unchanged and consistent (385,000 = 350,000 + 35,000 tax)
     await expect(page.locator('.detail-grid')).toContainText('385,000');
+  });
+});
+
+test.describe('P10-RT-04 入金登録→消込のデータ連鎖整合性', () => {
+  const INV_CODE = 'INV-00001';
+  const INV_TOTAL = 528000;
+
+  async function setupReceiptFlowMock(page, receiptAmount) {
+    let receiptPosted = false;
+    const receiptCode = receiptAmount >= INV_TOTAL ? 'RCP-CHAIN-01' : 'RCP-CHAIN-02';
+    const invoiceStatusAfter = receiptAmount >= INV_TOTAL ? '消込済み' : '一部消込';
+
+    await page.route('/api/**', (route) => {
+      const url = route.request().url();
+      const method = route.request().method();
+
+      if (url.includes('/api/auth/me')) {
+        return route.fulfill({ status: 401, body: '{}' });
+      }
+      if (url.includes('/api/auth/login')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ user: adminUser })
+        });
+      }
+      if (url.includes('/api/auth/logout')) {
+        return route.fulfill({ status: 200, body: '{}' });
+      }
+      if (url.includes('/api/receipts') && method === 'POST') {
+        receiptPosted = true;
+        return route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            code: receiptCode, invoiceCode: INV_CODE,
+            receiptDate: '2026-05-31', amount: receiptAmount, fee: 0, notes: ''
+          })
+        });
+      }
+      if (url.includes('/api/receipts') && method === 'GET') {
+        const data = receiptPosted
+          ? [{ code: receiptCode, invoiceCode: INV_CODE, receiptDate: '2026-05-31', amount: receiptAmount, fee: 0, notes: '' }]
+          : [];
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
+      }
+      if (url.includes('/api/invoices') && method === 'GET' && !url.includes('/candidates') && !url.includes('/summary')) {
+        if (receiptPosted) {
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify([{
+              code: INV_CODE, orderCode: 'ORD-00001', customerId: 'CUS-001',
+              title: 'サーバー保守サービス 2026年1月分', invoiceDate: '2026-01-31',
+              dueDate: '2026-02-28', status: invoiceStatusAfter,
+              subtotal: 480000, taxAmount: 48000, total: INV_TOTAL, notes: '', details: []
+            }])
+          });
+        }
+        return route.abort();
+      }
+      if (method === 'GET') return route.abort();
+      return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+
+    await page.goto('/');
+  }
+
+  test('should mark invoice as 消込済み after full payment receipt', async ({ page }) => {
+    // Arrange: stateful mock returns 消込済み after full payment POST
+    await setupReceiptFlowMock(page, INV_TOTAL);
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.click('[data-action-detail-invoice="INV-00001"]');
+    await page.click('[data-action-register-receipt="INV-00001"]');
+
+    // Act: register full payment (528,000 / 528,000)
+    await page.fill('#f-rcp-date', '2026-05-31');
+    await page.fill('#f-rcp-amount', String(INV_TOTAL));
+    await page.click('button[type="submit"]');
+
+    // Assert: invoice status updated to 消込済み after receipt registration
+    await expect(page.locator('.status-badge')).toHaveText('消込済み');
+  });
+
+  test('should show remaining balance after partial payment', async ({ page }) => {
+    // Arrange: 300,000 partial payment against 528,000 invoice → remaining 228,000
+    const partialAmount = 300000;
+    await setupReceiptFlowMock(page, partialAmount);
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.click('[data-action-detail-invoice="INV-00001"]');
+    await page.click('[data-action-register-receipt="INV-00001"]');
+
+    // Act: register partial payment
+    await page.fill('#f-rcp-date', '2026-05-31');
+    await page.fill('#f-rcp-amount', String(partialAmount));
+    await page.click('button[type="submit"]');
+
+    // Assert: remaining balance = 528,000 - 300,000 = 228,000
+    await expect(page.locator('#f-rcp-remaining')).toContainText('228,000');
   });
 });

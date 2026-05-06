@@ -5,7 +5,9 @@ export const authorizationPlugin = fp(async (fastify) => {
     return async function checkPermission(request, reply) {
       const userPermissions = request.user?.permissions ?? [];
       if (!userPermissions.includes(permission)) {
-        reply.code(403).send({ error: { message: '権限がありません' } });
+        const err = new Error('権限がありません');
+        err.statusCode = 403;
+        throw err;
       }
     };
   });

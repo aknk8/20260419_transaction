@@ -31,6 +31,11 @@ export async function buildApp({ userRepository, customerService, supplierServic
     ajv: { customOptions: { removeAdditional: false } }
   });
 
+  app.setErrorHandler((error, _request, reply) => {
+    const statusCode = error.statusCode ?? 500;
+    reply.code(statusCode).send({ error: { message: error.message } });
+  });
+
   await app.register(fhelmet, {
     contentSecurityPolicy: {
       directives: {
@@ -79,12 +84,17 @@ export async function buildApp({ userRepository, customerService, supplierServic
         if (jti) {
           const session = sessionRepository.findByJti(jti);
           if (!session || session.revoked) {
-            return reply.code(401).send({ error: { message: '認証が必要です' } });
+            const err = new Error('認証が必要です');
+            err.statusCode = 401;
+            throw err;
           }
         }
       }
-    } catch {
-      return reply.code(401).send({ error: { message: '認証が必要です' } });
+    } catch (e) {
+      if (e.statusCode) throw e;
+      const err = new Error('認証が必要です');
+      err.statusCode = 401;
+      throw err;
     }
   });
 

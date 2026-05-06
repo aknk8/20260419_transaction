@@ -11,7 +11,7 @@ export default async function approvalRouteRoutes(fastify, { approvalRouteReposi
 
   fastify.post('/api/approval-routes', { preHandler: [fastify.authenticate, fastify.requirePermission('user-permission:edit')] }, async (req, reply) => {
     const route = await approvalRouteRepository.save(req.body);
-    reply.code(201).send(route);
+    return reply.code(201).send(route);
   });
 
   fastify.patch('/api/approval-routes/:id', { preHandler: [fastify.authenticate, fastify.requirePermission('user-permission:edit')] }, async (req, reply) => {
@@ -22,6 +22,6 @@ export default async function approvalRouteRoutes(fastify, { approvalRouteReposi
 
   fastify.delete('/api/approval-routes/:id', { preHandler: [fastify.authenticate, fastify.requirePermission('user-permission:edit')] }, async (req, reply) => {
     await approvalRouteRepository.remove(Number(req.params.id));
-    reply.code(204).send();
+    return reply.code(204).send();
   });
 }

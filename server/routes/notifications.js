@@ -5,20 +5,20 @@ export default async function notificationRoutes(fastify, { notificationService 
     const userId = req.user.id;
     const page = parseInt(req.query.page ?? '1', 10);
     const limit = parseInt(req.query.limit ?? '20', 10);
-    const all = await notificationService.getNotificationsForUser(userId);
+    const all = await notificationService.getNotificationsForUser(userId, req.log);
     return paginateArray(all, { page, limit });
   });
 
   fastify.put('/api/notifications/:id/read', { preHandler: [fastify.authenticate] }, async (req, reply) => {
     try {
-      return await notificationService.markAsRead(req.params.id, req.user.id);
+      return await notificationService.markAsRead(req.params.id, req.user.id, req.log);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
     }
   });
 
   fastify.post('/api/notifications/read-all', { preHandler: [fastify.authenticate] }, async (req) => {
-    await notificationService.markAllAsRead(req.user.id);
+    await notificationService.markAllAsRead(req.user.id, req.log);
     return { message: '全件既読にしました' };
   });
 }

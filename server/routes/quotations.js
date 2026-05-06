@@ -41,7 +41,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
       if (notificationService && approvalRouteRepository) {
         const routes = await approvalRouteRepository.findByDocumentType('quotation');
         const approverIds = routes.map(r => r.approverUserId).filter(Boolean);
-        await notificationService.notifyApprovalRequest('quotation', req.params.code, approverIds);
+        await notificationService.notifyApprovalRequest('quotation', req.params.code, approverIds, req.log);
       }
       return result;
     } catch (err) {
@@ -53,7 +53,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
     try {
       const result = await quotationService.approveQuotation(req.params.code, req.body?.comment);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyApprovalComplete('quotation', req.params.code, result.submittedBy);
+        await notificationService.notifyApprovalComplete('quotation', req.params.code, result.submittedBy, req.log);
       }
       return result;
     } catch (err) {
@@ -65,7 +65,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
     try {
       const result = await quotationService.rejectQuotation(req.params.code, req.body?.reason);
       if (notificationService && result.submittedBy) {
-        await notificationService.notifyRejection('quotation', req.params.code, result.submittedBy, req.body?.reason);
+        await notificationService.notifyRejection('quotation', req.params.code, result.submittedBy, req.body?.reason, req.log);
       }
       return result;
     } catch (err) {
