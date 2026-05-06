@@ -4,11 +4,8 @@ export default async function receiptRoutes(fastify, { receiptService }) {
   });
 
   fastify.post('/api/receipts', { preHandler: [fastify.authenticate] }, async (req, reply) => {
-    try {
-      const receipt = await receiptService.registerReceipt(req.body);
-      reply.code(201).send(receipt);
-    } catch (err) {
-      reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
-    }
+    const receipt = await receiptService.registerReceipt(req.body);
+    reply.code(201);
+    return receipt;
   });
 }

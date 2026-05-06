@@ -9,7 +9,8 @@ export default async function authRoutes(fastify, { userRepository, sessionRepos
       entityType: 'auth',
       action: 'LOGIN',
       actionOnFailure: 'LOGIN_FAILED',
-      rateLimit: { max: 5, timeWindow: '1 minute' }
+      // Strict login rate limit only in production; dev/test relies on the global limit
+      ...(process.env.NODE_ENV === 'production' && { rateLimit: { max: 5, timeWindow: '1 minute' } })
     },
     schema: {
       body: {
@@ -42,17 +43,18 @@ export default async function authRoutes(fastify, { userRepository, sessionRepos
           revoked: false
         });
       }
-      reply
-        .setCookie('token', token, {
-          httpOnly: true,
-          sameSite: 'Strict',
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          maxAge: 8 * 60 * 60
-        })
-        .send({ user });
+      reply.setCookie('token', token, {
+        httpOnly: true,
+        sameSite: 'Strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 8 * 60 * 60
+      });
+      return { user };
     } catch {
-      reply.code(401).send({ error: { message: 'ユーザ名またはパスワードが正しくありません' } });
+      const err = new Error('ユーザ名またはパスワードが正しくありません');
+      err.statusCode = 401;
+      throw err;
     }
   });
 
@@ -66,9 +68,8 @@ export default async function authRoutes(fastify, { userRepository, sessionRepos
     } catch {
       // Proceed with logout regardless of token validity
     }
-    reply
-      .clearCookie('token', { path: '/' })
-      .send({ message: 'ログアウトしました' });
+    reply.clearCookie('token', { path: '/' });
+    return { message: 'ログアウトしました' };
   });
 
   fastify.post('/api/auth/refresh-token', async (request, reply) => {
@@ -84,24 +85,25 @@ export default async function authRoutes(fastify, { userRepository, sessionRepos
       if (sessionRepository) {
         sessionRepository.save({ jti, userId: user.id, expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000), revoked: false });
       }
-      reply
-        .setCookie('token', token, {
-          httpOnly: true,
-          sameSite: 'Strict',
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          maxAge: 8 * 60 * 60
-        })
-        .setCookie('refreshToken', newTokenId, {
-          httpOnly: true,
-          sameSite: 'Strict',
-          secure: process.env.NODE_ENV === 'production',
-          path: '/api/auth/refresh-token',
-          maxAge: 7 * 24 * 60 * 60
-        })
-        .send({ message: 'トークンを更新しました' });
+      reply.setCookie('token', token, {
+        httpOnly: true,
+        sameSite: 'Strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 8 * 60 * 60
+      });
+      reply.setCookie('refreshToken', newTokenId, {
+        httpOnly: true,
+        sameSite: 'Strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/api/auth/refresh-token',
+        maxAge: 7 * 24 * 60 * 60
+      });
+      return { message: 'トークンを更新しました' };
     } catch {
-      reply.code(401).send({ error: { message: '再認証が必要です' } });
+      const err = new Error('再認証が必要です');
+      err.statusCode = 401;
+      throw err;
     }
   });
 

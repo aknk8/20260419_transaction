@@ -1,15 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const reportRoot = 'C:/tmp/playwright-report';
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
+  workers: 4,
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'e2e-report/html', open: 'never' }],
-    ['json', { outputFile: 'e2e-report/results.json' }],
-    ['junit', { outputFile: 'e2e-report/results.xml' }],
+    ['html', { outputFolder: `${reportRoot}/html`, open: 'never' }],
+    ['json', { outputFile: `${reportRoot}/results.json` }],
+    ['junit', { outputFile: `${reportRoot}/results.xml` }],
   ],
-  outputDir: 'e2e-report/artifacts',
+  outputDir: `${reportRoot}/artifacts`,
   use: {
     baseURL: 'http://localhost:5173',
     screenshot: process.env.E2E_SCREENSHOT === 'on' ? 'on' : 'only-on-failure',
@@ -31,7 +34,7 @@ export default defineConfig({
     {
       command: 'npm run server',
       url: 'http://localhost:3000/api/auth/me',
-      reuseExistingServer: true,
+      reuseExistingServer: false,
     },
   ],
 });

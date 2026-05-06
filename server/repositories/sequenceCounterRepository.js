@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { sequenceCounters } from '../db/schema.js';
 
-export function createInMemorySequenceCounterRepository() {
-  const counters = new Map();
+export function createInMemorySequenceCounterRepository(initial = {}) {
+  const counters = new Map(Object.entries(initial));
   return {
     async nextVal(entityType) {
       const current = counters.get(entityType) ?? 0;

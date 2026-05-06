@@ -5,23 +5,33 @@ export default async function approvalRouteRoutes(fastify, { approvalRouteReposi
 
   fastify.get('/api/approval-routes/:id', { preHandler: [fastify.authenticate] }, async (req, reply) => {
     const route = await approvalRouteRepository.findById(Number(req.params.id));
-    if (!route) return reply.code(404).send({ error: { message: '承認ルートが見つかりません' } });
+    if (!route) {
+      const err = new Error('承認ルートが見つかりません');
+      err.statusCode = 404;
+      throw err;
+    }
     return route;
   });
 
   fastify.post('/api/approval-routes', { preHandler: [fastify.authenticate, fastify.requirePermission('user-permission:edit')] }, async (req, reply) => {
     const route = await approvalRouteRepository.save(req.body);
-    return reply.code(201).send(route);
+    reply.code(201);
+    return route;
   });
 
   fastify.patch('/api/approval-routes/:id', { preHandler: [fastify.authenticate, fastify.requirePermission('user-permission:edit')] }, async (req, reply) => {
     const route = await approvalRouteRepository.update(Number(req.params.id), req.body);
-    if (!route) return reply.code(404).send({ error: { message: '承認ルートが見つかりません' } });
+    if (!route) {
+      const err = new Error('承認ルートが見つかりません');
+      err.statusCode = 404;
+      throw err;
+    }
     return route;
   });
 
   fastify.delete('/api/approval-routes/:id', { preHandler: [fastify.authenticate, fastify.requirePermission('user-permission:edit')] }, async (req, reply) => {
     await approvalRouteRepository.remove(Number(req.params.id));
-    return reply.code(204).send();
+    reply.code(204);
+    return null;
   });
 }

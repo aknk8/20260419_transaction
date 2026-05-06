@@ -12,34 +12,23 @@ export default async function customerRoutes(fastify, { customerService }) {
 
   fastify.get('/api/customers/:code', {
     preHandler: [fastify.authenticate]
-  }, async (request, reply) => {
+  }, async (request) => {
     const { code } = request.params;
-    try {
-      return await customerService.getCustomerByCode(code);
-    } catch (err) {
-      reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
-    }
+    return await customerService.getCustomerByCode(code);
   });
 
   fastify.post('/api/customers', {
     preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
-    try {
-      const customer = await customerService.registerCustomer(request.body, request.log);
-      reply.code(201).send(customer);
-    } catch (err) {
-      reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
-    }
+    const customer = await customerService.registerCustomer(request.body, request.log);
+    reply.code(201);
+    return customer;
   });
 
   fastify.patch('/api/customers/:code', {
     preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
-  }, async (request, reply) => {
+  }, async (request) => {
     const { code } = request.params;
-    try {
-      return await customerService.updateCustomer(code, request.body, request.log);
-    } catch (err) {
-      reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
-    }
+    return await customerService.updateCustomer(code, request.body, request.log);
   });
 }

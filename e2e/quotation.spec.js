@@ -59,7 +59,7 @@ test.describe('S-04 見積ヘッダ登録', () => {
   });
 
   test('should auto-fill quotation code with next sequential value when form opens', async ({ page }) => {
-    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00008');
+    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00009');
   });
 
   test('should show only 商談中 projects in project search dropdown', async ({ page }) => {
@@ -371,8 +371,8 @@ test.describe('S-04 見積改版', () => {
     await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
     await page.locator('[data-action-revise-quotation="QUO-00001"]').click();
 
-    // 既存7件の次は QUO-00008
-    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00008');
+    // 既存8件の次は QUO-00009
+    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00009');
   });
 
   test('should save revised quotation and show it in list', async ({ page }) => {
@@ -382,7 +382,7 @@ test.describe('S-04 見積改版', () => {
     await page.getByRole('button', { name: '下書き保存' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('QUO-00008');
+    await expect(page.locator('.data-table')).toContainText('QUO-00009');
   });
 });
 

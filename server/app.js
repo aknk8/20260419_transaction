@@ -33,7 +33,8 @@ export async function buildApp({ userRepository, customerService, supplierServic
 
   app.setErrorHandler((error, _request, reply) => {
     const statusCode = error.statusCode ?? 500;
-    reply.code(statusCode).send({ error: { message: error.message } });
+    reply.code(statusCode);
+    return { error: { message: error.message } };
   });
 
   await app.register(fhelmet, {

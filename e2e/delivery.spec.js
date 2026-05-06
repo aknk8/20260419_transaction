@@ -3,8 +3,29 @@ import { test, expect } from '@playwright/test';
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
 
 async function setupPage(page) {
-  await page.route('/api/**', (route) => {
-    if (route.request().method() === 'GET') {
+  const registeredDeliveries = [];
+
+  await page.route('/api/**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (method === 'GET' && /\/api\/deliveries(\?.*)?$/.test(url)) {
+      const seedDelivery = { code: 'DLV-00001', purchaseOrderCode: 'POD-00003', deliveryDate: '2026-03-28', status: '検収済', notes: '', details: [{ lineNo: 1, deliveredQuantity: 1 }] };
+      const all = [seedDelivery, ...registeredDeliveries];
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(all) });
+    } else if (method === 'POST' && /\/api\/deliveries(\?.*)?$/.test(url)) {
+      const body = JSON.parse(route.request().postData() || '{}');
+      const code = 'DLV-' + String(registeredDeliveries.length + 2).padStart(5, '0');
+      const dlv = { code, purchaseOrderCode: body.purchaseOrderCode || 'POD-00002', deliveryDate: body.deliveryDate || '', status: '検収待ち', notes: body.notes || '', details: body.details || [{ lineNo: 1, deliveredQuantity: 1 }] };
+      registeredDeliveries.push(dlv);
+      route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(dlv) });
+    } else if (method === 'PATCH' && /\/api\/deliveries\//.test(url)) {
+      const dlvCode = decodeURIComponent(url.split('/api/deliveries/')[1]);
+      const dlv = registeredDeliveries.find(d => d.code === dlvCode);
+      const body = JSON.parse(route.request().postData() || '{}');
+      if (dlv && body.status) dlv.status = body.status;
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(dlv || {}) });
+    } else if (method === 'GET') {
       route.abort();
     } else {
       route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });

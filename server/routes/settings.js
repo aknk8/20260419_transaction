@@ -5,11 +5,7 @@ export default async function settingsRoutes(fastify, { settingsService }) {
     return svc.getSettings();
   });
 
-  fastify.put('/api/settings', { preHandler: [fastify.authenticate] }, async (req, reply) => {
-    try {
-      return await svc.updateSettings(req.body, req.log);
-    } catch (err) {
-      reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
-    }
+  fastify.put('/api/settings', { preHandler: [fastify.authenticate] }, async (req) => {
+    return await svc.updateSettings(req.body, req.log);
   });
 }

@@ -1403,9 +1403,9 @@ async function withFeedback(url, options, { button, successMsg } = {}) {
 // S-04: 見積データをAPIから取得してローカルキャッシュを更新
 async function refreshQuotations() {
   try {
-    var data = await apiFetch('/api/quotations');
+    var resp = await apiFetch('/api/quotations');
     quotations.length = 0;
-    Array.prototype.push.apply(quotations, data);
+    Array.prototype.push.apply(quotations, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('見積の取得に失敗しました:', err.message);
   }
@@ -1414,9 +1414,9 @@ async function refreshQuotations() {
 // S-05: 受注データをAPIから取得してローカルキャッシュを更新
 async function refreshOrders() {
   try {
-    var data = await apiFetch('/api/orders');
+    var resp = await apiFetch('/api/orders');
     orders.length = 0;
-    Array.prototype.push.apply(orders, data);
+    Array.prototype.push.apply(orders, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('受注の取得に失敗しました:', err.message);
   }
@@ -1425,9 +1425,9 @@ async function refreshOrders() {
 // S-08: 請求データをAPIから取得してローカルキャッシュを更新
 async function refreshInvoices() {
   try {
-    var data = await apiFetch('/api/invoices');
+    var resp = await apiFetch('/api/invoices');
     invoices.length = 0;
-    Array.prototype.push.apply(invoices, data);
+    Array.prototype.push.apply(invoices, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('請求の取得に失敗しました:', err.message);
   }
@@ -1436,9 +1436,9 @@ async function refreshInvoices() {
 // S-03: 案件データをAPIから取得してローカルキャッシュを更新
 async function refreshProjects() {
   try {
-    var data = await apiFetch('/api/projects');
+    var resp = await apiFetch('/api/projects');
     projects.length = 0;
-    Array.prototype.push.apply(projects, data);
+    Array.prototype.push.apply(projects, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('案件の取得に失敗しました:', err.message);
   }
@@ -1447,9 +1447,9 @@ async function refreshProjects() {
 // S-11: 顧客マスタデータをAPIから取得してローカルキャッシュを更新
 async function refreshCustomers() {
   try {
-    var data = await apiFetch('/api/customers');
+    var resp = await apiFetch('/api/customers');
     customers.length = 0;
-    Array.prototype.push.apply(customers, data);
+    Array.prototype.push.apply(customers, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('顧客マスタの取得に失敗しました:', err.message);
   }
@@ -1458,9 +1458,9 @@ async function refreshCustomers() {
 // S-06: 発注データをAPIから取得してローカルキャッシュを更新
 async function refreshPurchaseOrders() {
   try {
-    var data = await apiFetch('/api/purchase-orders');
+    var resp = await apiFetch('/api/purchase-orders');
     purchaseOrders.length = 0;
-    Array.prototype.push.apply(purchaseOrders, data);
+    Array.prototype.push.apply(purchaseOrders, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('発注の取得に失敗しました:', err.message);
   }
@@ -1489,9 +1489,9 @@ async function refreshApprovalRoutes() {
 // S-07: 納品データをAPIから取得してローカルキャッシュを更新
 async function refreshDeliveries() {
   try {
-    var data = await apiFetch('/api/deliveries');
+    var resp = await apiFetch('/api/deliveries');
     deliveries.length = 0;
-    Array.prototype.push.apply(deliveries, data);
+    Array.prototype.push.apply(deliveries, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('納品の取得に失敗しました:', err.message);
   }
@@ -1500,9 +1500,9 @@ async function refreshDeliveries() {
 // S-09: 入金データをAPIから取得してローカルキャッシュを更新
 async function refreshReceipts() {
   try {
-    var data = await apiFetch('/api/receipts');
+    var resp = await apiFetch('/api/receipts');
     receipts.length = 0;
-    Array.prototype.push.apply(receipts, data);
+    Array.prototype.push.apply(receipts, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('入金の取得に失敗しました:', err.message);
   }
@@ -1511,9 +1511,9 @@ async function refreshReceipts() {
 // S-10: 支払依頼データをAPIから取得してローカルキャッシュを更新
 async function refreshPayments() {
   try {
-    var data = await apiFetch('/api/payments');
+    var resp = await apiFetch('/api/payments');
     payments.length = 0;
-    Array.prototype.push.apply(payments, data);
+    Array.prototype.push.apply(payments, Array.isArray(resp) ? resp : (resp.data || []));
   } catch (err) {
     console.error('支払依頼の取得に失敗しました:', err.message);
   }
@@ -1522,9 +1522,9 @@ async function refreshPayments() {
 // S-14: 通知データをAPIから取得してローカルキャッシュを更新し、クライアント側通知（N-04/N-05/N-06）をマージ
 async function refreshNotifications() {
   try {
-    var apiData = await apiFetch('/api/notifications');
+    var apiResp = await apiFetch('/api/notifications');
     notifications.length = 0;
-    Array.prototype.push.apply(notifications, apiData);
+    Array.prototype.push.apply(notifications, Array.isArray(apiResp) ? apiResp : (apiResp.data || []));
   } catch (err) {
     console.error('通知の取得に失敗しました:', err.message);
   }
@@ -5694,7 +5694,7 @@ function bindAppEvents() {
         setFormField(formContext, el.getAttribute("data-form-field"), el.value);
       } else {
         const tab = viewState.masterTab;
-        const stateKey = tab === "supplier" ? "supplierForm" : tab === "product" ? "productForm" : "customerForm";
+        const stateKey = tab === "supplier" ? "supplierForm" : tab === "product" ? "productForm" : tab === "user" ? "userForm" : "customerForm";
         viewState[stateKey].data[el.getAttribute("data-form-field")] = el.value;
       }
     };
@@ -6833,11 +6833,16 @@ function bindAppEvents() {
 
       var approveEntry = buildApprovalHistoryEntry('承認', currentOperatorName(), comment, nowTimestamp());
       const approveBtn = approvalConfirmApproveBtn;
+      function applyApproveHistory(arr, code, newStatus) {
+        var doc = arr.find(function(d) { return d.code === code; });
+        if (doc) { doc.status = newStatus; doc.approvalHistory = (doc.approvalHistory || []).concat([approveEntry]); }
+      }
       try {
         if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
           await withFeedback('/api/quotations/' + viewState.quotationDetailCode + '/approve', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
           }, { button: approveBtn, successMsg: '承認しました' });
+          applyApproveHistory(quotations, viewState.quotationDetailCode, '承認済み');
           await refreshQuotations();
           viewState.quotationView = 'list';
           viewState.quotationDetailCode = null;
@@ -6845,6 +6850,7 @@ function bindAppEvents() {
           await withFeedback('/api/orders/' + viewState.orderDetailCode + '/approve', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
           }, { button: approveBtn, successMsg: '承認しました' });
+          applyApproveHistory(orders, viewState.orderDetailCode, '承認済み');
           await refreshOrders();
           viewState.orderView = 'list';
           viewState.orderDetailCode = null;
@@ -6852,6 +6858,7 @@ function bindAppEvents() {
           await withFeedback('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/approve', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
           }, { button: approveBtn, successMsg: '承認しました' });
+          applyApproveHistory(purchaseOrders, viewState.purchaseOrderDetailCode, '承認済・発注待ち');
           await refreshPurchaseOrders();
           viewState.purchaseOrderView = 'list';
           viewState.purchaseOrderDetailCode = null;
@@ -6859,6 +6866,7 @@ function bindAppEvents() {
           await withFeedback('/api/payments/' + viewState.paymentDetailCode + '/approve', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
           }, { button: approveBtn, successMsg: '承認しました' });
+          applyApproveHistory(payments, viewState.paymentDetailCode, '承認済');
           await refreshPayments();
           viewState.paymentView = 'list';
           viewState.paymentDetailCode = null;
@@ -6867,6 +6875,7 @@ function bindAppEvents() {
           await withFeedback('/api/invoices/' + invCode + '/approve', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
           }, { button: approveBtn, successMsg: '承認しました' });
+          applyApproveHistory(invoices, invCode, '承認済');
           await refreshInvoices();
           viewState.invoiceView = 'list';
           viewState.invoiceDetailCode = null;
@@ -6891,11 +6900,16 @@ function bindAppEvents() {
 
       var rejectEntry = buildApprovalHistoryEntry('却下', currentOperatorName(), comment, nowTimestamp());
       const rejectBtn = approvalConfirmRejectBtn;
+      function applyRejectHistory(arr, code) {
+        var doc = arr.find(function(d) { return d.code === code; });
+        if (doc) { doc.status = '却下'; doc.approvalHistory = (doc.approvalHistory || []).concat([rejectEntry]); }
+      }
       try {
         if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
           await withFeedback('/api/quotations/' + viewState.quotationDetailCode + '/reject', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
           }, { button: rejectBtn, successMsg: '却下しました' });
+          applyRejectHistory(quotations, viewState.quotationDetailCode);
           await refreshQuotations();
           viewState.quotationView = 'list';
           viewState.quotationDetailCode = null;
@@ -6903,6 +6917,7 @@ function bindAppEvents() {
           await withFeedback('/api/orders/' + viewState.orderDetailCode + '/reject', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
           }, { button: rejectBtn, successMsg: '却下しました' });
+          applyRejectHistory(orders, viewState.orderDetailCode);
           await refreshOrders();
           viewState.orderView = 'list';
           viewState.orderDetailCode = null;
@@ -6910,6 +6925,7 @@ function bindAppEvents() {
           await withFeedback('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/reject', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
           }, { button: rejectBtn, successMsg: '却下しました' });
+          applyRejectHistory(purchaseOrders, viewState.purchaseOrderDetailCode);
           await refreshPurchaseOrders();
           viewState.purchaseOrderView = 'list';
           viewState.purchaseOrderDetailCode = null;
@@ -6917,6 +6933,7 @@ function bindAppEvents() {
           await withFeedback('/api/payments/' + viewState.paymentDetailCode + '/reject', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
           }, { button: rejectBtn, successMsg: '却下しました' });
+          applyRejectHistory(payments, viewState.paymentDetailCode);
           await refreshPayments();
           viewState.paymentView = 'list';
           viewState.paymentDetailCode = null;
@@ -6924,6 +6941,7 @@ function bindAppEvents() {
           await withFeedback('/api/invoices/' + viewState.invoiceDetailCode + '/reject', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
           }, { button: rejectBtn, successMsg: '却下しました' });
+          applyRejectHistory(invoices, viewState.invoiceDetailCode);
           await refreshInvoices();
           viewState.invoiceView = 'list';
           viewState.invoiceDetailCode = null;
@@ -7204,7 +7222,7 @@ function bindAppEvents() {
         await withFeedback('/api/deliveries', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ purchaseOrderCode: data.purchaseOrderCode, deliveryDate: deliveryDate, notes: notes })
+          body: JSON.stringify({ purchaseOrderCode: data.purchaseOrderCode, deliveryDate: deliveryDate, notes: notes, details: formDetails })
         }, { button: deliverySubmitBtn, successMsg: '納品を登録しました' });
 
         await refreshDeliveries();

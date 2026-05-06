@@ -66,7 +66,15 @@ const deliveryRepo       = createInMemoryDeliveryRepository(seedDeliveries);
 const settingsRepo       = createSettingsRepository();
 const auditLogRepo       = createAuditLogRepository([]);
 const notificationRepo   = createInMemoryNotificationRepository(seedNotifications);
-const seqRepo            = createInMemorySequenceCounterRepository();
+const seqRepo            = createInMemorySequenceCounterRepository({
+  quotation:     8,
+  order:         6,
+  purchaseOrder: 6,
+  invoice:       6,
+  receipt:       1,
+  payment:       2,
+  delivery:      1
+});
 const notificationSvc       = createNotificationService();
 const sessionRepo           = createSessionRepository();
 const refreshTokenRepo      = createInMemoryRefreshTokenRepository();

@@ -9,12 +9,8 @@ export default async function notificationRoutes(fastify, { notificationService 
     return paginateArray(all, { page, limit });
   });
 
-  fastify.put('/api/notifications/:id/read', { preHandler: [fastify.authenticate] }, async (req, reply) => {
-    try {
-      return await notificationService.markAsRead(req.params.id, req.user.id, req.log);
-    } catch (err) {
-      reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
-    }
+  fastify.put('/api/notifications/:id/read', { preHandler: [fastify.authenticate] }, async (req) => {
+    return await notificationService.markAsRead(req.params.id, req.user.id, req.log);
   });
 
   fastify.post('/api/notifications/read-all', { preHandler: [fastify.authenticate] }, async (req) => {
