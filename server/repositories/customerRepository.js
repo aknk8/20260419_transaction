@@ -1,6 +1,27 @@
 import { eq } from 'drizzle-orm';
 import { customers } from '../db/schema.js';
 
+export function createInMemoryCustomerRepository(initialData = []) {
+  const store = initialData.map(r => ({ ...r }));
+
+  return {
+    async findAll() { return [...store]; },
+    async findByCode(code) { return store.find(r => r.code === code) ?? null; },
+    async findAllCodes() { return store.map(r => r.code); },
+    async save(customer) {
+      const record = { ...customer };
+      store.push(record);
+      return record;
+    },
+    async update(code, data) {
+      const idx = store.findIndex(r => r.code === code);
+      if (idx === -1) return null;
+      store[idx] = { ...store[idx], ...data, updatedAt: new Date() };
+      return { ...store[idx] };
+    }
+  };
+}
+
 export function createCustomerRepository(db) {
   return {
     async findAll() {

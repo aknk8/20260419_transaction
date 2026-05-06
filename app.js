@@ -1,3 +1,4 @@
+import { initFeedbackUI, showSpinner, hideSpinner, showToast } from './src/ui-feedback.js';
 import { validateForm } from './src/validation.js';
 import { generateCustomerCode, generateSupplierCode, createCustomer, createSupplier, findCustomerByCode, findSupplierByCode, filterCustomersByName } from './src/customer.js';
 import { generateProductCode, createProduct, findProductByCode } from './src/product.js';
@@ -102,6 +103,31 @@ const users = [
       "approval:act",
       "report:view",
       "notification:view"
+    ]
+  },
+  {
+    id: "viewer",
+    name: "閲覧ユーザ",
+    userType: "一般ユーザ",
+    department: "営業部門",
+    position: "担当者",
+    status: "有効",
+    permissions: [
+      "dashboard:view",
+      "invoice:view",
+      "approval:view"
+    ]
+  },
+  {
+    id: "approver-readonly",
+    name: "承認閲覧者",
+    userType: "一般ユーザ",
+    department: "営業部門",
+    position: "担当者",
+    status: "有効",
+    permissions: [
+      "dashboard:view",
+      "approval:view"
     ]
   }
 ];
@@ -1333,16 +1359,45 @@ const viewState = {
 // ── API共通ユーティリティ ──────────────────────────────────────────────────────
 
 async function apiFetch(url, options) {
-  var opts = Object.assign({ credentials: 'include' }, options);
-  var res = await fetch(url, opts);
-  if (!res.ok) {
-    var body = await res.json().catch(function() { return {}; });
-    var msg = (body && body.error && body.error.message) ? body.error.message : 'エラーが発生しました';
-    var err = new Error(msg);
-    err.status = res.status;
-    throw err;
+  showSpinner();
+  try {
+    var opts = Object.assign({ credentials: 'include' }, options);
+    var res;
+    try {
+      res = await fetch(url, opts);
+    } catch {
+      var networkErr = new Error('サーバーに接続できません。接続を確認して再試行してください');
+      networkErr.isNetworkError = true;
+      throw networkErr;
+    }
+    if (!res.ok) {
+      var body = await res.json().catch(function() { return {}; });
+      var msg = (body && body.error && body.error.message) ? body.error.message : 'エラーが発生しました';
+      var err = new Error(msg);
+      err.status = res.status;
+      throw err;
+    }
+    return res.json();
+  } finally {
+    hideSpinner();
   }
-  return res.json();
+}
+
+// アクション呼び出し用ラッパー: スピナー + トースト + ボタン無効化
+async function withFeedback(url, options, { button, successMsg } = {}) {
+  button?.setAttribute('disabled', 'true');
+  showSpinner();
+  try {
+    const result = await apiFetch(url, options);
+    if (successMsg) showToast(successMsg, 'success');
+    return result;
+  } catch (err) {
+    showToast(err.message || 'エラーが発生しました', 'error');
+    throw err;
+  } finally {
+    button?.removeAttribute('disabled');
+    hideSpinner();
+  }
 }
 
 // S-04: 見積データをAPIから取得してローカルキャッシュを更新
@@ -1386,6 +1441,17 @@ async function refreshProjects() {
     Array.prototype.push.apply(projects, data);
   } catch (err) {
     console.error('案件の取得に失敗しました:', err.message);
+  }
+}
+
+// S-11: 顧客マスタデータをAPIから取得してローカルキャッシュを更新
+async function refreshCustomers() {
+  try {
+    var data = await apiFetch('/api/customers');
+    customers.length = 0;
+    Array.prototype.push.apply(customers, data);
+  } catch (err) {
+    console.error('顧客マスタの取得に失敗しました:', err.message);
   }
 }
 
@@ -2928,6 +2994,9 @@ function purchaseOrderDetailHtml(user) {
           : '') +
           (canEdit && pod.status === '下書き' ?
             '<button class="button button-danger button-sm" type="button" data-action-pod-status="取下げ" data-pod-code="' + escapeHtml(pod.code) + '">取下げ</button>'
+          : '') +
+          (canEdit && pod.status === '却下' ?
+            '<button class="button button-secondary button-sm" type="button" id="pod-return-draft-btn">下書きに戻す</button>'
           : '') +
           (canApprovePod ?
             '<button class="button button-primary button-sm" type="button" id="pod-approve-btn">承認する</button>' +
@@ -5711,7 +5780,7 @@ function bindAppEvents() {
   // S-11 Step 2-3: フォーム送信（顧客 登録 / 編集）
   const regForm = document.getElementById("customer-register-form");
   if (regForm) {
-    regForm.addEventListener("submit", function (e) {
+    regForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       const isEdit = viewState.customerForm.mode === "edit";
       const data = viewState.customerForm.data;
@@ -5745,17 +5814,28 @@ function bindAppEvents() {
         renderApp();
         return;
       }
-      if (isEdit) {
-        const idx = customers.findIndex(function (c) { return c.code === viewState.customerForm.editCode; });
-        if (idx >= 0) customers[idx] = createCustomer(data);
-        viewState.customerForm.editCode = null;
-      } else {
-        customers.push(createCustomer(data));
+      const submitBtn = regForm.querySelector('[type="submit"]');
+      try {
+        if (isEdit) {
+          await withFeedback('/api/customers/' + viewState.customerForm.editCode, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          }, { button: submitBtn, successMsg: '顧客を更新しました' });
+          viewState.customerForm.editCode = null;
+        } else {
+          await withFeedback('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          }, { button: submitBtn, successMsg: '顧客を登録しました' });
+        }
+        await refreshCustomers();
         viewState.tables.customerMaster.page = Math.ceil(customers.length / (viewState.tables.customerMaster.pageSize || PAGE_SIZE));
-      }
-      viewState.customerForm.mode = "list";
-      viewState.customerForm.errors = {};
-      renderApp();
+        viewState.customerForm.mode = "list";
+        viewState.customerForm.errors = {};
+        renderApp();
+      } catch { /* エラーはwithFeedbackがトーストで通知済み */ }
     });
   }
 
@@ -6176,20 +6256,21 @@ function bindAppEvents() {
         renderApp();
         return;
       }
+      const projectSubmitBtn = e.submitter || e.target.querySelector('[type="submit"]');
       try {
         if (isEdit) {
-          await apiFetch('/api/projects/' + viewState.projectForm.editCode, {
+          await withFeedback('/api/projects/' + viewState.projectForm.editCode, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-          });
+          }, { button: projectSubmitBtn, successMsg: '案件を更新しました' });
           viewState.projectForm.editCode = null;
         } else {
-          await apiFetch('/api/projects', {
+          await withFeedback('/api/projects', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-          });
+          }, { button: projectSubmitBtn, successMsg: '案件を登録しました' });
         }
         await refreshProjects();
         viewState.tables.projectList.page = Math.ceil(projects.length / (viewState.tables.projectList.pageSize || PAGE_SIZE));
@@ -6297,16 +6378,14 @@ function bindAppEvents() {
         return;
       }
       try {
-        await apiFetch('/api/orders/' + viewState.orderDetailCode + '/submit-approval', {
+        await withFeedback('/api/orders/' + viewState.orderDetailCode + '/submit-approval', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
-        });
+        }, { button: orderSubmitApprovalBtn, successMsg: '承認依頼を送信しました' });
         await refreshOrders();
         renderApp();
-      } catch (err) {
-        console.error('承認依頼に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -6327,16 +6406,14 @@ function bindAppEvents() {
   if (orderReturnDraftBtn) {
     orderReturnDraftBtn.addEventListener("click", async function() {
       try {
-        await apiFetch('/api/orders/' + viewState.orderDetailCode, {
+        await withFeedback('/api/orders/' + viewState.orderDetailCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: '下書き' })
-        });
+          body: JSON.stringify({ status: '受注済み' })
+        }, { button: orderReturnDraftBtn, successMsg: '受注済みに戻しました' });
         await refreshOrders();
         renderApp();
-      } catch (err) {
-        console.error('下書きに戻す操作に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -6345,16 +6422,14 @@ function bindAppEvents() {
   if (orderCompleteContractBtn) {
     orderCompleteContractBtn.addEventListener("click", async function() {
       try {
-        await apiFetch('/api/orders/' + viewState.orderDetailCode, {
+        await withFeedback('/api/orders/' + viewState.orderDetailCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: '契約手続き済' })
-        });
+        }, { button: orderCompleteContractBtn, successMsg: '契約手続き済にしました' });
         await refreshOrders();
         renderApp();
-      } catch (err) {
-        console.error('契約手続き済操作に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -6364,16 +6439,14 @@ function bindAppEvents() {
       const newStatus = btn.getAttribute("data-action-order-status");
       const orderCode = btn.getAttribute("data-order-code");
       try {
-        await apiFetch('/api/orders/' + orderCode, {
+        await withFeedback('/api/orders/' + orderCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
-        });
+        }, { button: btn, successMsg: 'ステータスを更新しました' });
         await refreshOrders();
         renderApp();
-      } catch (err) {
-        console.error('受注ステータス変更に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -6518,12 +6591,13 @@ function bindAppEvents() {
       saved.notes = notes;
       saved.contractMethod = contractMethod;
       saved.attachments = viewState.purchaseOrderForm.attachments.slice();
+      const podSubmitBtn = document.querySelector('#purchase-order-form [type="submit"]');
       try {
-        await apiFetch('/api/purchase-orders', {
+        await withFeedback('/api/purchase-orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(saved)
-        });
+        }, { button: podSubmitBtn, successMsg: '発注書を登録しました' });
         await refreshPurchaseOrders();
         viewState.tables.purchaseOrderList.page = Math.ceil(purchaseOrders.length / (viewState.tables.purchaseOrderList.pageSize || PAGE_SIZE));
         viewState.purchaseOrderForm.mode = "list";
@@ -6552,12 +6626,10 @@ function bindAppEvents() {
     podSubmitApprovalBtn.addEventListener("click", async function() {
       const podCode = viewState.purchaseOrderDetailCode;
       try {
-        await apiFetch('/api/purchase-orders/' + podCode + '/submit-approval', { method: 'POST' });
+        await withFeedback('/api/purchase-orders/' + podCode + '/submit-approval', { method: 'POST' }, { button: podSubmitApprovalBtn, successMsg: '承認依頼を送信しました' });
         await refreshPurchaseOrders();
         renderApp();
-      } catch (err) {
-        console.error('承認依頼に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -6700,16 +6772,14 @@ function bindAppEvents() {
   if (quotationReturnDraftBtn) {
     quotationReturnDraftBtn.addEventListener("click", async function() {
       try {
-        await apiFetch('/api/quotations/' + viewState.quotationDetailCode, {
+        await withFeedback('/api/quotations/' + viewState.quotationDetailCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: '下書き' })
-        });
+        }, { button: quotationReturnDraftBtn, successMsg: '下書きに戻しました' });
         await refreshQuotations();
         renderApp();
-      } catch (err) {
-        console.error('下書きに戻す操作に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -6721,6 +6791,21 @@ function bindAppEvents() {
   var podRejectBtn = document.getElementById("pod-reject-btn");
   if (podRejectBtn) {
     podRejectBtn.addEventListener("click", function() { openApprovalActionPanel('reject'); });
+  }
+
+  var podReturnDraftBtn = document.getElementById("pod-return-draft-btn");
+  if (podReturnDraftBtn) {
+    podReturnDraftBtn.addEventListener("click", async function() {
+      try {
+        await withFeedback('/api/purchase-orders/' + viewState.purchaseOrderDetailCode, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '下書き' })
+        }, { button: podReturnDraftBtn, successMsg: '下書きに戻しました' });
+        await refreshPurchaseOrders();
+        renderApp();
+      } catch { /* トーストで通知済み */ }
+    });
   }
 
   var paymentApproveBtn = document.getElementById("payment-approve-btn");
@@ -6747,78 +6832,46 @@ function bindAppEvents() {
       viewState.approvalAction.comment = comment;
 
       var approveEntry = buildApprovalHistoryEntry('承認', currentOperatorName(), comment, nowTimestamp());
-      if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
-        try {
-          await apiFetch('/api/quotations/' + viewState.quotationDetailCode + '/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ comment: comment })
-          });
+      const approveBtn = approvalConfirmApproveBtn;
+      try {
+        if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
+          await withFeedback('/api/quotations/' + viewState.quotationDetailCode + '/approve', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
+          }, { button: approveBtn, successMsg: '承認しました' });
           await refreshQuotations();
           viewState.quotationView = 'list';
           viewState.quotationDetailCode = null;
-        } catch (err) {
-          console.error('承認操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.orderDetailCode && viewState.orderView === 'detail') {
-        try {
-          await apiFetch('/api/orders/' + viewState.orderDetailCode + '/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ comment: comment })
-          });
+        } else if (viewState.orderDetailCode && viewState.orderView === 'detail') {
+          await withFeedback('/api/orders/' + viewState.orderDetailCode + '/approve', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
+          }, { button: approveBtn, successMsg: '承認しました' });
           await refreshOrders();
           viewState.orderView = 'list';
           viewState.orderDetailCode = null;
-        } catch (err) {
-          console.error('受注承認操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.purchaseOrderDetailCode && viewState.purchaseOrderView === 'detail') {
-        try {
-          await apiFetch('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ comment: comment })
-          });
+        } else if (viewState.purchaseOrderDetailCode && viewState.purchaseOrderView === 'detail') {
+          await withFeedback('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/approve', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
+          }, { button: approveBtn, successMsg: '承認しました' });
           await refreshPurchaseOrders();
           viewState.purchaseOrderView = 'list';
           viewState.purchaseOrderDetailCode = null;
-        } catch (err) {
-          console.error('発注承認操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.paymentDetailCode && viewState.paymentView === 'detail') {
-        try {
-          await apiFetch('/api/payments/' + viewState.paymentDetailCode + '/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ comment: comment })
-          });
+        } else if (viewState.paymentDetailCode && viewState.paymentView === 'detail') {
+          await withFeedback('/api/payments/' + viewState.paymentDetailCode + '/approve', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
+          }, { button: approveBtn, successMsg: '承認しました' });
           await refreshPayments();
           viewState.paymentView = 'list';
           viewState.paymentDetailCode = null;
-        } catch (err) {
-          console.error('支払依頼承認操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.invoiceDetailCode && viewState.invoiceView === 'detail') {
-        try {
+        } else if (viewState.invoiceDetailCode && viewState.invoiceView === 'detail') {
           var invCode = viewState.invoiceDetailCode;
-          await apiFetch('/api/invoices/' + invCode + '/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ comment: comment })
-          });
+          await withFeedback('/api/invoices/' + invCode + '/approve', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment })
+          }, { button: approveBtn, successMsg: '承認しました' });
           await refreshInvoices();
           viewState.invoiceView = 'list';
           viewState.invoiceDetailCode = null;
-        } catch (err) {
-          console.error('請求承認操作に失敗しました:', err.message);
-          return;
         }
-      }
+      } catch { /* トーストで通知済み */ return; }
       navigateBackToApproval();
     });
   }
@@ -6837,76 +6890,45 @@ function bindAppEvents() {
       viewState.approvalAction.comment = comment;
 
       var rejectEntry = buildApprovalHistoryEntry('却下', currentOperatorName(), comment, nowTimestamp());
-      if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
-        try {
-          await apiFetch('/api/quotations/' + viewState.quotationDetailCode + '/reject', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: comment })
-          });
+      const rejectBtn = approvalConfirmRejectBtn;
+      try {
+        if (viewState.quotationDetailCode && viewState.quotationView === 'detail') {
+          await withFeedback('/api/quotations/' + viewState.quotationDetailCode + '/reject', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
+          }, { button: rejectBtn, successMsg: '却下しました' });
           await refreshQuotations();
           viewState.quotationView = 'list';
           viewState.quotationDetailCode = null;
-        } catch (err) {
-          console.error('却下操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.orderDetailCode && viewState.orderView === 'detail') {
-        try {
-          await apiFetch('/api/orders/' + viewState.orderDetailCode + '/reject', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: comment })
-          });
+        } else if (viewState.orderDetailCode && viewState.orderView === 'detail') {
+          await withFeedback('/api/orders/' + viewState.orderDetailCode + '/reject', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
+          }, { button: rejectBtn, successMsg: '却下しました' });
           await refreshOrders();
           viewState.orderView = 'list';
           viewState.orderDetailCode = null;
-        } catch (err) {
-          console.error('受注却下操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.purchaseOrderDetailCode && viewState.purchaseOrderView === 'detail') {
-        try {
-          await apiFetch('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/reject', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: comment })
-          });
+        } else if (viewState.purchaseOrderDetailCode && viewState.purchaseOrderView === 'detail') {
+          await withFeedback('/api/purchase-orders/' + viewState.purchaseOrderDetailCode + '/reject', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
+          }, { button: rejectBtn, successMsg: '却下しました' });
           await refreshPurchaseOrders();
           viewState.purchaseOrderView = 'list';
           viewState.purchaseOrderDetailCode = null;
-        } catch (err) {
-          console.error('発注却下操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.paymentDetailCode && viewState.paymentView === 'detail') {
-        try {
-          await apiFetch('/api/payments/' + viewState.paymentDetailCode + '/reject', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: comment })
-          });
+        } else if (viewState.paymentDetailCode && viewState.paymentView === 'detail') {
+          await withFeedback('/api/payments/' + viewState.paymentDetailCode + '/reject', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
+          }, { button: rejectBtn, successMsg: '却下しました' });
           await refreshPayments();
           viewState.paymentView = 'list';
           viewState.paymentDetailCode = null;
-        } catch (err) {
-          console.error('支払依頼却下操作に失敗しました:', err.message);
-          return;
-        }
-      } else if (viewState.invoiceDetailCode && viewState.invoiceView === 'detail') {
-        try {
-          await apiFetch('/api/invoices/' + viewState.invoiceDetailCode + '/reject', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: comment })
-          });
+        } else if (viewState.invoiceDetailCode && viewState.invoiceView === 'detail') {
+          await withFeedback('/api/invoices/' + viewState.invoiceDetailCode + '/reject', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: comment })
+          }, { button: rejectBtn, successMsg: '却下しました' });
           await refreshInvoices();
           viewState.invoiceView = 'list';
           viewState.invoiceDetailCode = null;
-        } catch (err) {
-          console.error('請求却下操作に失敗しました:', err.message);
-          return;
-        }
+        } else { return; }
+      } catch { /* トーストで通知済み */ return;
       }
       navigateBackToApproval();
     });
@@ -6940,7 +6962,7 @@ function bindAppEvents() {
           address: document.getElementById("s-company-address").value.trim(),
           phone: document.getElementById("s-company-phone").value.trim()
         };
-        await apiFetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
+        await withFeedback('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }, { successMsg: '会社情報を保存しました' });
         Object.assign(viewState.settings, patch);
         viewState.settingsErrors = {};
         renderApp();
@@ -6958,7 +6980,7 @@ function bindAppEvents() {
       e.preventDefault();
       const month = parseInt(document.getElementById("s-fiscal-end-month").value, 10);
       try {
-        await apiFetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fiscalEndMonth: month }) });
+        await withFeedback('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fiscalEndMonth: month }) }, { successMsg: '年度設定を保存しました' });
         viewState.settings.fiscalEndMonth = month;
         viewState.reportFilter.year = "all";
         viewState.settingsErrors = {};
@@ -6991,18 +7013,16 @@ function bindAppEvents() {
       const existing = viewState.approvalRoutes.filter(function(r) { return r.documentType === docType; });
       const maxStep = existing.reduce(function(max, r) { return Math.max(max, r.stepNumber); }, 0);
       try {
-        await apiFetch('/api/approval-routes', {
+        await withFeedback('/api/approval-routes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ documentType: docType, stepNumber: maxStep + 1, approverUserId: approverUserId })
-        });
+        }, { button: routeAddStepBtn, successMsg: '承認ルートを追加しました' });
         viewState.approvalRoutes = addRouteStep(viewState.approvalRoutes, docType, approverUserId);
         await refreshApprovalRoutes();
         viewState.approvalRouteForm.newApproverUserId = '';
         renderApp();
-      } catch (err) {
-        console.error('承認ルート追加に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -7013,12 +7033,10 @@ function bindAppEvents() {
       const numId = Number(val);
       if (!isNaN(numId) && numId > 0) {
         try {
-          await apiFetch('/api/approval-routes/' + numId, { method: 'DELETE' });
+          await withFeedback('/api/approval-routes/' + numId, { method: 'DELETE' }, { button: btn, successMsg: '承認ルートを削除しました' });
           await refreshApprovalRoutes();
           renderApp();
-        } catch (err) {
-          console.error('承認ルート削除に失敗しました:', err.message);
-        }
+        } catch { /* トーストで通知済み */ }
       } else {
         const parts = val.split(':');
         const docType = parts[0];
@@ -7044,8 +7062,9 @@ function bindAppEvents() {
         return;
       }
       const updated = buildApprovalConditionSettings(profitRate, amount, staleDays);
+      const conditionSubmitBtn = e.submitter || e.target.querySelector('[type="submit"]');
       try {
-        await apiFetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+        await withFeedback('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) }, { button: conditionSubmitBtn, successMsg: '承認条件を保存しました' });
         viewState.settings.presidentApprovalProfitRateThreshold = updated.presidentApprovalProfitRateThreshold;
         viewState.settings.presidentApprovalAmountThreshold = updated.presidentApprovalAmountThreshold;
         viewState.settings.approvalStaleDays = updated.approvalStaleDays;
@@ -7117,16 +7136,14 @@ function bindAppEvents() {
       if (pod) { pod.status = newStatus; }
       renderApp();
       try {
-        await apiFetch('/api/purchase-orders/' + podCode, {
+        await withFeedback('/api/purchase-orders/' + podCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
-        });
+        }, { button: btn, successMsg: 'ステータスを更新しました' });
         await refreshPurchaseOrders();
         renderApp();
-      } catch (err) {
-        console.error('発注ステータス変更に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -7182,12 +7199,13 @@ function bindAppEvents() {
         renderApp();
         return;
       }
+      const deliverySubmitBtn = document.querySelector('#delivery-register-form [type="submit"]');
       try {
-        await apiFetch('/api/deliveries', {
+        await withFeedback('/api/deliveries', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ purchaseOrderCode: data.purchaseOrderCode, deliveryDate: deliveryDate, notes: notes })
-        });
+        }, { button: deliverySubmitBtn, successMsg: '納品を登録しました' });
 
         await refreshDeliveries();
 
@@ -7204,7 +7222,7 @@ function bindAppEvents() {
           });
           var newStatus = allFull ? '納品済' : '一部納品';
           pod.status = newStatus;
-          await apiFetch('/api/purchase-orders/' + data.purchaseOrderCode, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
+          await withFeedback('/api/purchase-orders/' + data.purchaseOrderCode, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
           await refreshPurchaseOrders();
         }
         viewState.deliveryView = "list";
@@ -7234,16 +7252,14 @@ function bindAppEvents() {
     btn.addEventListener("click", async function() {
       const dlvCode = btn.getAttribute("data-action-accept-delivery");
       try {
-        await apiFetch('/api/deliveries/' + encodeURIComponent(dlvCode), {
+        await withFeedback('/api/deliveries/' + encodeURIComponent(dlvCode), {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: '検収済' })
-        });
+        }, { button: btn, successMsg: '検収済にしました' });
         await refreshDeliveries();
         renderApp();
-      } catch (err) {
-        console.error('検収操作に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -7252,16 +7268,14 @@ function bindAppEvents() {
     btn.addEventListener("click", async function() {
       const dlvCode = btn.getAttribute("data-action-reject-delivery");
       try {
-        await apiFetch('/api/deliveries/' + encodeURIComponent(dlvCode), {
+        await withFeedback('/api/deliveries/' + encodeURIComponent(dlvCode), {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: '検収NG' })
-        });
+        }, { button: btn, successMsg: '納品を差し戻しました' });
         await refreshDeliveries();
         renderApp();
-      } catch (err) {
-        console.error('検収NG操作に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -7295,16 +7309,14 @@ function bindAppEvents() {
   if (invoiceSubmitApprovalBtn) {
     invoiceSubmitApprovalBtn.addEventListener("click", async function() {
       try {
-        await apiFetch('/api/invoices/' + viewState.invoiceDetailCode + '/submit-approval', {
+        await withFeedback('/api/invoices/' + viewState.invoiceDetailCode + '/submit-approval', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
-        });
+        }, { button: invoiceSubmitApprovalBtn, successMsg: '承認依頼を送信しました' });
         await refreshInvoices();
         renderApp();
-      } catch (err) {
-        console.error('請求承認依頼に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -7324,16 +7336,14 @@ function bindAppEvents() {
   if (invoiceReturnDraftBtn) {
     invoiceReturnDraftBtn.addEventListener("click", async function() {
       try {
-        await apiFetch('/api/invoices/' + viewState.invoiceDetailCode, {
+        await withFeedback('/api/invoices/' + viewState.invoiceDetailCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: '下書き' })
-        });
+        }, { button: invoiceReturnDraftBtn, successMsg: '下書きに戻しました' });
         await refreshInvoices();
         renderApp();
-      } catch (err) {
-        console.error('下書きに戻す操作に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   }
 
@@ -7342,16 +7352,14 @@ function bindAppEvents() {
     btn.addEventListener("click", async function() {
       const newStatus = btn.getAttribute("data-action-invoice-status");
       try {
-        await apiFetch('/api/invoices/' + viewState.invoiceDetailCode, {
+        await withFeedback('/api/invoices/' + viewState.invoiceDetailCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
-        });
+        }, { button: btn, successMsg: 'ステータスを更新しました' });
         await refreshInvoices();
         renderApp();
-      } catch (err) {
-        console.error('請求ステータス変更に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -7383,17 +7391,15 @@ function bindAppEvents() {
       const dueDate = dueDateInput ? dueDateInput.value : "";
       if (!invoiceDate || !dueDate) return;
       try {
-        await apiFetch('/api/invoices', {
+        await withFeedback('/api/invoices', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderCode: orderCode, invoiceDate: invoiceDate, dueDate: dueDate })
-        });
+        }, { button: btn, successMsg: '請求書を起票しました' });
         await refreshInvoices();
         viewState.invoiceView = "billable";
         renderApp();
-      } catch (err) {
-        console.error('請求起票に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -7402,16 +7408,14 @@ function bindAppEvents() {
     btn.addEventListener("click", async function () {
       const orderCode = btn.getAttribute("data-action-billing-target");
       try {
-        await apiFetch('/api/orders/' + orderCode, {
+        await withFeedback('/api/orders/' + orderCode, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ billingTarget: true })
-        });
+        }, { button: btn, successMsg: '請求対象に設定しました' });
         await refreshOrders();
         renderApp();
-      } catch (err) {
-        console.error('請求対象化操作に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -7532,8 +7536,9 @@ function bindAppEvents() {
         return;
       }
 
+      const orderSubmitBtn = e.submitter || e.target.querySelector('[type="submit"]');
       try {
-        await apiFetch('/api/orders', {
+        await withFeedback('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -7543,7 +7548,7 @@ function bindAppEvents() {
             deliveryDate: deliveryDate,
             notes: notes
           })
-        });
+        }, { button: orderSubmitBtn, successMsg: '受注を登録しました' });
         await refreshOrders();
         viewState.tables.orderList.page = Math.ceil(orders.length / (viewState.tables.orderList.pageSize || PAGE_SIZE));
         viewState.orderForm.mode = "list";
@@ -7765,15 +7770,18 @@ function bindAppEvents() {
       const editCode = viewState.quotationForm.editCode;
       const data = viewState.quotationForm.data;
 
+      const quotationSubmitBtn = e.submitter || e.target.querySelector('[type="submit"]');
+
       // 承認・失注はステータスをPATCHで更新
       if (action === "approve" || action === "lost") {
         const statusMap = { approve: "承認済み", lost: "失注" };
+        const successMsgMap = { approve: '見積を承認済みにしました', lost: '失注として記録しました' };
         try {
-          await apiFetch('/api/quotations/' + editCode, {
+          await withFeedback('/api/quotations/' + editCode, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: statusMap[action] })
-          });
+          }, { button: quotationSubmitBtn, successMsg: successMsgMap[action] });
           await refreshQuotations();
         } catch (err) {
           viewState.quotationForm.errors = { _api: err.message };
@@ -7793,11 +7801,11 @@ function bindAppEvents() {
           return;
         }
         try {
-          await apiFetch('/api/quotations/' + editCode + '/reject', {
+          await withFeedback('/api/quotations/' + editCode + '/reject', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reason: reason })
-          });
+          }, { button: quotationSubmitBtn, successMsg: '却下しました' });
           await refreshQuotations();
         } catch (err) {
           viewState.quotationForm.errors = { _api: err.message };
@@ -7835,29 +7843,32 @@ function bindAppEvents() {
         details: viewState.quotationForm.details
       };
 
+      const saveSuccessMsg = action === "request" ? '承認依頼を送信しました' : '見積を保存しました';
       try {
         var targetCode = editCode;
         if (isEdit) {
-          await apiFetch('/api/quotations/' + editCode, {
+          await withFeedback('/api/quotations/' + editCode, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
-          });
+          }, { button: quotationSubmitBtn });
         } else {
-          var created = await apiFetch('/api/quotations', {
+          var created = await withFeedback('/api/quotations', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
-          });
+          }, { button: quotationSubmitBtn });
           targetCode = created.code;
         }
         // 承認依頼時はsubmit-approvalも呼び出す
         if (action === "request") {
-          await apiFetch('/api/quotations/' + targetCode + '/submit-approval', {
+          await withFeedback('/api/quotations/' + targetCode + '/submit-approval', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
-          });
+          }, { successMsg: saveSuccessMsg });
+        } else {
+          showToast(saveSuccessMsg, 'success');
         }
         await refreshQuotations();
         viewState.quotationForm.mode = "list";
@@ -7911,8 +7922,9 @@ function bindAppEvents() {
       }
 
       const invoiceCode = viewState.receiptForm.invoiceCode;
+      const receiptSubmitBtn = e.submitter || e.target.querySelector('[type="submit"]');
       try {
-        await apiFetch('/api/receipts', {
+        await withFeedback('/api/receipts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -7922,7 +7934,7 @@ function bindAppEvents() {
             fee: Number(feeVal) || 0,
             notes: notesVal
           })
-        });
+        }, { button: receiptSubmitBtn, successMsg: '入金を登録しました' });
         await refreshReceipts();
         await refreshInvoices();
         viewState.invoiceView = "detail";
@@ -7967,15 +7979,13 @@ function bindAppEvents() {
       const pmtCode = viewState.paymentDetailCode;
       try {
         if (newStatus === '承認待ち') {
-          await apiFetch('/api/payments/' + pmtCode + '/submit-approval', { method: 'POST' });
+          await withFeedback('/api/payments/' + pmtCode + '/submit-approval', { method: 'POST' }, { button: btn, successMsg: '承認依頼を送信しました' });
         } else if (newStatus === 'キャンセル') {
-          await apiFetch('/api/payments/' + pmtCode + '/cancel', { method: 'POST' });
+          await withFeedback('/api/payments/' + pmtCode + '/cancel', { method: 'POST' }, { button: btn, successMsg: '支払依頼をキャンセルしました' });
         }
         await refreshPayments();
         renderApp();
-      } catch (err) {
-        console.error('支払依頼ステータス変更に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 
@@ -8017,8 +8027,9 @@ function bindAppEvents() {
         return;
       }
 
+      const payExecSubmitBtn = e.submitter || e.target.querySelector('[type="submit"]');
       try {
-        await apiFetch('/api/payments/' + viewState.paymentDetailCode + '/register', { method: 'POST' });
+        await withFeedback('/api/payments/' + viewState.paymentDetailCode + '/register', { method: 'POST' }, { button: payExecSubmitBtn, successMsg: '支払を実行しました' });
         await refreshPayments();
         viewState.paymentView = "detail";
         viewState.paymentForm = { purchaseOrderCode: null, errors: {} };
@@ -8090,8 +8101,9 @@ function bindAppEvents() {
 
       const poCode = viewState.paymentForm.purchaseOrderCode;
       const po = purchaseOrders.find(function(p) { return p.code === poCode; });
+      const paymentSubmitBtn = e.submitter || e.target.querySelector('[type="submit"]');
       try {
-        await apiFetch('/api/payments', {
+        await withFeedback('/api/payments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -8102,7 +8114,7 @@ function bindAppEvents() {
             amount: Number(amountVal),
             notes: notesVal
           })
-        });
+        }, { button: paymentSubmitBtn, successMsg: '支払依頼を登録しました' });
         await refreshPayments();
         viewState.paymentView = "list";
         viewState.paymentForm = { purchaseOrderCode: null, errors: {} };
@@ -8119,12 +8131,10 @@ function bindAppEvents() {
     btn.addEventListener("click", async function() {
       const id = btn.getAttribute("data-action-mark-read");
       try {
-        await apiFetch('/api/notifications/' + encodeURIComponent(id) + '/read', { method: 'PUT' });
+        await withFeedback('/api/notifications/' + encodeURIComponent(id) + '/read', { method: 'PUT' }, { button: btn });
         await refreshNotifications();
         renderApp();
-      } catch (err) {
-        console.error('既読処理に失敗しました:', err.message);
-      }
+      } catch { /* トーストで通知済み */ }
     });
   });
 }
@@ -8235,8 +8245,10 @@ async function handleHashChange() {
   if (route === 'receipt') await refreshReceipts();
   if (route === 'payment') await refreshPayments();
   if (route === 'notification') await refreshNotifications();
+  if (route === 'master') await refreshCustomers();
   if (route === 'settings') { await refreshSettings(); await refreshApprovalRoutes(); }
   renderApp();
 }
 window.addEventListener("hashchange", handleHashChange);
+initFeedbackUI();
 initSession();

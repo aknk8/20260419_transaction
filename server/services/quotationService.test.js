@@ -40,10 +40,13 @@ const sampleQuotation = {
 const makeRepo = (overrides = {}) => ({
   findAll: vi.fn().mockResolvedValue([sampleQuotation]),
   findByCode: vi.fn().mockResolvedValue(sampleQuotation),
-  findAllCodes: vi.fn().mockResolvedValue(['QUO-00001']),
   save: vi.fn().mockResolvedValue(sampleQuotation),
   update: vi.fn().mockImplementation(async (code, data) => ({ ...sampleQuotation, ...data })),
   ...overrides
+});
+
+const makeSequenceRepo = (nextVal = 1) => ({
+  nextVal: vi.fn().mockResolvedValue(nextVal)
 });
 
 describe('listQuotations', () => {
@@ -86,10 +89,8 @@ describe('getQuotationByCode', () => {
 describe('registerQuotation', () => {
   it('should generate code, calculate totals, and save', async () => {
     // Arrange
-    const repository = makeRepo({
-      findAllCodes: vi.fn().mockResolvedValue(['QUO-00001']),
-      save: vi.fn().mockImplementation(async (q) => q)
-    });
+    const repository = makeRepo({ save: vi.fn().mockImplementation(async (q) => q) });
+    const sequenceRepository = makeSequenceRepo(2);
     const formData = {
       title: '新規見積',
       projectCode: 'PJ-00001',
@@ -101,25 +102,24 @@ describe('registerQuotation', () => {
     };
 
     // Act
-    const result = await registerQuotation(formData, { repository });
+    const result = await registerQuotation(formData, { repository, sequenceRepository });
 
     // Assert
     expect(result.code).toBe('QUO-00002');
     expect(result.total).toBeGreaterThan(0);
     expect(repository.save).toHaveBeenCalledOnce();
+    expect(sequenceRepository.nextVal).toHaveBeenCalledWith('quotation');
   });
 
-  it('should assign QUO-00001 when no quotations exist', async () => {
+  it('should assign QUO-00001 when sequenceRepository returns 1', async () => {
     // Arrange
-    const repository = makeRepo({
-      findAllCodes: vi.fn().mockResolvedValue([]),
-      save: vi.fn().mockImplementation(async (q) => q)
-    });
+    const repository = makeRepo({ save: vi.fn().mockImplementation(async (q) => q) });
+    const sequenceRepository = makeSequenceRepo(1);
 
     // Act
     const result = await registerQuotation(
       { title: 'テスト見積', details: [] },
-      { repository }
+      { repository, sequenceRepository }
     );
 
     // Assert

@@ -498,3 +498,104 @@ test.describe('P10-RT-01 発注却下フロー', () => {
     await expect(page.locator('.status-badge').first()).toContainText('却下');
   });
 });
+
+test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フロー）', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="purchase-order"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should show 却下 status on POD-00006 after rejection from approval list', async ({ page }) => {
+    // Arrange: POD-00006 is seeded as 承認依頼中
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+
+    // Act: reject
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('金額を見直してください');
+    await page.locator('#approval-confirm-reject').click();
+
+    // Assert
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('却下');
+  });
+
+  test('should show 下書きに戻す button on rejected POD-00006', async ({ page }) => {
+    // Arrange: reject POD-00006
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('金額を見直してください');
+    await page.locator('#approval-confirm-reject').click();
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+
+    // Assert: 下書きに戻す is visible
+    await expect(page.locator('#pod-return-draft-btn')).toBeVisible();
+  });
+
+  test('should return POD-00006 to 下書き when 下書きに戻す is clicked', async ({ page }) => {
+    // Arrange: reject first
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('金額を見直してください');
+    await page.locator('#approval-confirm-reject').click();
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+
+    // Act
+    await page.locator('#pod-return-draft-btn').click();
+
+    // Assert
+    await expect(page.locator('.status-badge').first()).toContainText('下書き');
+  });
+
+  test('should allow resubmitting POD-00006 for approval after returning to 下書き', async ({ page }) => {
+    // Arrange: reject then return to 下書き
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('金額を見直してください');
+    await page.locator('#approval-confirm-reject').click();
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await page.locator('#pod-return-draft-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('下書き');
+
+    // Act: resubmit
+    await page.locator('#pod-submit-approval-btn').click();
+
+    // Assert
+    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+  });
+
+  test('should reach 承認済・発注待ち after full reject→return→resubmit→approve cycle', async ({ page }) => {
+    // Arrange: reject POD-00006
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await page.locator('#pod-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('確認のため却下');
+    await page.locator('#approval-confirm-reject').click();
+
+    // Return to 下書き
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await page.locator('#pod-return-draft-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('下書き');
+
+    // Resubmit
+    await page.locator('#pod-submit-approval-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+
+    // Approve
+    await page.locator('#pod-approve-btn').click();
+    await page.locator('#approval-confirm-approve').click();
+
+    // Assert: final status is 承認済・発注待ち
+    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認済・発注待ち');
+  });
+});

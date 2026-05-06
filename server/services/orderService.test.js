@@ -35,13 +35,13 @@ const sampleOrder = {
   taxAmount: 200,
   total: 2200,
   notes: '',
-  details: [{ lineNo: 1, productName: '商品A', quantity: 1, unitPrice: 2000, taxRate: 0.10, amount: 2200 }]
+  details: [{ lineNo: 1, productName: '商品A', quantity: 1, unitPrice: 2000, taxRate: 0.10, amount: 2200 }],
+  attachments: [{ fileName: 'contract.pdf', fileSize: 1024, fileType: 'application/pdf' }]
 };
 
 const makeRepo = (overrides = {}) => ({
   findAll: vi.fn().mockResolvedValue([sampleOrder]),
   findByCode: vi.fn().mockResolvedValue(sampleOrder),
-  findAllCodes: vi.fn().mockResolvedValue(['ORD-00001']),
   save: vi.fn().mockResolvedValue(sampleOrder),
   update: vi.fn().mockImplementation(async (code, data) => ({ ...sampleOrder, ...data })),
   ...overrides
@@ -50,6 +50,10 @@ const makeRepo = (overrides = {}) => ({
 const makeQuotationRepo = (overrides = {}) => ({
   findByCode: vi.fn().mockResolvedValue(sampleQuotation),
   ...overrides
+});
+
+const makeSequenceRepo = (nextVal = 1) => ({
+  nextVal: vi.fn().mockResolvedValue(nextVal)
 });
 
 describe('listOrders', () => {
@@ -90,18 +94,16 @@ describe('getOrderByCode', () => {
 });
 
 describe('registerOrder', () => {
-  it('should create order from approved quotation', async () => {
+  it('should create order from approved quotation with sequenced code', async () => {
     // Arrange
-    const repository = makeRepo({
-      findAllCodes: vi.fn().mockResolvedValue(['ORD-00001']),
-      save: vi.fn().mockImplementation(async (o) => o)
-    });
+    const repository = makeRepo({ save: vi.fn().mockImplementation(async (o) => o) });
     const quotationRepository = makeQuotationRepo();
+    const sequenceRepository = makeSequenceRepo(2);
 
     // Act
     const result = await registerOrder(
       { quotationCode: 'QUO-00001', orderDate: '2026-05-05' },
-      { repository, quotationRepository }
+      { repository, quotationRepository, sequenceRepository }
     );
 
     // Assert
@@ -109,20 +111,19 @@ describe('registerOrder', () => {
     expect(result.quotationCode).toBe('QUO-00001');
     expect(result.status).toBe('受注済み');
     expect(repository.save).toHaveBeenCalledOnce();
+    expect(sequenceRepository.nextVal).toHaveBeenCalledWith('order');
   });
 
-  it('should assign ORD-00001 when no orders exist', async () => {
+  it('should assign ORD-00001 when sequenceRepository returns 1', async () => {
     // Arrange
-    const repository = makeRepo({
-      findAllCodes: vi.fn().mockResolvedValue([]),
-      save: vi.fn().mockImplementation(async (o) => o)
-    });
+    const repository = makeRepo({ save: vi.fn().mockImplementation(async (o) => o) });
     const quotationRepository = makeQuotationRepo();
+    const sequenceRepository = makeSequenceRepo(1);
 
     // Act
     const result = await registerOrder(
       { quotationCode: 'QUO-00001', orderDate: '2026-05-05' },
-      { repository, quotationRepository }
+      { repository, quotationRepository, sequenceRepository }
     );
 
     // Assert
@@ -135,11 +136,12 @@ describe('registerOrder', () => {
     const quotationRepository = makeQuotationRepo({
       findByCode: vi.fn().mockResolvedValue({ ...sampleQuotation, status: '下書き' })
     });
+    const sequenceRepository = makeSequenceRepo();
 
     // Act & Assert
     await expect(registerOrder(
       { quotationCode: 'QUO-00001', orderDate: '2026-05-05' },
-      { repository, quotationRepository }
+      { repository, quotationRepository, sequenceRepository }
     )).rejects.toMatchObject({ statusCode: 400 });
   });
 
@@ -149,11 +151,12 @@ describe('registerOrder', () => {
     const quotationRepository = makeQuotationRepo({
       findByCode: vi.fn().mockResolvedValue(null)
     });
+    const sequenceRepository = makeSequenceRepo();
 
     // Act & Assert
     await expect(registerOrder(
       { quotationCode: 'QUO-99999', orderDate: '2026-05-05' },
-      { repository, quotationRepository }
+      { repository, quotationRepository, sequenceRepository }
     )).rejects.toMatchObject({ statusCode: 400 });
   });
 });
@@ -231,6 +234,55 @@ describe('submitOrderApproval', () => {
     // Act & Assert
     await expect(submitOrderApproval('ORD-99999', { repository }))
       .rejects.toMatchObject({ statusCode: 404 });
+  });
+});
+
+describe('submitOrderApproval - BL-04 business validation', () => {
+  it('should return 400 when quotationCode is missing', async () => {
+    // Arrange
+    const repository = makeRepo({
+      findByCode: vi.fn().mockResolvedValue({ ...sampleOrder, status: '受注済み', quotationCode: null })
+    });
+
+    // Act & Assert
+    await expect(submitOrderApproval('ORD-00001', { repository, quotationRepository: makeQuotationRepo() }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should return 400 when order total differs from quotation total', async () => {
+    // Arrange
+    const repository = makeRepo({
+      findByCode: vi.fn().mockResolvedValue({ ...sampleOrder, status: '受注済み', total: 9999 })
+    });
+
+    // Act & Assert
+    await expect(submitOrderApproval('ORD-00001', { repository, quotationRepository: makeQuotationRepo() }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should return 400 when no attachment exists', async () => {
+    // Arrange
+    const repository = makeRepo({
+      findByCode: vi.fn().mockResolvedValue({ ...sampleOrder, status: '受注済み', attachments: [] })
+    });
+
+    // Act & Assert
+    await expect(submitOrderApproval('ORD-00001', { repository, quotationRepository: makeQuotationRepo() }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should succeed with valid order meeting all conditions', async () => {
+    // Arrange
+    const repository = makeRepo({
+      findByCode: vi.fn().mockResolvedValue({ ...sampleOrder, status: '受注済み' }),
+      update: vi.fn().mockImplementation(async (code, data) => ({ ...sampleOrder, ...data }))
+    });
+
+    // Act
+    const result = await submitOrderApproval('ORD-00001', { repository, quotationRepository: makeQuotationRepo() });
+
+    // Assert
+    expect(result.status).toBe('承認依頼中');
   });
 });
 

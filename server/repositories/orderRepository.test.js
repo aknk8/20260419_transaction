@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { createOrderRepository } from './orderRepository.js';
 
 const detailRow = { id: 1, orderCode: 'ORD-00001', lineNo: 1, productName: '商品A', quantity: '1.00', unitPrice: '2000.00', amount: '2200.00' };
+const attachmentRow = { id: 1, orderCode: 'ORD-00001', fileName: 'contract.pdf', fileSize: 1024, fileType: 'application/pdf', uploadedAt: new Date() };
 const headerRow = {
   code: 'ORD-00001',
   quotationCode: 'QUO-00001',
@@ -23,11 +24,15 @@ const makeMockDb = (overrides = {}) => ({
     },
     orderDetails: {
       findMany: vi.fn().mockResolvedValue([detailRow])
+    },
+    orderAttachments: {
+      findMany: vi.fn().mockResolvedValue([attachmentRow])
     }
   },
   insert: vi.fn()
     .mockReturnValueOnce({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([headerRow]) }) })
-    .mockReturnValueOnce({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([detailRow]) }) }),
+    .mockReturnValueOnce({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([detailRow]) }) })
+    .mockReturnValueOnce({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([attachmentRow]) }) }),
   update: vi.fn().mockReturnValue({
     set: vi.fn().mockReturnValue({
       where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([headerRow]) })
@@ -53,7 +58,7 @@ describe('createOrderRepository', () => {
   });
 
   describe('findByCode', () => {
-    it('should return order with details when code matches', async () => {
+    it('should return order with details and attachments when code matches', async () => {
       // Arrange
       const db = makeMockDb();
       const repo = createOrderRepository(db);
@@ -64,6 +69,7 @@ describe('createOrderRepository', () => {
       // Assert
       expect(result.code).toBe('ORD-00001');
       expect(result.details).toEqual([detailRow]);
+      expect(result.attachments).toEqual([attachmentRow]);
     });
 
     it('should return null when code does not match', async () => {
@@ -71,7 +77,8 @@ describe('createOrderRepository', () => {
       const db = makeMockDb({
         query: {
           orders: { findMany: vi.fn(), findFirst: vi.fn().mockResolvedValue(undefined) },
-          orderDetails: { findMany: vi.fn() }
+          orderDetails: { findMany: vi.fn() },
+          orderAttachments: { findMany: vi.fn() }
         }
       });
       const repo = createOrderRepository(db);
@@ -99,7 +106,7 @@ describe('createOrderRepository', () => {
   });
 
   describe('save', () => {
-    it('should insert header and details, returning combined record', async () => {
+    it('should insert header and details returning combined record', async () => {
       // Arrange
       const db = makeMockDb();
       const repo = createOrderRepository(db);
@@ -111,6 +118,23 @@ describe('createOrderRepository', () => {
       // Assert
       expect(result.code).toBe('ORD-00001');
       expect(db.insert).toHaveBeenCalledTimes(2);
+    });
+
+    it('should insert attachments when provided', async () => {
+      // Arrange
+      const db = makeMockDb();
+      const repo = createOrderRepository(db);
+      const order = {
+        ...headerRow,
+        details: [{ lineNo: 1, productName: '商品A' }],
+        attachments: [{ fileName: 'contract.pdf', fileSize: 1024, fileType: 'application/pdf' }]
+      };
+
+      // Act
+      const result = await repo.save(order);
+
+      // Assert
+      expect(db.insert).toHaveBeenCalledTimes(3);
     });
   });
 

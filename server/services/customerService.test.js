@@ -111,6 +111,29 @@ describe('registerCustomer', () => {
     await expect(registerCustomer({ status: '有効' }, { repository }))
       .rejects.toMatchObject({ statusCode: 400 });
   });
+
+  it('should preserve closingDay, paymentSite and billingTo when registering customer', async () => {
+    // Arrange
+    const repository = makeRepo({
+      findAllCodes: vi.fn().mockResolvedValue([]),
+      save: vi.fn().mockImplementation(async (c) => c)
+    });
+    const formData = {
+      name: '株式会社テスト',
+      status: '有効',
+      closingDay: '月末',
+      paymentSite: '翌月末',
+      billingTo: '本社'
+    };
+
+    // Act
+    const result = await registerCustomer(formData, { repository });
+
+    // Assert
+    expect(result.closingDay).toBe('月末');
+    expect(result.paymentSite).toBe('翌月末');
+    expect(result.billingTo).toBe('本社');
+  });
 });
 
 describe('updateCustomer', () => {
@@ -137,5 +160,21 @@ describe('updateCustomer', () => {
     // Act & Assert
     await expect(updateCustomer('CUS-999', { name: 'X' }, { repository }))
       .rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it('should update closingDay, paymentSite and billingTo when provided', async () => {
+    // Arrange
+    const repository = makeRepo({
+      update: vi.fn().mockImplementation(async (code, data) => ({ ...sampleCustomer, ...data }))
+    });
+    const patch = { closingDay: '15日', paymentSite: '翌々月末', billingTo: '東京支社' };
+
+    // Act
+    const result = await updateCustomer('CUS-001', patch, { repository });
+
+    // Assert
+    expect(result.closingDay).toBe('15日');
+    expect(result.paymentSite).toBe('翌々月末');
+    expect(result.billingTo).toBe('東京支社');
   });
 });

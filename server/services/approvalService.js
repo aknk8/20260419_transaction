@@ -8,6 +8,14 @@ const CODE_PREFIX_MAP = {
   PAY: 'payment'
 };
 
+const DOC_TYPE_LABEL = {
+  quotation: '見積',
+  order: '受注',
+  purchaseOrder: '発注',
+  invoice: '請求',
+  payment: '支払依頼'
+};
+
 function resolveDocType(code) {
   const prefix = (code ?? '').split('-')[0];
   return CODE_PREFIX_MAP[prefix] ?? null;
@@ -52,7 +60,33 @@ export async function approveDocument(code, comment, services) {
     payment: () => services.paymentService.approvePayment(code, comment)
   };
 
-  return approvers[docType]();
+  const result = await approvers[docType]();
+
+  // INF-10: atomically record approval history
+  if (services.approvalHistoryRepository) {
+    await services.approvalHistoryRepository.save({
+      documentType: docType,
+      documentId: code,
+      stepNumber: 1,
+      action: '承認',
+      comment: comment ?? null
+    });
+  }
+
+  // INF-10: atomically notify the applicant
+  if (services.notificationRepository && result.submittedBy) {
+    const label = DOC_TYPE_LABEL[docType] ?? docType;
+    await services.notificationRepository.save({
+      type: 'N-02',
+      recipientId: result.submittedBy,
+      docType: label,
+      docCode: code,
+      message: `${label} ${code} が承認されました`,
+      isRead: false
+    });
+  }
+
+  return result;
 }
 
 export async function rejectDocument(code, reason, services) {
@@ -73,5 +107,31 @@ export async function rejectDocument(code, reason, services) {
     payment: () => services.paymentService.rejectPayment(code, reason)
   };
 
-  return rejecters[docType]();
+  const result = await rejecters[docType]();
+
+  // INF-10: atomically record rejection history
+  if (services.approvalHistoryRepository) {
+    await services.approvalHistoryRepository.save({
+      documentType: docType,
+      documentId: code,
+      stepNumber: 1,
+      action: '却下',
+      comment: reason
+    });
+  }
+
+  // INF-10: atomically notify the applicant of rejection
+  if (services.notificationRepository && result.submittedBy) {
+    const label = DOC_TYPE_LABEL[docType] ?? docType;
+    await services.notificationRepository.save({
+      type: 'N-03',
+      recipientId: result.submittedBy,
+      docType: label,
+      docCode: code,
+      message: `${label} ${code} が却下されました：${reason}`,
+      isRead: false
+    });
+  }
+
+  return result;
 }

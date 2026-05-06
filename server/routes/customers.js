@@ -1,9 +1,8 @@
 export default async function customerRoutes(fastify, { customerService }) {
   fastify.get('/api/customers', {
     preHandler: [fastify.authenticate]
-  }, async (request, reply) => {
-    const customers = await customerService.listCustomers({ repository: request.customerRepository });
-    return customers;
+  }, async () => {
+    return customerService.listCustomers();
   });
 
   fastify.get('/api/customers/:code', {
@@ -11,7 +10,7 @@ export default async function customerRoutes(fastify, { customerService }) {
   }, async (request, reply) => {
     const { code } = request.params;
     try {
-      return await customerService.getCustomerByCode(code, { repository: request.customerRepository });
+      return await customerService.getCustomerByCode(code);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
     }
@@ -21,9 +20,7 @@ export default async function customerRoutes(fastify, { customerService }) {
     preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
-      const customer = await customerService.registerCustomer(request.body, {
-        repository: request.customerRepository
-      });
+      const customer = await customerService.registerCustomer(request.body);
       reply.code(201).send(customer);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
@@ -35,9 +32,7 @@ export default async function customerRoutes(fastify, { customerService }) {
   }, async (request, reply) => {
     const { code } = request.params;
     try {
-      return await customerService.updateCustomer(code, request.body, {
-        repository: request.customerRepository
-      });
+      return await customerService.updateCustomer(code, request.body);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
     }

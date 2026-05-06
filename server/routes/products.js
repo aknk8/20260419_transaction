@@ -1,17 +1,15 @@
 export default async function productRoutes(fastify, { productService }) {
   fastify.get('/api/products', {
     preHandler: [fastify.authenticate]
-  }, async (request, reply) => {
-    return productService.listProducts({ repository: request.productRepository });
+  }, async () => {
+    return productService.listProducts();
   });
 
   fastify.get('/api/products/:code', {
     preHandler: [fastify.authenticate]
   }, async (request, reply) => {
     try {
-      return await productService.getProductByCode(request.params.code, {
-        repository: request.productRepository
-      });
+      return await productService.getProductByCode(request.params.code);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
     }
@@ -21,9 +19,7 @@ export default async function productRoutes(fastify, { productService }) {
     preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
-      const product = await productService.registerProduct(request.body, {
-        repository: request.productRepository
-      });
+      const product = await productService.registerProduct(request.body);
       reply.code(201).send(product);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
@@ -34,9 +30,7 @@ export default async function productRoutes(fastify, { productService }) {
     preHandler: [fastify.authenticate, fastify.requirePermission('master:edit')]
   }, async (request, reply) => {
     try {
-      return await productService.updateProduct(request.params.code, request.body, {
-        repository: request.productRepository
-      });
+      return await productService.updateProduct(request.params.code, request.body);
     } catch (err) {
       reply.code(err.statusCode ?? 500).send({ error: { message: err.message } });
     }

@@ -124,6 +124,28 @@ describe('POST /api/customers', () => {
     expect(res.json().code).toBe('CUS-001');
   });
 
+  it('should pass closingDay, paymentSite and billingTo to registerCustomer when provided', async () => {
+    // Arrange
+    const { app, mockCustomerService } = await makeApp();
+    const token = makeMasterEditToken(app);
+    const payload = { name: '株式会社テスト', status: '有効', closingDay: '月末', paymentSite: '翌月末', billingTo: '本社' };
+
+    // Act
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/customers',
+      cookies: { token },
+      payload
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(201);
+    expect(mockCustomerService.registerCustomer).toHaveBeenCalledWith(
+      expect.objectContaining({ closingDay: '月末', paymentSite: '翌月末', billingTo: '本社' }),
+      expect.anything()
+    );
+  });
+
   it('should return 400 when name is missing', async () => {
     // Arrange
     const validationErr = new Error('顧客名は必須です');
@@ -177,6 +199,29 @@ describe('PATCH /api/customers/:code', () => {
 
     // Assert
     expect(res.statusCode).toBe(200);
+  });
+
+  it('should pass closingDay, paymentSite and billingTo to updateCustomer when provided', async () => {
+    // Arrange
+    const { app, mockCustomerService } = await makeApp();
+    const token = makeMasterEditToken(app);
+    const patch = { closingDay: '15日', paymentSite: '翌々月末', billingTo: '東京支社' };
+
+    // Act
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/api/customers/CUS-001',
+      cookies: { token },
+      payload: patch
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+    expect(mockCustomerService.updateCustomer).toHaveBeenCalledWith(
+      'CUS-001',
+      expect.objectContaining({ closingDay: '15日', paymentSite: '翌々月末', billingTo: '東京支社' }),
+      expect.anything()
+    );
   });
 
   it('should return 404 when updating non-existent customer', async () => {

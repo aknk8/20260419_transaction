@@ -1,6 +1,35 @@
 import { eq } from 'drizzle-orm';
 import { purchaseOrders, purchaseOrderDetails } from '../db/schema.js';
 
+export function createInMemoryPurchaseOrderRepository(initialData = []) {
+  const store = initialData.map(({ details, attachments, ...h }) => ({
+    header: { ...h },
+    details: (details ?? []).map(d => ({ ...d }))
+  }));
+
+  return {
+    async findAll() { return store.map(({ header }) => ({ ...header })); },
+    async findByCode(code) {
+      const entry = store.find(e => e.header.code === code);
+      if (!entry) return null;
+      return { ...entry.header, details: entry.details.map(d => ({ ...d })) };
+    },
+    async findAllCodes() { return store.map(e => e.header.code); },
+    async save(purchaseOrder) {
+      const { details, attachments, ...header } = purchaseOrder;
+      const savedDetails = (details ?? []).map(d => ({ ...d }));
+      store.push({ header: { ...header }, details: savedDetails });
+      return { ...header, details: savedDetails };
+    },
+    async update(code, data) {
+      const entry = store.find(e => e.header.code === code);
+      if (!entry) return null;
+      entry.header = { ...entry.header, ...data, updatedAt: new Date() };
+      return { ...entry.header };
+    }
+  };
+}
+
 export function createPurchaseOrderRepository(db) {
   return {
     async findAll() {

@@ -5,10 +5,13 @@ const sampleDelivery = { code: 'DLV-00001', purchaseOrderCode: 'POD-00001', deli
 
 const makeRepo = (overrides = {}) => ({
   findAll: vi.fn().mockResolvedValue([sampleDelivery]),
-  findAllCodes: vi.fn().mockResolvedValue(['DLV-00001']),
   save: vi.fn().mockResolvedValue(sampleDelivery),
   update: vi.fn().mockResolvedValue({ ...sampleDelivery, status: '検収済' }),
   ...overrides
+});
+
+const makeSequenceRepo = (nextVal = 1) => ({
+  nextVal: vi.fn().mockResolvedValue(nextVal)
 });
 
 describe('listDeliveries', () => {
@@ -26,29 +29,32 @@ describe('listDeliveries', () => {
 });
 
 describe('registerDelivery', () => {
-  it('should create delivery with generated code', async () => {
+  it('should create delivery with sequenced code', async () => {
     // Arrange
-    const repository = makeRepo({ findAllCodes: vi.fn().mockResolvedValue([]) });
+    const repository = makeRepo();
+    const sequenceRepository = makeSequenceRepo(1);
 
     // Act
     const result = await registerDelivery(
       { purchaseOrderCode: 'POD-00001', deliveryDate: '2026-05-01', notes: '' },
-      { repository }
+      { repository, sequenceRepository }
     );
 
     // Assert
     expect(result.code).toBe('DLV-00001');
     expect(repository.save).toHaveBeenCalledOnce();
+    expect(sequenceRepository.nextVal).toHaveBeenCalledWith('delivery');
   });
 
   it('should set initial status to 検収待ち', async () => {
     // Arrange
-    const repository = makeRepo({ findAllCodes: vi.fn().mockResolvedValue([]) });
+    const repository = makeRepo({ save: vi.fn().mockImplementation(async (d) => d) });
+    const sequenceRepository = makeSequenceRepo(1);
 
     // Act
     await registerDelivery(
       { purchaseOrderCode: 'POD-00001', deliveryDate: '2026-05-01' },
-      { repository }
+      { repository, sequenceRepository }
     );
 
     // Assert
@@ -56,14 +62,15 @@ describe('registerDelivery', () => {
     expect(saved.status).toBe('検収待ち');
   });
 
-  it('should generate sequential code based on existing codes', async () => {
+  it('should assign DLV-00003 when sequenceRepository returns 3', async () => {
     // Arrange
-    const repository = makeRepo({ findAllCodes: vi.fn().mockResolvedValue(['DLV-00001', 'DLV-00002']) });
+    const repository = makeRepo({ save: vi.fn().mockImplementation(async (d) => d) });
+    const sequenceRepository = makeSequenceRepo(3);
 
     // Act
     await registerDelivery(
       { purchaseOrderCode: 'POD-00001', deliveryDate: '2026-05-01' },
-      { repository }
+      { repository, sequenceRepository }
     );
 
     // Assert

@@ -1,6 +1,39 @@
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema.js';
 
+export function createInMemoryUserRepository(initialUsers = []) {
+  const store = initialUsers.map(u => ({ ...u }));
+
+  return {
+    async findByUsername(username) {
+      return store.find(u => u.id === username) ?? null;
+    },
+    async findById(id) {
+      return store.find(u => u.id === id) ?? null;
+    },
+    async findAll() {
+      return [...store];
+    },
+    async save(user) {
+      const record = { ...user };
+      store.push(record);
+      return record;
+    },
+    async update(id, data) {
+      const idx = store.findIndex(u => u.id === id);
+      if (idx === -1) return null;
+      store[idx] = { ...store[idx], ...data, updatedAt: new Date() };
+      return { ...store[idx] };
+    },
+    async updateLoginState(id, { failedLoginCount, lockedUntil }) {
+      const idx = store.findIndex(u => u.id === id);
+      if (idx === -1) return null;
+      store[idx] = { ...store[idx], failedLoginCount, lockedUntil, updatedAt: new Date() };
+      return { ...store[idx] };
+    }
+  };
+}
+
 export function createUserRepository(db) {
   return {
     async findByUsername(username) {

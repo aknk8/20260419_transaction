@@ -10,9 +10,9 @@ test.describe('S-05 受注一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display order list with 5 rows', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
-    await expect(page.locator('.table-summary')).toContainText('全 5 件中');
+  test('should display order list with 6 rows', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(6);
+    await expect(page.locator('.table-summary')).toContainText('全 6 件中');
   });
 
   test('should show project name (not code) in order list', async ({ page }) => {
@@ -80,8 +80,8 @@ test.describe('S-05 受注作成', () => {
     await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
     await page.locator('[data-action-create-order="QUO-00001"]').click();
 
-    // 既存5件の次は ORD-00006
-    await expect(page.locator('#f-order-code')).toHaveValue('ORD-00006');
+    // 既存6件の次は ORD-00007
+    await expect(page.locator('#f-order-code')).toHaveValue('ORD-00007');
   });
 
   test('should show validation error when order date is empty', async ({ page }) => {
@@ -115,7 +115,7 @@ test.describe('S-05 受注作成', () => {
     await page.getByRole('button', { name: '受注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('ORD-00006');
+    await expect(page.locator('.data-table')).toContainText('ORD-00007');
   });
 
   test('should return to quotation detail when キャンセル is clicked', async ({ page }) => {
@@ -184,7 +184,7 @@ test.describe('S-05 受注添付', () => {
     await page.getByRole('button', { name: '受注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('ORD-00006');
+    await expect(page.locator('.data-table')).toContainText('ORD-00007');
   });
 });
 
@@ -304,5 +304,116 @@ test.describe('S-05 受注 権限制御', () => {
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
     await expect(page.locator('[data-route="sales-order"]')).not.toBeVisible();
+  });
+});
+
+test.describe('P10-RT-01 受注却下→修正→再申請フロー', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="sales-order"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should show 却下 status after rejecting ORD-00006 from approval list', async ({ page }) => {
+    // Arrange: ORD-00006 is seeded as 承認依頼中
+    await page.locator('[data-route="approval"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+    await page.locator('[data-action-detail-approval="受注:ORD-00006"]').click();
+
+    // Act: reject
+    await page.locator('#order-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('添付書類を差し替えてください');
+    await page.locator('#approval-confirm-reject').click();
+
+    // Assert: navigate to order list and verify 却下
+    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('[data-action-detail-order="ORD-00006"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('却下');
+  });
+
+  test('should show 下書きに戻す button on rejected ORD-00006', async ({ page }) => {
+    // Arrange: reject ORD-00006
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="受注:ORD-00006"]').click();
+    await page.locator('#order-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('添付書類を差し替えてください');
+    await page.locator('#approval-confirm-reject').click();
+
+    // Navigate to ORD-00006 detail
+    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('[data-action-detail-order="ORD-00006"]').click();
+
+    // Assert: 下書きに戻す button is visible for 却下 status
+    await expect(page.locator('#order-return-draft-btn')).toBeVisible();
+  });
+
+  test('should return ORD-00006 to 受注済み when 下書きに戻す is clicked', async ({ page }) => {
+    // Arrange: reject ORD-00006 first
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="受注:ORD-00006"]').click();
+    await page.locator('#order-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('添付書類を差し替えてください');
+    await page.locator('#approval-confirm-reject').click();
+
+    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('[data-action-detail-order="ORD-00006"]').click();
+
+    // Act: return to 受注済み
+    await page.locator('#order-return-draft-btn').click();
+
+    // Assert: status becomes 受注済み
+    await expect(page.locator('.status-badge').first()).toContainText('受注済み');
+  });
+
+  test('should allow resubmitting ORD-00006 for approval after returning to 受注済み', async ({ page }) => {
+    // Arrange: reject then return to 受注済み
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="受注:ORD-00006"]').click();
+    await page.locator('#order-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('添付書類を差し替えてください');
+    await page.locator('#approval-confirm-reject').click();
+    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('[data-action-detail-order="ORD-00006"]').click();
+    await page.locator('#order-return-draft-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('受注済み');
+
+    // Act: resubmit for approval (attachment is still present from seed data)
+    await page.locator('#order-submit-approval-btn').click();
+
+    // Assert: status becomes 承認依頼中
+    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+  });
+
+  test('should reach 承認済み status after full reject→return→resubmit→approve cycle', async ({ page }) => {
+    // Arrange: reject ORD-00006
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="受注:ORD-00006"]').click();
+    await page.locator('#order-reject-btn').click();
+    await page.locator('#approval-comment-input').fill('確認のため却下');
+    await page.locator('#approval-confirm-reject').click();
+
+    // Return to 受注済み
+    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('[data-action-detail-order="ORD-00006"]').click();
+    await page.locator('#order-return-draft-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('受注済み');
+
+    // Resubmit approval
+    await page.locator('#order-submit-approval-btn').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+
+    // Approve from approval list
+    await page.locator('[data-route="approval"]').click();
+    await page.locator('[data-action-detail-approval="受注:ORD-00006"]').click();
+    await page.locator('#order-approve-btn').click();
+    await page.locator('#approval-confirm-approve').click();
+
+    // Assert: final status is 承認済み
+    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('[data-action-detail-order="ORD-00006"]').click();
+    await expect(page.locator('.status-badge').first()).toContainText('承認済み');
   });
 });

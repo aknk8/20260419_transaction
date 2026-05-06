@@ -1,6 +1,40 @@
 import { and, eq } from 'drizzle-orm';
 import { notifications } from '../db/schema.js';
 
+export function createInMemoryNotificationRepository(initialData = []) {
+  const store = initialData.map(r => ({ ...r }));
+
+  return {
+    async findByRecipientId(userId) {
+      return store
+        .filter(n => n.recipientId === userId)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(n => ({ ...n }));
+    },
+    async save(notification) {
+      const record = { ...notification };
+      store.push(record);
+      return record;
+    },
+    async markAsRead(id) {
+      const idx = store.findIndex(n => n.id === id);
+      if (idx === -1) return null;
+      store[idx] = { ...store[idx], isRead: true };
+      return { ...store[idx] };
+    },
+    async markAllAsRead(userId) {
+      for (let i = 0; i < store.length; i++) {
+        if (store[i].recipientId === userId && !store[i].isRead) {
+          store[i] = { ...store[i], isRead: true };
+        }
+      }
+    },
+    async findById(id) {
+      return store.find(n => n.id === id) ?? null;
+    }
+  };
+}
+
 export function createNotificationRepository(db) {
   return {
     async findByRecipientId(userId) {

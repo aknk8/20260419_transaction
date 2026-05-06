@@ -1,6 +1,37 @@
 import { eq } from 'drizzle-orm';
 import { approvalRoutes } from '../db/schema.js';
 
+export function createInMemoryApprovalRouteRepository(initialData = []) {
+  let nextId = 1;
+  const store = initialData.map(r => ({ ...r, id: r.id ?? nextId++ }));
+
+  return {
+    async findAll() { return [...store]; },
+    async findByDocumentType(documentType) {
+      return store
+        .filter(r => r.documentType === documentType)
+        .sort((a, b) => (a.stepNumber ?? 0) - (b.stepNumber ?? 0))
+        .map(r => ({ ...r }));
+    },
+    async findById(id) { return store.find(r => r.id === id) ?? null; },
+    async save(data) {
+      const record = { ...data, id: data.id ?? nextId++ };
+      store.push(record);
+      return record;
+    },
+    async update(id, data) {
+      const idx = store.findIndex(r => r.id === id);
+      if (idx === -1) return null;
+      store[idx] = { ...store[idx], ...data };
+      return { ...store[idx] };
+    },
+    async remove(id) {
+      const idx = store.findIndex(r => r.id === id);
+      if (idx !== -1) store.splice(idx, 1);
+    }
+  };
+}
+
 export function createApprovalRouteRepository(db) {
   return {
     async findAll() {

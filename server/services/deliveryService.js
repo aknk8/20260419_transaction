@@ -1,12 +1,12 @@
-import { generateDeliveryCode, createDelivery } from '../../src/delivery.js';
+import { createDelivery } from '../../src/delivery.js';
+import { generateCode } from './sequenceService.js';
 
 export async function listDeliveries({ repository }) {
   return repository.findAll();
 }
 
-export async function registerDelivery(formData, { repository }) {
-  const existingCodes = await repository.findAllCodes();
-  const code = generateDeliveryCode(existingCodes);
+export async function registerDelivery(formData, { repository, sequenceRepository }) {
+  const code = await generateCode('delivery', { sequenceRepository });
   const delivery = createDelivery(code, formData.purchaseOrderCode, formData.deliveryDate, formData.notes ?? '');
   return repository.save({ ...delivery, code });
 }

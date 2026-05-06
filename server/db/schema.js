@@ -292,3 +292,17 @@ export const orderDetails = pgTable('order_details', {
   taxRate:     numeric('tax_rate', { precision: 5, scale: 4 }).default('0.1000'),
   amount:      numeric('amount', { precision: 14, scale: 2 }).default('0')
 });
+
+export const orderAttachments = pgTable('order_attachments', {
+  id:         serial('id').primaryKey(),
+  orderCode:  varchar('order_code', { length: 20 }).notNull().references(() => orders.code),
+  fileName:   varchar('file_name', { length: 255 }).notNull(),
+  fileSize:   integer('file_size'),
+  fileType:   varchar('file_type', { length: 100 }),
+  uploadedAt: tstz('uploaded_at').notNull().defaultNow()
+});
+
+export const sequenceCounters = pgTable('sequence_counters', {
+  entityType: varchar('entity_type', { length: 50 }).primaryKey(),
+  currentVal: integer('current_val').notNull().default(0)
+});

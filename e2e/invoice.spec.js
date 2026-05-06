@@ -10,9 +10,9 @@ test.describe('S-08 請求一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display invoice list with 4 rows', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(4);
-    await expect(page.locator('.table-summary')).toContainText('全 4 件中');
+  test('should display invoice list with 6 rows', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(6);
+    await expect(page.locator('.table-summary')).toContainText('全 6 件中');
   });
 
   test('should show invoice code in list', async ({ page }) => {
@@ -104,7 +104,7 @@ test.describe('S-08 請求対象抽出', () => {
     await page.locator('[data-action-create-invoice]').first().click();
     await page.click('#invoice-back-to-list');
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
+    await expect(page.locator('.data-table-body-row')).toHaveCount(7);
   });
 
   test('should not show invoiced order in billable list after invoice creation', async ({ page }) => {
@@ -247,3 +247,49 @@ test.describe('P10-RT-02 請求起票 バリデーション', () => {
     expect(countAfter).toBe(countBefore);
   });
 });
+
+test.describe('RT-05 伝票状態遷移制御 - 確定済み請求', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="invoice"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should show 確定 status badge on INV-00006', async ({ page }) => {
+    // Arrange: INV-00006 is seeded with status '確定'
+    await page.locator('[data-action-detail-invoice="INV-00006"]').click();
+
+    await expect(page.locator('.status-badge').first()).toContainText('確定');
+  });
+
+  test('should not show 承認依頼 button on 確定 invoice INV-00006', async ({ page }) => {
+    // Arrange
+    await page.locator('[data-action-detail-invoice="INV-00006"]').click();
+
+    // Assert: 承認依頼 button is only for 下書き status — not visible for 確定
+    await expect(page.locator('#invoice-submit-approval-btn')).not.toBeVisible();
+  });
+
+  test('should not show 下書きに戻す button on 確定 invoice INV-00006', async ({ page }) => {
+    // Arrange
+    await page.locator('[data-action-detail-invoice="INV-00006"]').click();
+
+    // Assert: 下書きに戻す is only for 却下 status — not visible for 確定
+    await expect(page.locator('#invoice-return-draft-btn')).not.toBeVisible();
+  });
+
+  test('should only show 送付済にする and キャンセル buttons on 確定 invoice INV-00006', async ({ page }) => {
+    // Arrange
+    await page.locator('[data-action-detail-invoice="INV-00006"]').click();
+
+    // Assert: only forward-state-transition buttons are available
+    await expect(page.locator('[data-action-invoice-status="送付済"]')).toBeVisible();
+    await expect(page.locator('[data-action-invoice-status="キャンセル"]')).toBeVisible();
+    // No backward transition
+    await expect(page.locator('[data-action-invoice-status="承認済み"]')).not.toBeVisible();
+  });
+});
+

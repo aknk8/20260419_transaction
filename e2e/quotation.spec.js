@@ -10,9 +10,9 @@ test.describe('S-04 見積一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display all 7 quotations when default page size is 20', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(7);
-    await expect(page.locator('.table-summary')).toContainText('全 7 件中');
+  test('should display all 8 quotations when default page size is 20', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(8);
+    await expect(page.locator('.table-summary')).toContainText('全 8 件中');
   });
 
   test('should show project name (not code) in quotation list', async ({ page }) => {
@@ -531,10 +531,10 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should show all 7 quotations on page 1 when page size is 20', async ({ page }) => {
-    // Default page size is 20 — all 7 fit on one page
-    await expect(page.locator('.data-table-body-row')).toHaveCount(7);
-    await expect(page.locator('.table-summary')).toContainText('全 7 件中 7 件を表示');
+  test('should show all 8 quotations on page 1 when page size is 20', async ({ page }) => {
+    // Default page size is 20 — all 8 fit on one page
+    await expect(page.locator('.data-table-body-row')).toHaveCount(8);
+    await expect(page.locator('.table-summary')).toContainText('全 8 件中 8 件を表示');
     await expect(page.locator('.pagination-text')).toContainText('1 / 1 ページ');
   });
 
@@ -544,11 +544,11 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
 
     // Assert: only 5 rows visible; pagination shows 2 pages
     await expect(page.locator('.data-table-body-row')).toHaveCount(5);
-    await expect(page.locator('.table-summary')).toContainText('全 7 件中 5 件を表示');
+    await expect(page.locator('.table-summary')).toContainText('全 8 件中 5 件を表示');
     await expect(page.locator('.pagination-text')).toContainText('1 / 2 ページ');
   });
 
-  test('should show remaining 2 rows on page 2 when next is clicked with page size 5', async ({ page }) => {
+  test('should show remaining 3 rows on page 2 when next is clicked with page size 5', async ({ page }) => {
     // Arrange: change page size to 5 to enable pagination
     await page.locator('select[data-table-pagesize][data-table="quotationList"]').selectOption('5');
     await expect(page.locator('.data-table-body-row')).toHaveCount(5);
@@ -556,9 +556,9 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     // Act: navigate to page 2
     await page.locator('[data-table-action="next"][data-table="quotationList"]').click();
 
-    // Assert: 2 remaining rows shown on page 2
-    await expect(page.locator('.data-table-body-row')).toHaveCount(2);
-    await expect(page.locator('.table-summary')).toContainText('全 7 件中 2 件を表示');
+    // Assert: 3 remaining rows shown on page 2
+    await expect(page.locator('.data-table-body-row')).toHaveCount(3);
+    await expect(page.locator('.table-summary')).toContainText('全 8 件中 3 件を表示');
     await expect(page.locator('.pagination-text')).toContainText('2 / 2 ページ');
   });
 
@@ -600,8 +600,40 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     // Act: restore page size to 20
     await page.locator('select[data-table-pagesize][data-table="quotationList"]').selectOption('20');
 
-    // Assert: all 7 rows visible again on a single page
-    await expect(page.locator('.data-table-body-row')).toHaveCount(7);
+    // Assert: all 8 rows visible again on a single page
+    await expect(page.locator('.data-table-body-row')).toHaveCount(8);
     await expect(page.locator('.pagination-text')).toContainText('1 / 1 ページ');
+  });
+});
+
+test.describe('RT-05 伝票状態遷移制御 - 取消済み見積', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.fill('#user-id', 'admin');
+    await page.fill('#password', 'admin123');
+    await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
+    await page.locator('[data-route="quotation"]').click();
+    await expect(page.locator('.data-table')).toBeVisible();
+  });
+
+  test('should not show 受注作成 button on 取消 quotation QUO-00008', async ({ page }) => {
+    // Arrange: QUO-00008 is seeded with status '取消'
+    await page.locator('[data-action-detail-quotation="QUO-00008"]').click();
+
+    // Assert: 受注作成 button is NOT visible for 取消 status
+    await expect(page.locator('[data-action-create-order="QUO-00008"]')).not.toBeVisible();
+  });
+
+  test('should show 取消 status badge on QUO-00008 detail', async ({ page }) => {
+    await page.locator('[data-action-detail-quotation="QUO-00008"]').click();
+
+    await expect(page.locator('.status').first()).toContainText('取消');
+  });
+
+  test('should not show 編集 button on 取消 quotation', async ({ page }) => {
+    await page.locator('[data-action-detail-quotation="QUO-00008"]').click();
+
+    // 取消状態では編集ボタン（data-action-edit-quotation）は表示されない
+    await expect(page.locator('[data-action-edit-quotation="QUO-00008"]')).not.toBeVisible();
   });
 });

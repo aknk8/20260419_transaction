@@ -89,4 +89,40 @@ describe('createReceiptRepository', () => {
       expect(db.update).toHaveBeenCalledOnce();
     });
   });
+
+  describe('findByInvoiceCode', () => {
+    it('should return receipts for the given invoiceCode', async () => {
+      // Arrange
+      const db = makeMockDb();
+      const repo = createReceiptRepository(db);
+
+      // Act
+      const result = await repo.findByInvoiceCode('INV-00001');
+
+      // Assert
+      expect(result).toEqual([receiptRow]);
+      expect(db.query.receipts.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.any(Function) })
+      );
+    });
+
+    it('should return empty array when no receipts exist for invoice', async () => {
+      // Arrange
+      const db = makeMockDb({
+        query: {
+          receipts: {
+            findMany: vi.fn().mockResolvedValue([]),
+            findFirst: vi.fn().mockResolvedValue(null)
+          }
+        }
+      });
+      const repo = createReceiptRepository(db);
+
+      // Act
+      const result = await repo.findByInvoiceCode('INV-99999');
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
 });

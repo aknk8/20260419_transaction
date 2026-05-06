@@ -20,6 +20,8 @@ const makeApp = async (serviceOverrides = {}, { notificationService, approvalRou
     submitInvoiceApproval: vi.fn().mockResolvedValue({ ...sampleInvoice, status: '承認依頼中' }),
     approveInvoice: vi.fn().mockResolvedValue({ ...sampleInvoice, status: '確定' }),
     rejectInvoice: vi.fn().mockResolvedValue({ ...sampleInvoice, status: '却下' }),
+    listInvoiceCandidates: vi.fn().mockResolvedValue([]),
+    getMonthlySummary: vi.fn().mockResolvedValue([]),
     ...serviceOverrides
   };
   const mockNotificationService = notificationService ?? makeNotificationServiceMock();
@@ -216,5 +218,96 @@ describe('POST /api/invoices/:code/reject (N-03通知)', () => {
     expect(mockNotificationService.notifyRejection).toHaveBeenCalledWith(
       'invoice', 'INV-00001', 'user01', '要再確認', expect.any(Object)
     );
+  });
+});
+
+describe('GET /api/invoices/candidates', () => {
+  it('should return 200 with candidate orders when authenticated', async () => {
+    // Arrange
+    const sampleOrder = { code: 'ORD-001', customerId: 'CUS-001', status: '承認済み' };
+    const { app } = await makeApp({ listInvoiceCandidates: vi.fn().mockResolvedValue([sampleOrder]) });
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/invoices/candidates?year=2026&month=5',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toHaveLength(1);
+  });
+
+  it('should return 400 when month is missing', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/invoices/candidates?year=2026',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('should return 401 when not authenticated', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/invoices/candidates?year=2026&month=5' });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
+  });
+});
+
+describe('GET /api/reports/monthly-summary', () => {
+  it('should return 200 with monthly summary when authenticated', async () => {
+    // Arrange
+    const summary = [{ projectCode: 'PRJ-001', sales: 1000000, cost: 700000, profit: 300000 }];
+    const { app } = await makeApp({ getMonthlySummary: vi.fn().mockResolvedValue(summary) });
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/reports/monthly-summary?year=2026&month=5',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(200);
+    expect(res.json()[0].projectCode).toBe('PRJ-001');
+    expect(res.json()[0].profit).toBe(300000);
+  });
+
+  it('should return 400 when year is missing', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/reports/monthly-summary?month=5',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('should return 401 when not authenticated', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/reports/monthly-summary?year=2026&month=5' });
+
+    // Assert
+    expect(res.statusCode).toBe(401);
   });
 });

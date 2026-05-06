@@ -1,0 +1,23 @@
+# 環境変数（開発環境以外はリポジトリに含めない）
+.env
+.env.local
+.env.staging
+.env.production
+
+# 依存パッケージ
+node_modules/
+
+# ビルド成果物
+dist/
+
+# テスト・レポート出力
+e2e-report/
+test-results/
+coverage/
+
+# ログ
+*.log
+
+# OS メタデータ
+.DS_Store
+Thumbs.db

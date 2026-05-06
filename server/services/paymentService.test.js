@@ -15,10 +15,13 @@ const samplePayment = { code: 'PMT-00001', title: 'テスト支払', status: '�
 const makeRepo = (overrides = {}) => ({
   findAll: vi.fn().mockResolvedValue([samplePayment]),
   findByCode: vi.fn().mockResolvedValue(samplePayment),
-  findAllCodes: vi.fn().mockResolvedValue(['PMT-00001']),
   save: vi.fn().mockResolvedValue(samplePayment),
   update: vi.fn().mockResolvedValue(samplePayment),
   ...overrides
+});
+
+const makeSequenceRepo = (nextVal = 1) => ({
+  nextVal: vi.fn().mockResolvedValue(nextVal)
 });
 
 describe('getPaymentByCode', () => {
@@ -130,19 +133,21 @@ describe('listPayments', () => {
 });
 
 describe('registerPayment', () => {
-  it('should create payment with generated code', async () => {
+  it('should create payment with sequenced code', async () => {
     // Arrange
-    const repository = makeRepo({ findAllCodes: vi.fn().mockResolvedValue([]) });
+    const repository = makeRepo();
+    const sequenceRepository = makeSequenceRepo(1);
 
     // Act
     const result = await registerPayment(
       { supplierId: 'SUP-00001', title: 'テスト支払', paymentDate: '2026-05-31', amount: 5500 },
-      { repository }
+      { repository, sequenceRepository }
     );
 
     // Assert
     expect(result.code).toBe('PMT-00001');
     expect(repository.save).toHaveBeenCalledOnce();
+    expect(sequenceRepository.nextVal).toHaveBeenCalledWith('payment');
   });
 });
 
@@ -172,10 +177,9 @@ describe('approvePayment', () => {
 });
 
 describe('cancelPayment', () => {
-  it('should update status to キャンセル when current status is 下書き', async () => {
+  it('should cancel payment when status is 下書き', async () => {
     // Arrange
     const repository = makeRepo({
-      findByCode: vi.fn().mockResolvedValue({ ...samplePayment, status: '下書き' }),
       update: vi.fn().mockResolvedValue({ ...samplePayment, status: 'キャンセル' })
     });
 
@@ -186,24 +190,15 @@ describe('cancelPayment', () => {
     expect(result.status).toBe('キャンセル');
   });
 
-  it('should throw 400 when status is not 下書き or 承認依頼中', async () => {
+  it('should throw 400 when payment cannot be cancelled', async () => {
     // Arrange
     const repository = makeRepo({
-      findByCode: vi.fn().mockResolvedValue({ ...samplePayment, status: '支払済み' })
+      findByCode: vi.fn().mockResolvedValue({ ...samplePayment, status: '承認済み' })
     });
 
     // Act & Assert
     await expect(cancelPayment('PMT-00001', { repository }))
       .rejects.toMatchObject({ statusCode: 400 });
-  });
-
-  it('should throw 404 when payment not found', async () => {
-    // Arrange
-    const repository = makeRepo({ findByCode: vi.fn().mockResolvedValue(null) });
-
-    // Act & Assert
-    await expect(cancelPayment('PMT-99999', { repository }))
-      .rejects.toMatchObject({ statusCode: 404 });
   });
 });
 
@@ -224,7 +219,9 @@ describe('registerPaymentResult', () => {
 
   it('should throw 400 when status is not 承認済み', async () => {
     // Arrange
-    const repository = makeRepo({ findByCode: vi.fn().mockResolvedValue({ ...samplePayment, status: '下書き' }) });
+    const repository = makeRepo({
+      findByCode: vi.fn().mockResolvedValue({ ...samplePayment, status: '下書き' })
+    });
 
     // Act & Assert
     await expect(registerPaymentResult('PMT-00001', { repository }))

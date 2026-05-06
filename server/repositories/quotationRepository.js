@@ -1,6 +1,32 @@
 import { eq } from 'drizzle-orm';
 import { quotations, quotationDetails } from '../db/schema.js';
 
+export function createInMemoryQuotationRepository(initialData = []) {
+  const store = initialData.map(({ details, ...h }) => ({ header: { ...h }, details: (details ?? []).map(d => ({ ...d })) }));
+
+  return {
+    async findAll() { return store.map(({ header }) => ({ ...header })); },
+    async findByCode(code) {
+      const entry = store.find(e => e.header.code === code);
+      if (!entry) return null;
+      return { ...entry.header, details: entry.details.map(d => ({ ...d })) };
+    },
+    async findAllCodes() { return store.map(e => e.header.code); },
+    async save(quotation) {
+      const { details, ...header } = quotation;
+      const savedDetails = (details ?? []).map(d => ({ ...d }));
+      store.push({ header: { ...header }, details: savedDetails });
+      return { ...header, details: savedDetails };
+    },
+    async update(code, data) {
+      const entry = store.find(e => e.header.code === code);
+      if (!entry) return null;
+      entry.header = { ...entry.header, ...data, updatedAt: new Date() };
+      return { ...entry.header };
+    }
+  };
+}
+
 export function createQuotationRepository(db) {
   return {
     async findAll() {

@@ -1,4 +1,5 @@
-import { generatePurchaseOrderCode, createPurchaseOrder } from '../../src/purchaseOrder.js';
+import { createPurchaseOrder } from '../../src/purchaseOrder.js';
+import { generateCode } from './sequenceService.js';
 
 function notFound(msg) { return Object.assign(new Error(msg), { statusCode: 404 }); }
 function validationError(msg) { return Object.assign(new Error(msg), { statusCode: 400 }); }
@@ -13,9 +14,8 @@ export async function getPurchaseOrderByCode(code, { repository }) {
   return po;
 }
 
-export async function registerPurchaseOrder(formData, { repository }) {
-  const existingCodes = await repository.findAllCodes();
-  const code = generatePurchaseOrderCode(existingCodes);
+export async function registerPurchaseOrder(formData, { repository, sequenceRepository }) {
+  const code = await generateCode('purchaseOrder', { sequenceRepository });
   const po = createPurchaseOrder(code, formData.supplierId, formData.title, formData.orderDate);
   return repository.save({ ...po, ...formData, code, details: formData.details ?? [] });
 }
@@ -37,7 +37,7 @@ export async function approvePurchaseOrder(code, comment, { repository }) {
   const po = await repository.findByCode(code);
   if (!po) throw notFound('発注が見つかりません');
   if (po.status !== '承認依頼中') throw validationError('承認依頼中状態のみ承認できます');
-  return repository.update(code, { status: '承認済み', approvalComment: comment ?? null });
+  return repository.update(code, { status: '承認済・発注待ち', approvalComment: comment ?? null });
 }
 
 export async function rejectPurchaseOrder(code, reason, { repository }) {

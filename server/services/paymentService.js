@@ -1,4 +1,5 @@
-import { generatePaymentCode, createPaymentRequest } from '../../src/payment.js';
+import { createPaymentRequest } from '../../src/payment.js';
+import { generateCode } from './sequenceService.js';
 
 function notFound(msg) { return Object.assign(new Error(msg), { statusCode: 404 }); }
 function validationError(msg) { return Object.assign(new Error(msg), { statusCode: 400 }); }
@@ -27,9 +28,8 @@ export async function rejectPayment(code, reason, { repository }) {
   return repository.update(code, { status: '却下', rejectReason: reason ?? null });
 }
 
-export async function registerPayment(formData, { repository }) {
-  const existingCodes = await repository.findAllCodes();
-  const code = generatePaymentCode(existingCodes);
+export async function registerPayment(formData, { repository, sequenceRepository }) {
+  const code = await generateCode('payment', { sequenceRepository });
   const payment = createPaymentRequest(code, formData.purchaseOrderCode ?? '', formData.supplierId, formData.title, formData.paymentDate, formData.amount, formData.notes ?? '');
   return repository.save({ ...payment, ...formData, code });
 }

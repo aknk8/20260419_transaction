@@ -1454,3 +1454,82 @@ a {
 .detail-table--payable .detail-table-row {
   grid-template-columns: 7rem 1fr 12rem 9rem 6rem;
 }
+
+/* ── UX-01: ローディングオーバーレイ ─────────────────────────────────────── */
+
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  backdrop-filter: blur(2px);
+}
+
+#loading-overlay[hidden] {
+  display: none;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── UX-01: トースト通知 ──────────────────────────────────────────────────── */
+
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9100;
+  max-width: 360px;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  animation: toast-in 0.25s ease;
+  pointer-events: auto;
+  word-break: break-word;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast--success {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  border-left: 4px solid var(--accent);
+}
+
+.toast--error {
+  background: #fde8e8;
+  color: #8b2020;
+  border-left: 4px solid var(--danger);
+}
+
+.toast--info {
+  background: var(--surface-muted);
+  color: var(--text);
+  border-left: 4px solid var(--text-muted);
+}
+

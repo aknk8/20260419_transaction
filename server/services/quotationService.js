@@ -1,4 +1,5 @@
-import { generateQuotationCode, createQuotation } from '../../src/quotation.js';
+import { createQuotation } from '../../src/quotation.js';
+import { generateCode } from './sequenceService.js';
 
 function notFound(code) {
   const err = new Error(`見積コード ${code} は存在しません`);
@@ -22,12 +23,11 @@ export async function getQuotationByCode(code, { repository }) {
   return quotation;
 }
 
-export async function registerQuotation(formData, { repository }) {
+export async function registerQuotation(formData, { repository, sequenceRepository }) {
   if (!formData.title || !formData.title.trim()) {
     throw validationError('件名は必須です');
   }
-  const existingCodes = await repository.findAllCodes();
-  const code = generateQuotationCode(existingCodes);
+  const code = await generateCode('quotation', { sequenceRepository });
   const quotation = createQuotation({ ...formData, code });
   return repository.save(quotation);
 }

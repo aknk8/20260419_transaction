@@ -22,9 +22,16 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-  },
+  webServer: [
+    {
+      command: 'npm run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: true,
+    },
+    {
+      command: 'npm run server',
+      url: 'http://localhost:3000/api/auth/me',
+      reuseExistingServer: true,
+    },
+  ],
 });

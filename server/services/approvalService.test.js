@@ -204,6 +204,65 @@ describe('approveDocument', () => {
     expect(svcs.quotationService.approveQuotation).toHaveBeenCalledWith('QUO-00001', 'LGTM');
   });
 
+  it('should save approval history when approvalHistoryRepository is provided', async () => {
+    // Arrange
+    const approvalHistoryRepository = { save: vi.fn().mockResolvedValue({ id: 'h01' }) };
+    const svcs = makeServices({ approvalHistoryRepository });
+
+    // Act
+    await approveDocument('ORD-00001', 'OK', svcs);
+
+    // Assert
+    expect(approvalHistoryRepository.save).toHaveBeenCalledOnce();
+    expect(approvalHistoryRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+      documentType: 'order',
+      documentId: 'ORD-00001',
+      action: '承認'
+    }));
+  });
+
+  it('should save notification when notificationRepository and submittedBy are present', async () => {
+    // Arrange
+    const notificationRepository = { save: vi.fn().mockResolvedValue({ id: 'n01' }) };
+    const svcs = makeServices({
+      notificationRepository,
+      orderService: {
+        listOrders: vi.fn().mockResolvedValue([]),
+        approveOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '承認済み', submittedBy: 'user01' }),
+        rejectOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '却下' })
+      }
+    });
+
+    // Act
+    await approveDocument('ORD-00001', 'OK', svcs);
+
+    // Assert
+    expect(notificationRepository.save).toHaveBeenCalledOnce();
+    expect(notificationRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+      recipientId: 'user01',
+      docCode: 'ORD-00001'
+    }));
+  });
+
+  it('should not save notification when submittedBy is absent', async () => {
+    // Arrange
+    const notificationRepository = { save: vi.fn().mockResolvedValue({ id: 'n01' }) };
+    const svcs = makeServices({
+      notificationRepository,
+      orderService: {
+        listOrders: vi.fn().mockResolvedValue([]),
+        approveOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '承認済み', submittedBy: null }),
+        rejectOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '却下' })
+      }
+    });
+
+    // Act
+    await approveDocument('ORD-00001', 'OK', svcs);
+
+    // Assert
+    expect(notificationRepository.save).not.toHaveBeenCalled();
+  });
+
   it('should call approveOrder for ORD- prefix code', async () => {
     // Arrange
     const svcs = makeServices();
@@ -330,5 +389,45 @@ describe('rejectDocument', () => {
     // Act & Assert
     await expect(rejectDocument('QUO-00001', '', svcs))
       .rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('should save rejection history when approvalHistoryRepository is provided', async () => {
+    // Arrange
+    const approvalHistoryRepository = { save: vi.fn().mockResolvedValue({ id: 'h02' }) };
+    const svcs = makeServices({ approvalHistoryRepository });
+
+    // Act
+    await rejectDocument('ORD-00001', '金額誤り', svcs);
+
+    // Assert
+    expect(approvalHistoryRepository.save).toHaveBeenCalledOnce();
+    expect(approvalHistoryRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+      documentType: 'order',
+      documentId: 'ORD-00001',
+      action: '却下'
+    }));
+  });
+
+  it('should save rejection notification when notificationRepository and submittedBy are present', async () => {
+    // Arrange
+    const notificationRepository = { save: vi.fn().mockResolvedValue({ id: 'n02' }) };
+    const svcs = makeServices({
+      notificationRepository,
+      orderService: {
+        listOrders: vi.fn().mockResolvedValue([]),
+        approveOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '承認済み' }),
+        rejectOrder: vi.fn().mockResolvedValue({ code: 'ORD-00001', status: '却下', submittedBy: 'user01' })
+      }
+    });
+
+    // Act
+    await rejectDocument('ORD-00001', '金額誤り', svcs);
+
+    // Assert
+    expect(notificationRepository.save).toHaveBeenCalledOnce();
+    expect(notificationRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+      recipientId: 'user01',
+      docCode: 'ORD-00001'
+    }));
   });
 });
