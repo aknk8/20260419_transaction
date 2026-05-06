@@ -1,8 +1,13 @@
+import { paginateArray } from '../db/paginate.js';
+
 export default async function productRoutes(fastify, { productService }) {
   fastify.get('/api/products', {
     preHandler: [fastify.authenticate]
-  }, async () => {
-    return productService.listProducts();
+  }, async (req) => {
+    const page = parseInt(req.query.page ?? '1', 10);
+    const limit = parseInt(req.query.limit ?? '20', 10);
+    const all = await productService.listProducts();
+    return paginateArray(all, { page, limit });
   });
 
   fastify.get('/api/products/:code', {

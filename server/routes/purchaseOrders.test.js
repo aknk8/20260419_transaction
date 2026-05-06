@@ -50,7 +50,7 @@ describe('GET /api/purchase-orders', () => {
 
     // Assert
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual([samplePO]);
+    expect(res.json().data).toEqual([samplePO]);
   });
 
   it('should return 401 when not authenticated', async () => {
@@ -62,6 +62,46 @@ describe('GET /api/purchase-orders', () => {
 
     // Assert
     expect(res.statusCode).toBe(401);
+  });
+
+  it('should return paginated response with data and meta fields', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/purchase-orders', cookies: { token: makeToken(app) } });
+
+    // Assert
+    const body = res.json();
+    expect(body.data).toEqual([samplePO]);
+    expect(body.meta).toMatchObject({ total: 1, page: 1, pageSize: 20, totalPages: 1 });
+  });
+
+  it('should return empty data when page exceeds total pages', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/purchase-orders?page=2', cookies: { token: makeToken(app) } });
+
+    // Assert
+    const body = res.json();
+    expect(body.data).toEqual([]);
+    expect(body.meta.page).toBe(2);
+    expect(body.meta.total).toBe(1);
+  });
+
+  it('should respect limit query parameter', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/purchase-orders?limit=1', cookies: { token: makeToken(app) } });
+
+    // Assert
+    const body = res.json();
+    expect(body.meta.pageSize).toBe(1);
+    expect(body.data).toHaveLength(1);
   });
 });
 

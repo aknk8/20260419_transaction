@@ -1,6 +1,11 @@
+import { paginateArray } from '../db/paginate.js';
+
 export default async function orderRoutes(fastify, { orderService, notificationService, approvalRouteRepository }) {
-  fastify.get('/api/orders', { preHandler: [fastify.authenticate] }, async () => {
-    return orderService.listOrders();
+  fastify.get('/api/orders', { preHandler: [fastify.authenticate] }, async (req) => {
+    const page = parseInt(req.query.page ?? '1', 10);
+    const limit = parseInt(req.query.limit ?? '20', 10);
+    const all = await orderService.listOrders();
+    return paginateArray(all, { page, limit });
   });
 
   fastify.get('/api/orders/:code', { preHandler: [fastify.authenticate] }, async (req, reply) => {

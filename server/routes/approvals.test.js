@@ -55,8 +55,8 @@ describe('GET /api/approvals', () => {
     // Assert
     expect(res.statusCode).toBe(200);
     const body = res.json();
-    expect(body).toBeInstanceOf(Array);
-    expect(body[0]).toMatchObject({ code: 'QUO-00001', docType: 'quotation' });
+    expect(body.data).toBeInstanceOf(Array);
+    expect(body.data[0]).toMatchObject({ code: 'QUO-00001', docType: 'quotation' });
   });
 
   it('should return 401 when not authenticated', async () => {
@@ -89,7 +89,7 @@ describe('GET /api/approvals', () => {
     });
 
     // Assert
-    expect(res.json()).toHaveLength(2);
+    expect(res.json().data).toHaveLength(2);
   });
 
   it('should filter by docType query parameter', async () => {
@@ -107,8 +107,8 @@ describe('GET /api/approvals', () => {
 
     // Assert
     const body = res.json();
-    expect(body).toHaveLength(1);
-    expect(body[0].docType).toBe('quotation');
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].docType).toBe('quotation');
   });
 
   it('should return empty array when no pending approvals exist', async () => {
@@ -123,7 +123,53 @@ describe('GET /api/approvals', () => {
 
     // Assert
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toHaveLength(0);
+    expect(res.json().data).toHaveLength(0);
+  });
+
+  it('should return paginated response with data and meta fields', async () => {
+    // Arrange
+    const { app } = await makeApp({
+      listQuotations: vi.fn().mockResolvedValue([{ code: 'QUO-00001', status: '承認依頼中' }])
+    });
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/approvals', cookies: { token: makeToken(app) } });
+
+    // Assert
+    const body = res.json();
+    expect(body.data).toBeInstanceOf(Array);
+    expect(body.meta).toMatchObject({ total: 1, page: 1, pageSize: 20, totalPages: 1 });
+  });
+
+  it('should return empty data when page exceeds total pages', async () => {
+    // Arrange
+    const { app } = await makeApp({
+      listQuotations: vi.fn().mockResolvedValue([{ code: 'QUO-00001', status: '承認依頼中' }])
+    });
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/approvals?page=2', cookies: { token: makeToken(app) } });
+
+    // Assert
+    const body = res.json();
+    expect(body.data).toEqual([]);
+    expect(body.meta.page).toBe(2);
+    expect(body.meta.total).toBe(1);
+  });
+
+  it('should respect limit query parameter', async () => {
+    // Arrange
+    const { app } = await makeApp({
+      listQuotations: vi.fn().mockResolvedValue([{ code: 'QUO-00001', status: '承認依頼中' }])
+    });
+
+    // Act
+    const res = await app.inject({ method: 'GET', url: '/api/approvals?limit=1', cookies: { token: makeToken(app) } });
+
+    // Assert
+    const body = res.json();
+    expect(body.meta.pageSize).toBe(1);
+    expect(body.data).toHaveLength(1);
   });
 });
 

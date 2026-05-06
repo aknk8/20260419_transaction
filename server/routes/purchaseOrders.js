@@ -1,8 +1,13 @@
+import { paginateArray } from '../db/paginate.js';
+
 export default async function purchaseOrderRoutes(fastify, { purchaseOrderService, notificationService, approvalRouteRepository }) {
   const svc = purchaseOrderService;
 
-  fastify.get('/api/purchase-orders', { preHandler: [fastify.authenticate] }, async () => {
-    return svc.listPurchaseOrders();
+  fastify.get('/api/purchase-orders', { preHandler: [fastify.authenticate] }, async (req) => {
+    const page = parseInt(req.query.page ?? '1', 10);
+    const limit = parseInt(req.query.limit ?? '20', 10);
+    const all = await svc.listPurchaseOrders();
+    return paginateArray(all, { page, limit });
   });
 
   fastify.get('/api/purchase-orders/:code', { preHandler: [fastify.authenticate] }, async (req, reply) => {

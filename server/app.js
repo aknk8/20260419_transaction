@@ -84,7 +84,7 @@ export async function buildApp({ userRepository, customerService, supplierServic
         }
       }
     } catch {
-      reply.code(401).send({ error: { message: '認証が必要です' } });
+      return reply.code(401).send({ error: { message: '認証が必要です' } });
     }
   });
 

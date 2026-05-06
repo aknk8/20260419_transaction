@@ -1,8 +1,13 @@
+import { paginateArray } from '../db/paginate.js';
+
 export default async function customerRoutes(fastify, { customerService }) {
   fastify.get('/api/customers', {
     preHandler: [fastify.authenticate]
-  }, async () => {
-    return customerService.listCustomers();
+  }, async (req) => {
+    const page = parseInt(req.query.page ?? '1', 10);
+    const limit = parseInt(req.query.limit ?? '20', 10);
+    const all = await customerService.listCustomers();
+    return paginateArray(all, { page, limit });
   });
 
   fastify.get('/api/customers/:code', {

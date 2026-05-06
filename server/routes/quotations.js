@@ -1,6 +1,11 @@
+import { paginateArray } from '../db/paginate.js';
+
 export default async function quotationRoutes(fastify, { quotationService, notificationService, approvalRouteRepository }) {
-  fastify.get('/api/quotations', { preHandler: [fastify.authenticate] }, async () => {
-    return quotationService.listQuotations();
+  fastify.get('/api/quotations', { preHandler: [fastify.authenticate] }, async (req) => {
+    const page = parseInt(req.query.page ?? '1', 10);
+    const limit = parseInt(req.query.limit ?? '20', 10);
+    const all = await quotationService.listQuotations();
+    return paginateArray(all, { page, limit });
   });
 
   fastify.get('/api/quotations/:code', { preHandler: [fastify.authenticate] }, async (req, reply) => {

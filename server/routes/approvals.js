@@ -1,11 +1,15 @@
 import * as approvalService from '../services/approvalService.js';
+import { paginateArray } from '../db/paginate.js';
 
 export default async function approvalRoutes(fastify, { quotationService, orderService, purchaseOrderService, invoiceService, paymentService }) {
   const services = () => ({ quotationService, orderService, purchaseOrderService, invoiceService, paymentService });
 
   fastify.get('/api/approvals', { preHandler: [fastify.authenticate] }, async (req) => {
     const docTypeFilter = req.query.docType ?? null;
-    return approvalService.listPendingApprovals(docTypeFilter, services());
+    const page = parseInt(req.query.page ?? '1', 10);
+    const limit = parseInt(req.query.limit ?? '20', 10);
+    const all = await approvalService.listPendingApprovals(docTypeFilter, services());
+    return paginateArray(all, { page, limit });
   });
 
   fastify.post('/api/approvals/:code/approve', { preHandler: [fastify.authenticate] }, async (req, reply) => {

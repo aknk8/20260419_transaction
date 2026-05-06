@@ -1,3 +1,5 @@
+import { paginateArray } from '../db/paginate.js';
+
 export default async function paymentRoutes(fastify, { paymentService }) {
   const svc = paymentService;
 
@@ -9,8 +11,11 @@ export default async function paymentRoutes(fastify, { paymentService }) {
     }
   });
 
-  fastify.get('/api/payments', { preHandler: [fastify.authenticate] }, async () => {
-    return svc.listPayments();
+  fastify.get('/api/payments', { preHandler: [fastify.authenticate] }, async (req) => {
+    const page = parseInt(req.query.page ?? '1', 10);
+    const limit = parseInt(req.query.limit ?? '20', 10);
+    const all = await svc.listPayments();
+    return paginateArray(all, { page, limit });
   });
 
   fastify.get('/api/payments/:code', { preHandler: [fastify.authenticate] }, async (req, reply) => {
