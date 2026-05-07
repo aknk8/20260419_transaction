@@ -140,11 +140,13 @@ export async function buildApp({ userRepository, customerService, supplierServic
 
   if (existsSync(distPath)) {
     await app.register(fstatic, { root: distPath, wildcard: false });
-    app.setNotFoundHandler(async (request, reply) => {
-      if (request.method === 'GET' && !request.url.startsWith('/api/')) {
-        return reply.sendFile('index.html');
+    app.get('/*', (request, reply) => {
+      const urlPath = request.params['*'] || '';
+      const filePath = path.join(distPath, urlPath);
+      if (urlPath && existsSync(filePath)) {
+        return reply.sendFile(urlPath);
       }
-      reply.code(404).send({ error: { message: 'Not Found' } });
+      return reply.sendFile('index.html');
     });
   }
 
