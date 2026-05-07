@@ -1,0 +1,10 @@
+node_modules
+dist
+e2e
+e2e-report
+docs
+.git
+.env
+.env.development
+.env.staging
+*.test.*

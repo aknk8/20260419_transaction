@@ -4,6 +4,10 @@ import fcookie from '@fastify/cookie';
 import fhelmet from '@fastify/helmet';
 import fcors from '@fastify/cors';
 import frateLimit from '@fastify/rate-limit';
+import fstatic from '@fastify/static';
+import { existsSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { auditLogPlugin } from './plugins/auditLog.js';
 import { authorizationPlugin } from './plugins/authorization.js';
 import { csrfPlugin } from './plugins/csrf.js';
@@ -24,6 +28,9 @@ import notificationRoutes from './routes/notifications.js';
 import approvalRoutes from './routes/approvals.js';
 import deliveryRoutes from './routes/deliveries.js';
 import settingsRoutes from './routes/settings.js';
+import healthRoutes from './routes/health.js';
+
+const distPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 
 export async function buildApp({ userRepository, customerService, supplierService, productService, userService, projectService, quotationService, orderService, approvalRouteRepository, purchaseOrderService, invoiceService, receiptService, paymentService, notificationService, deliveryService, settingsService, auditLogRepository, sessionRepository, refreshTokenRepository, corsOrigin, rateLimit, allowedOrigins } = {}) {
   const app = Fastify({
@@ -109,6 +116,7 @@ export async function buildApp({ userRepository, customerService, supplierServic
     await app.register(auditLogPlugin, { auditLogRepository });
   }
 
+  await app.register(healthRoutes);
   await app.register(authRoutes, { userRepository, sessionRepository, refreshTokenRepository });
 
   await app.register(customerRoutes, { customerService });
@@ -129,6 +137,16 @@ export async function buildApp({ userRepository, customerService, supplierServic
   }
   if (deliveryService) await app.register(deliveryRoutes, { deliveryService });
   if (settingsService) await app.register(settingsRoutes, { settingsService });
+
+  if (existsSync(distPath)) {
+    await app.register(fstatic, { root: distPath, wildcard: false });
+    app.setNotFoundHandler(async (request, reply) => {
+      if (request.method === 'GET' && !request.url.startsWith('/api/')) {
+        return reply.sendFile('index.html');
+      }
+      reply.code(404).send({ error: { message: 'Not Found' } });
+    });
+  }
 
   return app;
 }
