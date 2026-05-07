@@ -67,7 +67,7 @@ const settingsRepo       = createSettingsRepository();
 const auditLogRepo       = createAuditLogRepository([]);
 const notificationRepo   = createInMemoryNotificationRepository(seedNotifications);
 const seqRepo            = createInMemorySequenceCounterRepository({
-  quotation:     8,
+  quotation:     11,
   order:         6,
   purchaseOrder: 6,
   invoice:       6,

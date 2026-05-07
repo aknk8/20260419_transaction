@@ -51,7 +51,7 @@ export default async function invoiceRoutes(fastify, { invoiceService, notificat
     if (notificationService && approvalRouteRepository) {
       const routes = await approvalRouteRepository.findByDocumentType('invoice');
       const approverIds = routes.map(r => r.approverUserId).filter(Boolean);
-      await notificationService.notifyApprovalRequest('invoice', req.params.code, approverIds, req.log);
+      await notificationService.notifyApprovalRequest('invoice', req.params.code, approverIds);
     }
     return result;
   });
@@ -59,7 +59,7 @@ export default async function invoiceRoutes(fastify, { invoiceService, notificat
   fastify.post('/api/invoices/:code/approve', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'invoice', action: 'APPROVE' } }, async (req) => {
     const result = await svc.approveInvoice(req.params.code, req.body?.comment);
     if (notificationService && result.submittedBy) {
-      await notificationService.notifyApprovalComplete('invoice', req.params.code, result.submittedBy, req.log);
+      await notificationService.notifyApprovalComplete('invoice', req.params.code, result.submittedBy);
     }
     return result;
   });
@@ -67,7 +67,7 @@ export default async function invoiceRoutes(fastify, { invoiceService, notificat
   fastify.post('/api/invoices/:code/reject', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'invoice', action: 'REJECT' } }, async (req) => {
     const result = await svc.rejectInvoice(req.params.code, req.body?.reason);
     if (notificationService && result.submittedBy) {
-      await notificationService.notifyRejection('invoice', req.params.code, result.submittedBy, req.body?.reason, req.log);
+      await notificationService.notifyRejection('invoice', req.params.code, result.submittedBy, req.body?.reason);
     }
     return result;
   });

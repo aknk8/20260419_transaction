@@ -6,6 +6,6 @@ export default async function settingsRoutes(fastify, { settingsService }) {
   });
 
   fastify.put('/api/settings', { preHandler: [fastify.authenticate] }, async (req) => {
-    return await svc.updateSettings(req.body, req.log);
+    return await svc.updateSettings(req.body);
   });
 }

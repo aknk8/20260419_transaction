@@ -101,8 +101,7 @@ describe('PUT /api/settings', () => {
 
     // Assert
     expect(mockSettingsService.updateSettings).toHaveBeenCalledWith(
-      expect.objectContaining({ fiscalEndMonth: 12 }),
-      expect.anything()
+      expect.objectContaining({ fiscalEndMonth: 12 })
     );
   });
 });

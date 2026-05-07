@@ -29,7 +29,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
     if (notificationService && approvalRouteRepository) {
       const routes = await approvalRouteRepository.findByDocumentType('quotation');
       const approverIds = routes.map(r => r.approverUserId).filter(Boolean);
-      await notificationService.notifyApprovalRequest('quotation', req.params.code, approverIds, req.log);
+      await notificationService.notifyApprovalRequest('quotation', req.params.code, approverIds);
     }
     return result;
   });
@@ -37,7 +37,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
   fastify.post('/api/quotations/:code/approve', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'quotation', action: 'APPROVE' } }, async (req) => {
     const result = await quotationService.approveQuotation(req.params.code, req.body?.comment);
     if (notificationService && result.submittedBy) {
-      await notificationService.notifyApprovalComplete('quotation', req.params.code, result.submittedBy, req.log);
+      await notificationService.notifyApprovalComplete('quotation', req.params.code, result.submittedBy);
     }
     return result;
   });
@@ -45,7 +45,7 @@ export default async function quotationRoutes(fastify, { quotationService, notif
   fastify.post('/api/quotations/:code/reject', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'quotation', action: 'REJECT' } }, async (req) => {
     const result = await quotationService.rejectQuotation(req.params.code, req.body?.reason);
     if (notificationService && result.submittedBy) {
-      await notificationService.notifyRejection('quotation', req.params.code, result.submittedBy, req.body?.reason, req.log);
+      await notificationService.notifyRejection('quotation', req.params.code, result.submittedBy, req.body?.reason);
     }
     return result;
   });

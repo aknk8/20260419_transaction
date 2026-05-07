@@ -31,7 +31,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
     if (notificationService && approvalRouteRepository) {
       const routes = await approvalRouteRepository.findByDocumentType('purchaseOrder');
       const approverIds = routes.map(r => r.approverUserId).filter(Boolean);
-      await notificationService.notifyApprovalRequest('purchaseOrder', req.params.code, approverIds, req.log);
+      await notificationService.notifyApprovalRequest('purchaseOrder', req.params.code, approverIds);
     }
     return result;
   });
@@ -39,7 +39,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
   fastify.post('/api/purchase-orders/:code/approve', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'purchaseOrder', action: 'APPROVE' } }, async (req) => {
     const result = await svc.approvePurchaseOrder(req.params.code, req.body?.comment);
     if (notificationService && result.submittedBy) {
-      await notificationService.notifyApprovalComplete('purchaseOrder', req.params.code, result.submittedBy, req.log);
+      await notificationService.notifyApprovalComplete('purchaseOrder', req.params.code, result.submittedBy);
     }
     return result;
   });
@@ -47,7 +47,7 @@ export default async function purchaseOrderRoutes(fastify, { purchaseOrderServic
   fastify.post('/api/purchase-orders/:code/reject', { preHandler: [fastify.authenticate, fastify.requirePermission('approval:act')], config: { entityType: 'purchaseOrder', action: 'REJECT' } }, async (req) => {
     const result = await svc.rejectPurchaseOrder(req.params.code, req.body?.reason);
     if (notificationService && result.submittedBy) {
-      await notificationService.notifyRejection('purchaseOrder', req.params.code, result.submittedBy, req.body?.reason, req.log);
+      await notificationService.notifyRejection('purchaseOrder', req.params.code, result.submittedBy, req.body?.reason);
     }
     return result;
   });

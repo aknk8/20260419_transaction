@@ -263,7 +263,7 @@ describe('POST /api/purchase-orders/:code/submit-approval (N-01通知)', () => {
     // Assert
     expect(mockApprovalRouteRepository.findByDocumentType).toHaveBeenCalledWith('purchaseOrder');
     expect(mockNotificationService.notifyApprovalRequest).toHaveBeenCalledWith(
-      'purchaseOrder', 'POD-00001', ['approver01'], expect.any(Object)
+      'purchaseOrder', 'POD-00001', ['approver01']
     );
   });
 });
@@ -286,7 +286,7 @@ describe('POST /api/purchase-orders/:code/approve (N-02通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyApprovalComplete).toHaveBeenCalledWith(
-      'purchaseOrder', 'POD-00001', 'user01', expect.any(Object)
+      'purchaseOrder', 'POD-00001', 'user01'
     );
   });
 });
@@ -309,7 +309,7 @@ describe('POST /api/purchase-orders/:code/reject (N-03通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyRejection).toHaveBeenCalledWith(
-      'purchaseOrder', 'POD-00001', 'user01', '要再検討', expect.any(Object)
+      'purchaseOrder', 'POD-00001', 'user01', '要再検討'
     );
   });
 });

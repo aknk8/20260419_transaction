@@ -5,7 +5,7 @@ export function createInMemoryQuotationRepository(initialData = []) {
   const store = initialData.map(({ details, ...h }) => ({ header: { ...h }, details: (details ?? []).map(d => ({ ...d })) }));
 
   return {
-    async findAll() { return store.map(({ header }) => ({ ...header })); },
+    async findAll() { return store.map(({ header, details }) => ({ ...header, details: details.map(d => ({ ...d })) })); },
     async findByCode(code) {
       const entry = store.find(e => e.header.code === code);
       if (!entry) return null;

@@ -210,7 +210,7 @@ describe('POST /api/invoices/:code/submit-approval (N-01通知)', () => {
     // Assert
     expect(mockApprovalRouteRepository.findByDocumentType).toHaveBeenCalledWith('invoice');
     expect(mockNotificationService.notifyApprovalRequest).toHaveBeenCalledWith(
-      'invoice', 'INV-00001', ['approver01'], expect.any(Object)
+      'invoice', 'INV-00001', ['approver01']
     );
   });
 });
@@ -233,7 +233,7 @@ describe('POST /api/invoices/:code/approve (N-02通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyApprovalComplete).toHaveBeenCalledWith(
-      'invoice', 'INV-00001', 'user01', expect.any(Object)
+      'invoice', 'INV-00001', 'user01'
     );
   });
 });
@@ -256,7 +256,7 @@ describe('POST /api/invoices/:code/reject (N-03通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyRejection).toHaveBeenCalledWith(
-      'invoice', 'INV-00001', 'user01', '要再確認', expect.any(Object)
+      'invoice', 'INV-00001', 'user01', '要再確認'
     );
   });
 });

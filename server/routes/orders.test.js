@@ -279,7 +279,7 @@ describe('POST /api/orders/:code/submit-approval (N-01通知)', () => {
     // Assert
     expect(mockApprovalRouteRepository.findByDocumentType).toHaveBeenCalledWith('order');
     expect(mockNotificationService.notifyApprovalRequest).toHaveBeenCalledWith(
-      'order', 'ORD-00001', ['approver01'], expect.any(Object)
+      'order', 'ORD-00001', ['approver01']
     );
   });
 });
@@ -302,7 +302,7 @@ describe('POST /api/orders/:code/approve (N-02通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyApprovalComplete).toHaveBeenCalledWith(
-      'order', 'ORD-00001', 'user01', expect.any(Object)
+      'order', 'ORD-00001', 'user01'
     );
   });
 });
@@ -325,7 +325,7 @@ describe('POST /api/orders/:code/reject (N-03通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyRejection).toHaveBeenCalledWith(
-      'order', 'ORD-00001', 'user01', '要再見積', expect.any(Object)
+      'order', 'ORD-00001', 'user01', '要再見積'
     );
   });
 });

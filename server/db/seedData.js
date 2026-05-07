@@ -166,6 +166,27 @@ export const seedQuotations = [
     version: 1, status: '取消', notes: '取引中止につき取消',
     subtotal: 100000, taxAmount: 10000, total: 110000,
     details: [{ lineNo: 1, productCode: 'PRD-001', productName: 'サーバー保守サービス', quantity: 2, unit: '月', unitPrice: 50000, discount: 0, taxRate: 0.10, amount: 110000 }]
+  },
+  {
+    code: 'QUO-00009', projectCode: 'PJ-00003', customerId: 'CUS-003',
+    title: 'C社ネットワーク更改 見積', issueDate: '2026-04-15', validityDate: '2026-05-15',
+    version: 1, status: '承認依頼中', submittedBy: 'sales01', notes: '',
+    subtotal: 200000, taxAmount: 20000, total: 220000,
+    details: [{ lineNo: 1, productCode: 'PRD-002', productName: 'ネットワーク機器 導入支援', quantity: 1, unit: '式', unitPrice: 200000, discount: 0, taxRate: 0.10, amount: 220000 }]
+  },
+  {
+    code: 'QUO-00010', projectCode: 'PJ-00005', customerId: 'CUS-007',
+    title: 'E社追加ライセンス 見積', issueDate: '2026-04-20', validityDate: '2026-05-20',
+    version: 1, status: '承認済み', notes: '',
+    subtotal: 60000, taxAmount: 6000, total: 66000,
+    details: [{ lineNo: 1, productCode: 'PRD-003', productName: 'ソフトウェアライセンス', quantity: 1, unit: '年', unitPrice: 60000, discount: 0, taxRate: 0.10, amount: 66000 }]
+  },
+  {
+    code: 'QUO-00011', projectCode: 'PJ-00002', customerId: 'CUS-002',
+    title: 'B社システム刷新 見積', issueDate: '2026-05-01', validityDate: '2026-05-31',
+    version: 1, status: '承認依頼中', submittedBy: 'sales01', notes: '',
+    subtotal: 500000, taxAmount: 50000, total: 550000,
+    details: [{ lineNo: 1, productCode: 'PRD-004', productName: '技術支援 スポット対応', quantity: 1, unit: '式', unitPrice: 500000, discount: 0, taxRate: 0.10, amount: 550000 }]
   }
 ];
 

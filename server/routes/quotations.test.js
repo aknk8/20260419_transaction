@@ -281,7 +281,7 @@ describe('POST /api/quotations/:code/submit-approval (N-01通知)', () => {
     // Assert
     expect(mockApprovalRouteRepository.findByDocumentType).toHaveBeenCalledWith('quotation');
     expect(mockNotificationService.notifyApprovalRequest).toHaveBeenCalledWith(
-      'quotation', 'QUO-00001', ['approver01', 'approver02'], expect.any(Object)
+      'quotation', 'QUO-00001', ['approver01', 'approver02']
     );
   });
 });
@@ -304,7 +304,7 @@ describe('POST /api/quotations/:code/approve (N-02通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyApprovalComplete).toHaveBeenCalledWith(
-      'quotation', 'QUO-00001', 'user01', expect.any(Object)
+      'quotation', 'QUO-00001', 'user01'
     );
   });
 });
@@ -327,7 +327,7 @@ describe('POST /api/quotations/:code/reject (N-03通知)', () => {
 
     // Assert
     expect(mockNotificationService.notifyRejection).toHaveBeenCalledWith(
-      'quotation', 'QUO-00001', 'user01', '金額が高すぎる', expect.any(Object)
+      'quotation', 'QUO-00001', 'user01', '金額が高すぎる'
     );
   });
 });

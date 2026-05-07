@@ -107,7 +107,7 @@ describe('GET /api/notifications', () => {
     });
 
     // Assert
-    expect(mockNotificationService.getNotificationsForUser).toHaveBeenCalledWith('user01', expect.anything());
+    expect(mockNotificationService.getNotificationsForUser).toHaveBeenCalledWith('user01');
   });
 });
 
@@ -179,7 +179,7 @@ describe('PUT /api/notifications/:id/read', () => {
     });
 
     // Assert
-    expect(mockNotificationService.markAsRead).toHaveBeenCalledWith('uuid-001', 'user01', expect.anything());
+    expect(mockNotificationService.markAsRead).toHaveBeenCalledWith('uuid-001', 'user01');
   });
 });
 
@@ -220,6 +220,6 @@ describe('POST /api/notifications/read-all', () => {
     });
 
     // Assert
-    expect(mockNotificationService.markAllAsRead).toHaveBeenCalledWith('user01', expect.anything());
+    expect(mockNotificationService.markAllAsRead).toHaveBeenCalledWith('user01');
   });
 });

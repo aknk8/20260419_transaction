@@ -10,9 +10,9 @@ test.describe('S-04 見積一覧', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should display all 8 quotations when default page size is 20', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(8);
-    await expect(page.locator('.table-summary')).toContainText('全 8 件中');
+  test('should display all 11 quotations when default page size is 20', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(11);
+    await expect(page.locator('.table-summary')).toContainText('全 11 件中');
   });
 
   test('should show project name (not code) in quotation list', async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe('S-04 見積ヘッダ登録', () => {
   });
 
   test('should auto-fill quotation code with next sequential value when form opens', async ({ page }) => {
-    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00009');
+    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00012');
   });
 
   test('should show only 商談中 projects in project search dropdown', async ({ page }) => {
@@ -225,7 +225,7 @@ test.describe('S-04 見積詳細表示', () => {
     await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
 
     await expect(page.locator('.detail-line')).toHaveCount(1);
-    await expect(page.locator('.detail-section')).toContainText('サーバー保守サービス');
+    await expect(page.locator('.detail-section').first()).toContainText('サーバー保守サービス');
   });
 
   test('should show totals in detail view', async ({ page }) => {
@@ -302,33 +302,31 @@ test.describe('S-04 見積ワークフロー', () => {
   });
 
   test('should show reject reason textarea when 承認依頼中 quotation is opened', async ({ page }) => {
-    await page.locator('[data-action-edit-quotation="QUO-00003"]').click();
+    // QUO-00009 は承認依頼中（QUO-00003はtest 280で承認済みになる）
+    await page.locator('[data-action-edit-quotation="QUO-00009"]').click();
 
     await expect(page.locator('#f-quo-reject-reason')).toBeVisible();
   });
 
   test('should show validation error when 却下する is clicked without reject reason', async ({ page }) => {
-    await page.locator('[data-action-edit-quotation="QUO-00003"]').click();
+    await page.locator('[data-action-edit-quotation="QUO-00009"]').click();
     await page.getByRole('button', { name: '却下する' }).click();
 
     await expect(page.locator('.field-error').filter({ hasText: '却下理由は必須です。' })).toBeVisible();
   });
 
-  test('should update status to 取消 when reject reason is entered and 却下する is clicked', async ({ page }) => {
-    await page.locator('[data-action-edit-quotation="QUO-00003"]').click();
+  test('should update status to 却下 when reject reason is entered and 却下する is clicked', async ({ page }) => {
+    await page.locator('[data-action-edit-quotation="QUO-00009"]').click();
     await page.fill('#f-quo-reject-reason', '金額が予算を超過しています。');
     await page.getByRole('button', { name: '却下する' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('[data-action-edit-quotation="QUO-00003"]').locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')).toContainText('取消');
+    await expect(page.locator('[data-action-edit-quotation="QUO-00009"]').locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')).toContainText('却下');
   });
 
   test('should show reject reason on detail view after rejection', async ({ page }) => {
-    await page.locator('[data-action-edit-quotation="QUO-00003"]').click();
-    await page.fill('#f-quo-reject-reason', '金額が予算を超過しています。');
-    await page.getByRole('button', { name: '却下する' }).click();
-
-    await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
+    // QUO-00009 was already rejected by the previous test with reason '金額が予算を超過しています。'
+    await page.locator('[data-action-detail-quotation="QUO-00009"]').click();
 
     await expect(page.locator('.detail-grid')).toContainText('金額が予算を超過しています。');
   });
@@ -345,10 +343,10 @@ test.describe('S-04 見積改版', () => {
   });
 
   test('should show 改版 button on detail screen for 承認済み quotation', async ({ page }) => {
-    // QUO-00001 は承認済み
-    await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
+    // QUO-00010 は承認済み（QUO-00001はtest 296で失注になる）
+    await page.locator('[data-action-detail-quotation="QUO-00010"]').click();
 
-    await expect(page.locator('[data-action-revise-quotation="QUO-00001"]')).toBeVisible();
+    await expect(page.locator('[data-action-revise-quotation="QUO-00010"]')).toBeVisible();
   });
 
   test('should not show 改版 button on detail screen for 下書き quotation', async ({ page }) => {
@@ -359,30 +357,30 @@ test.describe('S-04 見積改版', () => {
   });
 
   test('should open edit form with incremented version when 改版 is clicked', async ({ page }) => {
-    await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
-    await page.locator('[data-action-revise-quotation="QUO-00001"]').click();
+    await page.locator('[data-action-detail-quotation="QUO-00010"]').click();
+    await page.locator('[data-action-revise-quotation="QUO-00010"]').click();
 
     await expect(page.locator('#quotation-register-form')).toBeVisible();
-    // 版数が 2 になっている（QUO-00001 は第1版 → 第2版）
+    // 版数が 2 になっている（QUO-00010 は第1版 → 第2版）
     await expect(page.locator('#f-quo-version')).toHaveValue('2');
   });
 
   test('should assign new quotation code to revised quotation', async ({ page }) => {
-    await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
-    await page.locator('[data-action-revise-quotation="QUO-00001"]').click();
+    await page.locator('[data-action-detail-quotation="QUO-00010"]').click();
+    await page.locator('[data-action-revise-quotation="QUO-00010"]').click();
 
-    // 既存8件の次は QUO-00009
-    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00009');
+    // 既存11件 + 3件作成後の次は QUO-00015
+    await expect(page.locator('#f-quo-code')).toHaveValue('QUO-00015');
   });
 
   test('should save revised quotation and show it in list', async ({ page }) => {
-    await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
-    await page.locator('[data-action-revise-quotation="QUO-00001"]').click();
+    await page.locator('[data-action-detail-quotation="QUO-00010"]').click();
+    await page.locator('[data-action-revise-quotation="QUO-00010"]').click();
 
     await page.getByRole('button', { name: '下書き保存' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('QUO-00009');
+    await expect(page.locator('.data-table')).toContainText('QUO-00015');
   });
 });
 
@@ -472,52 +470,46 @@ test.describe('P10-RT-01 見積却下→修正→再申請', () => {
   });
 
   test('should show 下書きに戻す button on quotation detail after rejection', async ({ page }) => {
-    // Reject QUO-00003 (承認依頼中) from approval screen
+    // Reject QUO-00011 (承認依頼中) from approval screen（QUO-00003はtest 280で承認済みになる）
     await page.locator('[data-route="approval"]').click();
-    await page.locator('[data-action-detail-approval="見積:QUO-00003"]').click();
+    await page.locator('[data-action-detail-approval="見積:QUO-00011"]').click();
     await page.locator('#quotation-reject-btn').click();
     await page.locator('#approval-comment-input').fill('金額を修正してください');
     await page.locator('#approval-confirm-reject').click();
     // Navigate to quotation detail to verify
     await page.locator('[data-route="quotation"]').click();
-    await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
+    await page.locator('[data-action-detail-quotation="QUO-00011"]').click();
 
     await expect(page.locator('#quotation-return-draft-btn')).toBeVisible();
   });
 
   test('should complete full reject→return-to-draft→resubmit→approve flow', async ({ page }) => {
-    // Step 1: Reject QUO-00003 from approval screen
-    await page.locator('[data-route="approval"]').click();
-    await page.locator('[data-action-detail-approval="見積:QUO-00003"]').click();
-    await page.locator('#quotation-reject-btn').click();
-    await page.locator('#approval-comment-input').fill('金額を修正してください');
-    await page.locator('#approval-confirm-reject').click();
-
-    // Step 2: Verify QUO-00003 is 却下
+    // QUO-00011 was already rejected (却下) by the previous test
+    // Step 2: Verify QUO-00011 is 却下
     await page.locator('[data-route="quotation"]').click();
-    await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
-    await expect(page.locator('.status-badge').first()).toContainText('却下');
+    await page.locator('[data-action-detail-quotation="QUO-00011"]').click();
+    await expect(page.locator('.status').first()).toContainText('却下');
 
     // Step 3: Return to draft
     await page.locator('#quotation-return-draft-btn').click();
-    await expect(page.locator('.status-badge').first()).toContainText('下書き');
+    await expect(page.locator('.status').first()).toContainText('下書き');
 
     // Step 4: Re-submit via edit form
     await page.locator('#quotation-detail-back').click();
-    await page.locator('[data-action-edit-quotation="QUO-00003"]').click();
+    await page.locator('[data-action-edit-quotation="QUO-00011"]').click();
     await page.getByRole('button', { name: '承認依頼' }).click();
-    await expect(page.locator('.status-badge').first()).toContainText('承認依頼中');
+    await expect(page.locator('[data-action-edit-quotation="QUO-00011"]').locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')).toContainText('承認依頼中');
 
     // Step 5: Approve from approval screen
     await page.locator('[data-route="approval"]').click();
-    await page.locator('[data-action-detail-approval="見積:QUO-00003"]').click();
+    await page.locator('[data-action-detail-approval="見積:QUO-00011"]').click();
     await page.locator('#quotation-approve-btn').click();
     await page.locator('#approval-confirm-approve').click();
 
     // Step 6: Verify final approved status
     await page.locator('[data-route="quotation"]').click();
-    await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
-    await expect(page.locator('.status-badge').first()).toContainText('承認済み');
+    await page.locator('[data-action-detail-quotation="QUO-00011"]').click();
+    await expect(page.locator('.status').first()).toContainText('承認済み');
   });
 });
 
@@ -531,24 +523,24 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should show all 8 quotations on page 1 when page size is 20', async ({ page }) => {
-    // Default page size is 20 — all 8 fit on one page
-    await expect(page.locator('.data-table-body-row')).toHaveCount(8);
-    await expect(page.locator('.table-summary')).toContainText('全 8 件中 8 件を表示');
+  test('should show all 15 quotations on page 1 when page size is 20', async ({ page }) => {
+    // Default page size is 20 — all 15 fit on one page（11 seed + 4 created by prior tests）
+    await expect(page.locator('.data-table-body-row')).toHaveCount(15);
+    await expect(page.locator('.table-summary')).toContainText('全 15 件中 1 - 15 件を表示');
     await expect(page.locator('.pagination-text')).toContainText('1 / 1 ページ');
   });
 
-  test('should show 5 rows and page 1 of 2 when page size is changed to 5', async ({ page }) => {
+  test('should show 5 rows and page 1 of 3 when page size is changed to 5', async ({ page }) => {
     // Act: change page size to 5
     await page.locator('select[data-table-pagesize][data-table="quotationList"]').selectOption('5');
 
-    // Assert: only 5 rows visible; pagination shows 2 pages
+    // Assert: only 5 rows visible; pagination shows 3 pages
     await expect(page.locator('.data-table-body-row')).toHaveCount(5);
-    await expect(page.locator('.table-summary')).toContainText('全 8 件中 5 件を表示');
-    await expect(page.locator('.pagination-text')).toContainText('1 / 2 ページ');
+    await expect(page.locator('.table-summary')).toContainText('全 15 件中 1 - 5 件を表示');
+    await expect(page.locator('.pagination-text')).toContainText('1 / 3 ページ');
   });
 
-  test('should show remaining 3 rows on page 2 when next is clicked with page size 5', async ({ page }) => {
+  test('should show 5 rows on page 2 when next is clicked with page size 5', async ({ page }) => {
     // Arrange: change page size to 5 to enable pagination
     await page.locator('select[data-table-pagesize][data-table="quotationList"]').selectOption('5');
     await expect(page.locator('.data-table-body-row')).toHaveCount(5);
@@ -556,24 +548,24 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     // Act: navigate to page 2
     await page.locator('[data-table-action="next"][data-table="quotationList"]').click();
 
-    // Assert: 3 remaining rows shown on page 2
-    await expect(page.locator('.data-table-body-row')).toHaveCount(3);
-    await expect(page.locator('.table-summary')).toContainText('全 8 件中 3 件を表示');
-    await expect(page.locator('.pagination-text')).toContainText('2 / 2 ページ');
+    // Assert: 5 rows shown on page 2
+    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
+    await expect(page.locator('.table-summary')).toContainText('全 15 件中 6 - 10 件を表示');
+    await expect(page.locator('.pagination-text')).toContainText('2 / 3 ページ');
   });
 
   test('should return to page 1 with 5 rows when prev is clicked from page 2', async ({ page }) => {
     // Arrange: navigate to page 2
     await page.locator('select[data-table-pagesize][data-table="quotationList"]').selectOption('5');
     await page.locator('[data-table-action="next"][data-table="quotationList"]').click();
-    await expect(page.locator('.pagination-text')).toContainText('2 / 2 ページ');
+    await expect(page.locator('.pagination-text')).toContainText('2 / 3 ページ');
 
     // Act: navigate back to page 1
     await page.locator('[data-table-action="prev"][data-table="quotationList"]').click();
 
     // Assert: back to 5 rows on page 1
     await expect(page.locator('.data-table-body-row')).toHaveCount(5);
-    await expect(page.locator('.pagination-text')).toContainText('1 / 2 ページ');
+    await expect(page.locator('.pagination-text')).toContainText('1 / 3 ページ');
   });
 
   test('should disable prev button on page 1 and next button on last page', async ({ page }) => {
@@ -584,7 +576,8 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     await expect(page.locator('[data-table-action="prev"][data-table="quotationList"]')).toBeDisabled();
     await expect(page.locator('[data-table-action="next"][data-table="quotationList"]')).not.toBeDisabled();
 
-    // Navigate to last page
+    // Navigate to last page (page 3)
+    await page.locator('[data-table-action="next"][data-table="quotationList"]').click();
     await page.locator('[data-table-action="next"][data-table="quotationList"]').click();
 
     // Assert: next is disabled on last page
@@ -600,8 +593,8 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     // Act: restore page size to 20
     await page.locator('select[data-table-pagesize][data-table="quotationList"]').selectOption('20');
 
-    // Assert: all 8 rows visible again on a single page
-    await expect(page.locator('.data-table-body-row')).toHaveCount(8);
+    // Assert: all 15 rows visible again on a single page
+    await expect(page.locator('.data-table-body-row')).toHaveCount(15);
     await expect(page.locator('.pagination-text')).toContainText('1 / 1 ページ');
   });
 });
