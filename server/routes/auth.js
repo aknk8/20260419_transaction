@@ -10,7 +10,8 @@ export default async function authRoutes(fastify, { userRepository, sessionRepos
       action: 'LOGIN',
       actionOnFailure: 'LOGIN_FAILED',
       // Strict login rate limit only in production; dev/test relies on the global limit
-      ...(process.env.NODE_ENV === 'production' && { rateLimit: { max: 5, timeWindow: '1 minute' } })
+      //...(process.env.NODE_ENV === 'production' && { rateLimit: { max: 5, timeWindow: '1 minute' } })
+      rateLimit: { max: 5, timeWindow: '1 minute' }
     },
     schema: {
       body: {
