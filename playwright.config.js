@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const reportRoot = 'C:/tmp/playwright-report';
+const reportRoot = process.env.CI ? 'e2e-report' : 'C:/tmp/playwright-report';
 
 export default defineConfig({
   testDir: './e2e',
@@ -34,7 +34,7 @@ export default defineConfig({
     {
       command: 'npm run server',
       url: 'http://localhost:3000/api/auth/me',
-      reuseExistingServer: false,
+      reuseExistingServer: true,
     },
   ],
 });
