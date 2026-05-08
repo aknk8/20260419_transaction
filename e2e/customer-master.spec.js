@@ -3,8 +3,35 @@ import { test, expect } from '@playwright/test';
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
 
 async function setupPage(page) {
-  await page.route('/api/**', (route) => {
-    if (route.request().method() === 'GET') {
+  const customers = [
+    { code: 'CUS-001', name: '株式会社青葉システム', department: '営業部門', contact: '山田 一郎', closingDay: '末日', paymentSite: '翌月末', billingTo: '東京本社', status: '有効' },
+    { code: 'CUS-002', name: '東都ネットワーク株式会社', department: '営業事務部門', contact: '高橋 未来', closingDay: '20日', paymentSite: '翌月20日', billingTo: '大阪支店', status: '有効' },
+    { code: 'CUS-003', name: 'みなと物流サービス株式会社', department: '購買部門', contact: '小林 伸', closingDay: '15日', paymentSite: '翌月末', billingTo: '名古屋営業所', status: '有効' },
+    { code: 'CUS-004', name: '北星メディカル機器株式会社', department: '営業部門', contact: '松本 玲子', closingDay: '末日', paymentSite: '翌々月5日', billingTo: '札幌支店', status: '停止' },
+    { code: 'CUS-005', name: '新都建設エンジニアリング株式会社', department: '管理部門', contact: '田口 大樹', closingDay: '25日', paymentSite: '翌月末', billingTo: '本店経理部', status: '有効' },
+    { code: 'CUS-006', name: 'フェニックス販売株式会社', department: '経理部門', contact: '加藤 優子', closingDay: '末日', paymentSite: '翌月15日', billingTo: '福岡支社', status: '有効' },
+    { code: 'CUS-007', name: '丸山ソリューションズ株式会社', department: '営業部門', contact: '西村 健', closingDay: '10日', paymentSite: '翌月末', billingTo: '横浜オフィス', status: '有効' },
+    { code: 'CUS-008', name: '南海オートメーション株式会社', department: '購買部門', contact: '佐々木 光', closingDay: '20日', paymentSite: '翌月25日', billingTo: '神戸事業所', status: '有効' },
+    { code: 'CUS-009', name: '中央ソフトサプライ株式会社', department: '営業事務部門', contact: '斎藤 理沙', closingDay: '末日', paymentSite: '翌月末', billingTo: '本社請求課', status: '停止' }
+  ];
+
+  await page.route('/api/**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (method === 'GET' && /\/api\/customers(\?.*)?$/.test(url)) {
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(customers) });
+    } else if (method === 'POST' && /\/api\/customers(\?.*)?$/.test(url)) {
+      const body = JSON.parse(route.request().postData() || '{}');
+      customers.push(body);
+      route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(body) });
+    } else if (method === 'PATCH' && /\/api\/customers\//.test(url)) {
+      const code = decodeURIComponent(url.split('/api/customers/')[1]);
+      const idx = customers.findIndex(c => c.code === code);
+      const body = JSON.parse(route.request().postData() || '{}');
+      if (idx !== -1) Object.assign(customers[idx], body);
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(idx !== -1 ? customers[idx] : {}) });
+    } else if (method === 'GET') {
       route.abort();
     } else {
       route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });

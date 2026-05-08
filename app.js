@@ -7180,6 +7180,7 @@ function bindAppEvents() {
     btn.addEventListener("click", function() {
       const podCode = btn.getAttribute("data-action-delivery-register");
       viewState.deliveryForm.data = {
+        code: generateDeliveryCode(deliveries.map(function(d) { return d.code; })),
         purchaseOrderCode: podCode,
         deliveryDate: "",
         notes: ""
