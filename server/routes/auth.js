@@ -3,14 +3,13 @@ import bcrypt from 'bcryptjs';
 import { authenticate } from '../services/authService.js';
 import { verifyAndRotate } from '../services/refreshTokenService.js';
 
-export default async function authRoutes(fastify, { userRepository, sessionRepository, refreshTokenRepository }) {
+export default async function authRoutes(fastify, { userRepository, sessionRepository, refreshTokenRepository, loginRateLimit }) {
   fastify.post('/api/auth/login', {
     config: {
       entityType: 'auth',
       action: 'LOGIN',
       actionOnFailure: 'LOGIN_FAILED',
-      // Strict login rate limit only in production; dev/test relies on the global limit
-      ...(process.env.NODE_ENV === 'production' && { rateLimit: { max: 5, timeWindow: '1 minute' } })
+      ...(loginRateLimit && { rateLimit: loginRateLimit })
     },
     schema: {
       body: {

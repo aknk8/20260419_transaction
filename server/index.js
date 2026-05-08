@@ -151,7 +151,8 @@ const app = await buildApp({
   auditLogRepository:    auditLogRepo,
   corsOrigin:            CORS_ORIGIN,
   rateLimit:             { max: RATE_LIMIT_MAX, timeWindow: '1 minute' },
-  allowedOrigins:        ALLOWED_ORIGINS
+  allowedOrigins:        ALLOWED_ORIGINS,
+  loginRateLimit:        process.env.NODE_ENV === 'production' ? { max: 5, timeWindow: '1 minute' } : undefined
 });
 
 const STALE_DAYS = parseInt(process.env.APPROVAL_STALE_DAYS ?? '3', 10);

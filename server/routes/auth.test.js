@@ -240,7 +240,10 @@ describe('POST /api/auth/login', () => {
 
   it('should return 429 after exceeding login rate limit', async () => {
     // Arrange
-    const { app } = await makeApp(null, { rateLimit: { max: 100, timeWindow: '1 minute' } });
+    const { app } = await makeApp(null, {
+      rateLimit: { max: 100, timeWindow: '1 minute' },
+      loginRateLimit: { max: 5, timeWindow: '1 minute' }
+    });
 
     // Act - 6 requests (login-specific limit is 5)
     for (let i = 0; i < 5; i++) {

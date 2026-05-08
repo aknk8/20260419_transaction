@@ -32,7 +32,7 @@ import healthRoutes from './routes/health.js';
 
 const distPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 
-export async function buildApp({ userRepository, customerService, supplierService, productService, userService, projectService, quotationService, orderService, approvalRouteRepository, purchaseOrderService, invoiceService, receiptService, paymentService, notificationService, deliveryService, settingsService, auditLogRepository, sessionRepository, refreshTokenRepository, corsOrigin, rateLimit, allowedOrigins } = {}) {
+export async function buildApp({ userRepository, customerService, supplierService, productService, userService, projectService, quotationService, orderService, approvalRouteRepository, purchaseOrderService, invoiceService, receiptService, paymentService, notificationService, deliveryService, settingsService, auditLogRepository, sessionRepository, refreshTokenRepository, corsOrigin, rateLimit, allowedOrigins, loginRateLimit } = {}) {
   const app = Fastify({
     logger: false,
     ajv: { customOptions: { removeAdditional: false } }
@@ -117,7 +117,7 @@ export async function buildApp({ userRepository, customerService, supplierServic
   }
 
   await app.register(healthRoutes);
-  await app.register(authRoutes, { userRepository, sessionRepository, refreshTokenRepository });
+  await app.register(authRoutes, { userRepository, sessionRepository, refreshTokenRepository, loginRateLimit });
 
   await app.register(customerRoutes, { customerService });
   await app.register(supplierRoutes, { supplierService });
