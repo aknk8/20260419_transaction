@@ -1,0 +1,260 @@
+
+Unit Tests & Coverage	カバレッジ閾値チェック（行カバレッジ 80% 以上）	2026-05-08T23:17:40.1225248Z ^[[36;1m    console.error('行カバレッジが 80% を下回っています: ' + pct + '%');^[[0m
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:19:25.9863758Z   ✓   17 [chromium] › e2e/approval-operations.spec.js:67:3 › S-12 承認操作（承認/却下+コメント） › should show error when 却下を確定 is clicked without comment (3.1s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:19:46.2451953Z BROWSER ERRORS AFTER LOGIN: ["Failed to load resource: the server responded with a status of 401 (Unauthorized)"]
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:19:48.5356682Z BROWSER ERRORS AFTER APPROVAL CLICK: ["Failed to load resource: the server responded with a status of 401 (Unauthorized)"]
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:19:49.1743128Z   ✓   42 [chromium] › e2e/check_errors.spec.js:5:1 › check console errors after login (7.6s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:20:09.9242395Z   ✓   84 [chromium] › e2e/delivery.spec.js:93:3 › S-07 納品登録 › should show validation error when deliveryDate is empty (2.9s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:20:11.7545074Z   ✓   86 [chromium] › e2e/customer-master.spec.js:178:3 › P10-RT-02 顧客マスタ バリデーション › should show 顧客名は必須です error when name is empty on submit (2.9s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:20:14.6392404Z   ✓   91 [chromium] › e2e/customer-master.spec.js:191:3 › P10-RT-02 顧客マスタ バリデーション › should show multiple field errors when all required fields are empty on submit (2.9s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:20:17.9194350Z   ✓   95 [chromium] › e2e/customer-master.spec.js:202:3 › P10-RT-02 顧客マスタ バリデーション › should show 顧客コードはすでに使用されています error when duplicate code is entered (3.2s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:21:52.7606377Z   ✓  203 [chromium] › e2e/invoice-approval.spec.js:100:3 › P0-09 請求承認フロー（3段階） › should show error when 却下 confirmed without comment (2.1s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:22:03.4672217Z   ✓  215 [chromium] › e2e/login.spec.js:79:3 › S-01 ログイン › should show error message when credentials are invalid (2.3s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:22:37.9973926Z   ✓  243 [chromium] › e2e/order-approval-validation.spec.js:59:3 › RT-04 受注承認依頼バリデーション › should block approval submission and show attachment error when no attachment exists (1.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:22:39.9022742Z   ✓  245 [chromium] › e2e/order-approval-validation.spec.js:81:3 › RT-04 受注承認依頼バリデーション › should block approval submission and show quotation linkage error when quotation is not linked (1.9s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:22:41.5638450Z   ✓  246 [chromium] › e2e/order-approval-validation.spec.js:120:3 › RT-04 受注承認依頼バリデーション › should block approval submission and show amount mismatch error when order total differs from quotation total (1.6s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:22:45.7617190Z   ✓  250 [chromium] › e2e/order-approval-validation.spec.js:184:3 › RT-04 受注承認依頼バリデーション › should show all validation errors when both attachment and quotation linkage are missing (1.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:22:51.0243167Z   ✓  256 [chromium] › e2e/order-approval.spec.js:73:3 › P0-08 受注承認フロー › should show error when 却下 is confirmed without comment (1.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:22:57.2270546Z   ✓  263 [chromium] › e2e/order-approval.spec.js:100:3 › P0-08 受注承認フロー › should show error when submitting approval without attachment (2.0s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:23:11.4602582Z   ✓  274 [chromium] › e2e/order.spec.js:88:3 › S-05 受注作成 › should show validation error when order date is empty (1.8s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:23:13.1687742Z   ✓  276 [chromium] › e2e/order.spec.js:97:3 › S-05 受注作成 › should show validation error when order title is cleared on submit (1.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:23:33.3633535Z   ✓  295 [chromium] › e2e/payment.spec.js:47:3 › S-10 支払依頼作成 › should show validation error when paymentDate is empty (3.3s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:23:36.2587679Z   ✓  298 [chromium] › e2e/payment.spec.js:54:3 › S-10 支払依頼作成 › should show validation error when amount is empty (2.8s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:26:52.7346132Z   ✓  435 [chromium] › e2e/quotation.spec.js:120:3 › S-04 見積ヘッダ登録 › should show validation error when required fields are empty (1.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:26:53.7539404Z   ✘  413 [chromium] › e2e/purchaseOrder.spec.js:68:3 › S-06 発注起票 › should show validation error when supplier is not selected (32.6s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:27:24.0535810Z   ✓  458 [chromium] › e2e/quotation.spec.js:311:3 › S-04 見積ワークフロー › should show validation error when 却下する is clicked without reject reason (1.5s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:27:27.4505487Z   ✘  438 [chromium] › e2e/purchaseOrder.spec.js:75:3 › S-06 発注起票 › should show validation error when order date is empty (32.2s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:28:10.4852578Z   ✓  492 [chromium] › e2e/receipt.spec.js:46:3 › S-09 入金登録 › should show validation error when receiptDate is empty (2.6s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:28:15.2552199Z   ✓  493 [chromium] › e2e/receipt.spec.js:54:3 › S-09 入金登録 › should show validation error when amount is empty (4.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:28:28.8849932Z   ✓  504 [chromium] › e2e/quotation.spec.js:614:3 › P10-RT-02 見積バリデーション › should show 案件は必須です error when project is not selected on submit (1.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:28:30.7722958Z   ✓  505 [chromium] › e2e/quotation.spec.js:626:3 › P10-RT-02 見積バリデーション › should show 発行日は必須です error when issue date is empty on submit (1.9s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:28:32.5728922Z   ✓  506 [chromium] › e2e/quotation.spec.js:639:3 › P10-RT-02 見積バリデーション › should show all required field errors simultaneously when form is submitted completely empty (1.8s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:30:55.3053531Z   ✓  584 [chromium] › e2e/settings.spec.js:42:3 › システム設定 › should show error when company name is empty (1.0s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:31:06.4872150Z   ✘  571 [chromium] › e2e/payment.spec.js:281:3 › S-10 支払登録 › should show validation error when paidDate is empty (32.9s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:31:37.9841986Z   ✓  626 [chromium] › e2e/supplier-master.spec.js:132:3 › P10-RT-02 仕入先マスタ バリデーション › should show 仕入先名は必須です error when name is empty on submit (2.1s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:31:39.7566301Z   ✓  627 [chromium] › e2e/supplier-master.spec.js:143:3 › P10-RT-02 仕入先マスタ バリデーション › should show multiple field errors simultaneously when all required fields are empty on submit (1.8s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:31:41.3937371Z   ✓  628 [chromium] › e2e/supplier-master.spec.js:152:3 › P10-RT-02 仕入先マスタ バリデーション › should show 仕入先コードはすでに使用されています error when duplicate code is entered (1.6s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:31:58.6492977Z   ✓  642 [chromium] › e2e/user-master.spec.js:179:3 › P10-RT-02 ユーザ管理 バリデーション › should show ユーザIDは必須です error when user ID is empty on submit (1.8s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:32:00.7050325Z   ✓  645 [chromium] › e2e/user-master.spec.js:194:3 › P10-RT-02 ユーザ管理 バリデーション › should show ユーザIDはすでに使用されています error when duplicate user ID is entered (2.0s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:32:03.4242622Z   ✓  647 [chromium] › e2e/user-master.spec.js:210:3 › P10-RT-02 ユーザ管理 バリデーション › should show 氏名は必須です error when name is empty on submit (2.7s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:35:48.5058224Z   ✓  681 [chromium] › e2e/purchaseOrder.spec.js:454:3 › P10-RT-02 発注バリデーション › should show 発注件名は必須です error when title is empty for standalone purchase order (1.1s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:35:49.5726148Z   ✓  682 [chromium] › e2e/purchaseOrder.spec.js:466:3 › P10-RT-02 発注バリデーション › should show all required field errors simultaneously when standalone purchase order form is submitted empty (1.1s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:35:50.9454863Z   ✓  683 [chromium] › e2e/purchaseOrder.spec.js:476:3 › P10-RT-02 発注バリデーション › should clear field errors and succeed after correcting all required fields (1.4s)
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1241162Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeLessThanOrEqual^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1256064Z     Error Context: e2e-report/artifacts/explore-et02-04-07-ET-04-マ-c77d3-客マスタ一覧-表示件数（PAGE-SIZE-5）の確認-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1264524Z     TypeError: Cannot read properties of null (reading 'includes')
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1278648Z     Error Context: e2e-report/artifacts/explore-et02-04-07-ET-04-マ-591e7-動採番コード-CUS-010-と保存後の一覧反映を確認-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1287302Z     TypeError: Cannot read properties of null (reading 'includes')
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1301316Z     Error Context: e2e-report/artifacts/explore-et02-04-07-ET-07-バ-01c9f--001-を入力して保存したとき重複エラーが出るか確認-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1309109Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1339374Z     Error Context: e2e-report/artifacts/explore-et02-quotation-ET-02-見積フロー探索-見積一覧が表示され、既存件数を確認する-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1347960Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1362975Z     Error Context: e2e-report/artifacts/explore-et03-order-purchas-46fef-→発注引き継ぎ探索-受注一覧が表示され、件数を確認する-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1371449Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBeGreaterThan^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1386196Z     Error Context: e2e-report/artifacts/explore-et03-order-purchas-39286-注引き継ぎ探索-発注一覧が表示され、既存件数を確認する-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1394974Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1412544Z     Error Context: e2e-report/artifacts/explore-et04-master-ET-04-マスタ管理探索-ページングで2ページ目に遷移できるか確認-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1428752Z     Error Context: e2e-report/artifacts/explore-et04-master-ET-04-マスタ管理探索-顧客名でキーワード検索が機能するか確認-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1445894Z     Error Context: e2e-report/artifacts/explore-et04-master-ET-04--fdc78-録フォームが開き、自動採番がCUS-010になるか確認-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1462561Z     Error Context: e2e-report/artifacts/explore-et04-master-ET-04-マスタ管理探索-商品マスタで単価フィールドの入力値の型を確認-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1471578Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1484154Z     Error Context: e2e-report/artifacts/invoice-approval-P0-09-請求承-c6e95--承認依頼中-when-承認依頼-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1489124Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1490652Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1500082Z     Error Context: e2e-report/artifacts/invoice-approval-P0-09-請求承-23ffa-ton-after-approval-stage-3--chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1505913Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1515176Z     Error Context: e2e-report/artifacts/invoice-approval-P10-RT-01-341cf-it→approve-flow-for-invoice-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1520701Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1530034Z     Error Context: e2e-report/artifacts/invoice-S-08-請求対象抽出-should-5fe59-oice-in-list-after-creation-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1535396Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1544892Z     Error Context: e2e-report/artifacts/invoice-S-08-請求対象抽出-should-af3ce-list-after-invoice-creation-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1550091Z     Error: locator.getAttribute: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1560376Z     Error Context: e2e-report/artifacts/invoice-S-08-請求対象抽出-should-c5743-ate-before-creating-invoice-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1565356Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1566623Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1576855Z     Error Context: e2e-report/artifacts/invoice-S-08-請求詳細-should-show-確定する-button-for-下書き-invoice-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1581790Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1591001Z     Error Context: e2e-report/artifacts/invoice-S-08-請求詳細-should-u-d2dab--to-確定-when-確定する-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1595853Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1605766Z     Error Context: e2e-report/artifacts/invoice-S-08-請求詳細-should-s-17340-する-button-when-status-is-確定-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1610921Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1620497Z     Error Context: e2e-report/artifacts/invoice-S-08-請求詳細-should-u-14b52--送付済-when-送付済にする-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1625345Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1626762Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1637304Z     Error Context: e2e-report/artifacts/invoice-S-08-請求詳細-should-show-キャンセル-button-for-下書き-invoice-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1643102Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1644383Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1654055Z     Error Context: e2e-report/artifacts/invoice-P10-RT-02-請求起票-バリデ-4ed79-leared-before-clicking-請求起票-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1659095Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1660307Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1669545Z     Error Context: e2e-report/artifacts/invoice-P10-RT-02-請求起票-バリデ-fb460-leared-before-clicking-請求起票-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1675431Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveCount^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1687291Z     Error Context: e2e-report/artifacts/master-permission-S-11-マスタ-40668-tomer-list-for-sales01-user-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1692649Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveCount^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1703888Z     Error Context: e2e-report/artifacts/master-permission-S-11-マスタ-1e164-mer-list-for-finance01-user-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1708923Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveCount^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1720093Z     Error Context: e2e-report/artifacts/order-S-05-受注一覧-should-fil-1f475-rd-is-entered-in-search-box-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1725623Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1736248Z     Error Context: e2e-report/artifacts/order-S-05-受注詳細-should-upd-7f59f-hen-キャンセル-button-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1742827Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1744118Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1753832Z     Error Context: e2e-report/artifacts/order-S-05-発注起票・請求対象化-shou-6898b-n-when-order-status-is-受注済み-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1758923Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1760259Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1769917Z     Error Context: e2e-report/artifacts/order-S-05-発注起票・請求対象化-shou-5fd9b--and-not-yet-billing-target-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1775530Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1787244Z     Error Context: e2e-report/artifacts/order-S-05-発注起票・請求対象化-shou-692b1-button-after-clicking-請求対象化-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1822471Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1837621Z     Error Context: e2e-report/artifacts/order-P10-RT-01-受注却下→修正→再申-c4000-utton-on-rejected-ORD-00006-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1845652Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1860693Z     Error Context: e2e-report/artifacts/order-P10-RT-01-受注却下→修正→再申-e5c75-受注済み-when-下書きに戻す-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1868853Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1883982Z     Error Context: e2e-report/artifacts/order-P10-RT-01-受注却下→修正→再申-f6355-val-after-returning-to-受注済み-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1892430Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1907264Z     Error Context: e2e-report/artifacts/order-P10-RT-01-受注却下→修正→再申-f29c3-turn→resubmit→approve-cycle-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1915619Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveCount^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1933138Z     Error Context: e2e-report/artifacts/page-size-表示件数選択-should-sh-3ed67-y-default-with-page-size-20-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1941043Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1959761Z     Error Context: e2e-report/artifacts/page-size-表示件数選択-should-up-b98c2-n-page-size-is-changed-to-5-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1968167Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1986834Z     Error Context: e2e-report/artifacts/page-size-表示件数選択-should-re-f2783-1-when-page-size-is-changed-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.1995149Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2009898Z     Error Context: e2e-report/artifacts/payment-S-10-支払依頼作成-should-58ad7-code-in-list-after-creation-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2018005Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).not.^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2019979Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2034908Z     Error Context: e2e-report/artifacts/payment-S-10-支払依頼作成-should-not-show-paid-PO-in-payable-list-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2043060Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2051232Z     Error Context: e2e-report/artifacts/payment-S-10-支払依頼作成-should-4e2ff-list-when-cancel-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2055520Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2065531Z     Error Context: e2e-report/artifacts/payment-S-10-支払依頼一覧-should-filter-by-status-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2069468Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2075733Z     Error Context: e2e-report/artifacts/payment-S-10-支払承認-should-s-d60d1-き-payment-with-payment-edit-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2078500Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2086312Z     Error Context: e2e-report/artifacts/payment-S-10-支払承認-should-u-1e656-o-承認待ち-when-承認依頼-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2090735Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2098876Z     Error Context: e2e-report/artifacts/payment-S-10-支払承認-should-s-18001-ち-payment-with-approval-act-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2103479Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2111830Z     Error Context: e2e-report/artifacts/payment-S-10-支払承認-should-u-625b2-s-to-承認済-when-承認-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2116294Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2124590Z     Error Context: e2e-report/artifacts/payment-S-10-支払承認-should-u-230fa-us-to-却下-when-却下-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2131405Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2139025Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-show-支払登録-button-for-承認済-payment-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2145387Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2152976Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-s-4e051-n-form-when-支払登録-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2159103Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2167304Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-s-cb205-t-code-in-registration-form-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2174267Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2182400Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-prefill-amount-from-payment-request-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2186162Z   51) [chromium] › e2e/payment.spec.js:281:3 › S-10 支払登録 › should show validation error when paidDate is empty 
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2188746Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2196634Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-s-810b1-rror-when-paidDate-is-empty-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2202713Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2209897Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-u-0cd23-s-to-支払済-after-registration-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2215985Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2223475Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-return-to-detail-after-registration-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2229740Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2237316Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-n-07b0c-after-payment-is-registered-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2243715Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2251729Z     Error Context: e2e-report/artifacts/payment-S-10-支払登録-should-r-815e6-tail-when-cancel-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2258525Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2266506Z     Error Context: e2e-report/artifacts/payment-P10-RT-01-支払却下フロー--b2268-ment-detail-after-rejection-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2273100Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2280800Z     Error Context: e2e-report/artifacts/payment-P10-RT-01-支払却下フロー--fd38f-ayment-list-after-rejection-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2285139Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveCount^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2294767Z     Error Context: e2e-report/artifacts/product-master-S-11-商品マスタ--a1dcf-sales01-user-on-product-tab-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2298991Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2299670Z     Error: strict mode violation: locator('.detail-grid') resolved to 2 elements:
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2308431Z     Error Context: e2e-report/artifacts/project-S-03-案件一覧・詳細-shoul-675c7-en-detail-button-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2311629Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2312100Z     Error: strict mode violation: locator('.detail-grid') resolved to 2 elements:
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2318238Z     Error Context: e2e-report/artifacts/project-S-03-案件一覧・詳細-shoul-22464-is-clicked-on-detail-screen-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2323301Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2328684Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注起票-sh-56828--pre-filled-with-order-data-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2333135Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2338256Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注起票-sh-19b6b--with-next-sequential-value-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2340783Z   63) [chromium] › e2e/purchaseOrder.spec.js:68:3 › S-06 発注起票 › should show validation error when supplier is not selected 
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2342595Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2347404Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注起票-sh-ae855-en-supplier-is-not-selected-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2349743Z   64) [chromium] › e2e/purchaseOrder.spec.js:75:3 › S-06 発注起票 › should show validation error when order date is empty 
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2351719Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2356602Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注起票-sh-98ec2-or-when-order-date-is-empty-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2360694Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2365559Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注起票-sh-d7081-w-it-in-purchase-order-list-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2369577Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2374535Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注起票-sh-cf825-etail-when-キャンセル-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2378566Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2383581Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-仕入先別分割--ed2f0-oxes-in-purchase-order-form-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2387621Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2392754Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-仕入先別分割--223b8-ll-lines-checked-by-default-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2407278Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2412588Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-仕入先別分割--41e8b-al-when-a-line-is-unchecked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2416703Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2421767Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-仕入先別分割--bba4f-er-with-only-selected-lines-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2424509Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2429373Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注詳細-sh-e0cf7-button-when-status-is-承認依頼中-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2432475Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2437482Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注承認依頼--92045-when-承認依頼-button-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2440109Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2445024Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注承認依頼--3e407-button-when-status-is-承認依頼中-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2447691Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2452860Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注承認依頼--8884f-us-to-却下-when-却下-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2455491Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2460601Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注承認依頼--92ed1-録-button-when-status-is-発注済-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2463263Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2468531Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-発注承認依頼--0ea9a--to-納品済-after-発注確定-and-納品登録-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2471198Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2471689Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2476918Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-契約書類出力--25d5a-ton-when-status-is-承認済・発注待ち-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2479693Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2484531Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-契約書類出力--8ea62-tent-when-契約書類出力-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2487122Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2493649Z     Error Context: e2e-report/artifacts/purchaseOrder-S-06-契約処理方法--48e86-hod-and-show-in-detail-view-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2496390Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2501586Z     Error Context: e2e-report/artifacts/purchaseOrder-P10-RT-01-発注-eca18--order-list-after-rejection-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2504415Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2509441Z     Error Context: e2e-report/artifacts/purchaseOrder-P10-RT-01-発注-db7e3-rder-detail-after-rejection-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2512314Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2517294Z     Error Context: e2e-report/artifacts/purchaseOrder-P10-RT-01-発注-e9f8d-utton-on-rejected-POD-00006-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2520215Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2525113Z     Error Context: e2e-report/artifacts/purchaseOrder-P10-RT-01-発注-85b0d--下書き-when-下書きに戻す-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2527963Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2533221Z     Error Context: e2e-report/artifacts/purchaseOrder-P10-RT-01-発注-148ab-oval-after-returning-to-下書き-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2536093Z     Error: locator.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2541063Z     Error Context: e2e-report/artifacts/purchaseOrder-P10-RT-01-発注-22e93-turn→resubmit→approve-cycle-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2543578Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2548584Z     Error Context: e2e-report/artifacts/receipt-S-09-入金登録-should-u-386d6-atus-to-入金済-when-fully-paid-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2551231Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2556269Z     Error Context: e2e-report/artifacts/receipt-S-09-入金登録-should-u-cfe12-to-一部入金-when-partially-paid-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2558843Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2566769Z     Error Context: e2e-report/artifacts/receipt-S-09-入金登録-should-s-328fb--in-入金履歴-after-registration-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2569495Z     Error: page.click: Test timeout of 30000ms exceeded.
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2575210Z     Error Context: e2e-report/artifacts/receipt-S-09-入金登録-should-r-eb78b-tail-when-cancel-is-clicked-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2577775Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2584991Z     Error Context: e2e-report/artifacts/receipt-S-09-入金一覧-should-show-customer-code-in-list-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2587603Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2594907Z     Error Context: e2e-report/artifacts/receipt-S-09-入金一覧-should-show-customer-name-in-list-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2597375Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2604013Z     Error Context: e2e-report/artifacts/report-S-13-レポート画面-should-show-total-sales-in-totals-row-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2606633Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2613386Z     Error Context: e2e-report/artifacts/report-S-13-レポート画面-should--964b9--gross-profit-in-totals-row-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2616100Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2622735Z     Error Context: e2e-report/artifacts/report-S-13-レポート画面-should--8c5e9-when-year-filter-is-applied-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2625421Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveValue^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2631461Z     Error Context: e2e-report/artifacts/settings-システム設定-should-sho-7855f-me-input-with-default-value-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2634135Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveValue^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2639916Z     Error Context: e2e-report/artifacts/settings-システム設定-should-sho-fd32f-as-default-fiscal-end-month-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2642968Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveCount^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2648817Z     Error Context: e2e-report/artifacts/supplier-master-S-11-仕入先マス-43e30-ales01-user-on-supplier-tab-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2651807Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoHaveCount^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2657578Z     Error Context: e2e-report/artifacts/user-master-S-11-ユーザ管理-sho-8a622-ist-with-3-rows-on-user-tab-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2660342Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m(^[[22m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2660763Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2665531Z     Error Context: e2e-report/artifacts/user-master-S-11-ユーザ管理-sho-d287b-ist-when-edit-form-is-saved-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2668070Z     Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoContainText^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m failed
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2668534Z     Error: element(s) not found
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2673944Z     Error Context: e2e-report/artifacts/user-master-S-11-ユーザ管理-権限制-5ad23-vent-login-for-stopped-user-chromium/error-context.md
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2698163Z     [chromium] › e2e/payment.spec.js:281:3 › S-10 支払登録 › should show validation error when paidDate is empty 
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2703333Z     [chromium] › e2e/purchaseOrder.spec.js:68:3 › S-06 発注起票 › should show validation error when supplier is not selected 
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:08.2703746Z     [chromium] › e2e/purchaseOrder.spec.js:75:3 › S-06 発注起票 › should show validation error when order date is empty 
+E2E Tests (Playwright)	Run E2E tests	2026-05-08T23:39:09.1808280Z ##[error]Process completed with exit code 1.
+
