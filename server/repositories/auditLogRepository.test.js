@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { createAuditLogRepository } from './auditLogRepository.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { createAuditLogRepository, createDbAuditLogRepository } from './auditLogRepository.js';
 
 let repo;
 
@@ -79,6 +79,48 @@ describe('createAuditLogRepository', () => {
 
       // Assert
       expect(results).toHaveLength(0);
+    });
+  });
+});
+
+describe('createDbAuditLogRepository', () => {
+  describe('save', () => {
+    it('should insert entry via db.insert and return the saved row', async () => {
+      // Arrange
+      const saved = { id: 1, action: 'CREATE', result: 'SUCCESS', createdAt: new Date() };
+      const returning = vi.fn().mockResolvedValue([saved]);
+      const values = vi.fn(() => ({ returning }));
+      const insert = vi.fn(() => ({ values }));
+      const db = { insert, query: { auditLogs: { findMany: vi.fn().mockResolvedValue([]) } } };
+      const repo = createDbAuditLogRepository(db);
+      const entry = { action: 'CREATE', result: 'SUCCESS' };
+
+      // Act
+      const result = await repo.save(entry);
+
+      // Assert
+      expect(insert).toHaveBeenCalled();
+      expect(result).toEqual(saved);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return rows from db.query.auditLogs.findMany', async () => {
+      // Arrange
+      const rows = [{ id: 1, action: 'LOGIN', result: 'SUCCESS' }];
+      const findMany = vi.fn().mockResolvedValue(rows);
+      const db = {
+        insert: vi.fn(),
+        query: { auditLogs: { findMany } }
+      };
+      const repo = createDbAuditLogRepository(db);
+
+      // Act
+      const result = await repo.findAll();
+
+      // Assert
+      expect(findMany).toHaveBeenCalled();
+      expect(result).toEqual(rows);
     });
   });
 });
