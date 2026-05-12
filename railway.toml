@@ -6,3 +6,4 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
+releaseCommand = "node scripts/migrate.js"

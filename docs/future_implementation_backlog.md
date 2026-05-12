@@ -1,7 +1,7 @@
 # 取引管理システム 将来実装事項バックログ
 
 作成日：2026-05-06  
-最終更新：2026-05-07（第2〜6期完了実績を反映）  
+最終更新：2026-05-12（9-04-a・9-19-e を対応済みに更新。INF-11: migrate.js / SEED-01: seed-production.js 実装完了。railway.toml releaseCommand 追加）  
 作成根拠：現行実装状況（第1期完了）+ `requirements_definition.md` + 各実装計画書のギャップ分析 + チームレビュー
 
 ---
@@ -965,12 +965,13 @@
 ### 9-04 ヘルスチェック・死活監視・アラート ★★★
 
 **対応要件：** 12.2  
-**現状：** 稼働監視に関する項目が一切ない。障害を検知できない状態では SLO を担保できない。
+**現状：** 稼働監視に関する項目が一切ない。障害を検知できない状態では SLO を担保できない。  
+**依存関係：** `docs/postgresql-railway-plan.md` の完了条件に `/api/health` での DB 接続確認が含まれるため、9-18（Railway 本番接続レイヤー）と並行して先行着手が必要。
 
 
 | #      | 実装内容                                    |
 | ------ | --------------------------------------- |
-| 9-04-a | `GET /api/health` エンドポイントの実装（DB接続確認を含む） |
+| ✅ 9-04-a | `GET /api/health` エンドポイントの実装（DB接続確認を含む）— 9-18 コミットで実装済み（2026-05-12） |
 | 9-04-b | 外形監視（Uptime監視）の設定                       |
 | 9-04-c | エラーレート上昇・応答時間悪化時のアラート通知設定               |
 
@@ -1178,6 +1179,43 @@
 | ------ | ---------------------------------- |
 | 9-17-a | Vite によるルート単位のコードスプリッティング（遅延ロード）設定 |
 | 9-17-b | バンドルサイズ・初期ロード時間の計測と最適化             |
+
+
+---
+
+### 9-18 Railway 本番接続レイヤーの整備 ★★★ ✅ 対応済
+
+**対応要件：** 9.1, 9.2, 9.3  
+**現状：** `server/index.js` は現在も in-memory repository を組み立てており、本番起動時に PostgreSQL repository へ接続する経路が未整備。`feature/postgresql-integration` ブランチで対応中（`docs/postgresql-railway-plan.md` 参照）。  
+**前提条件：** 1-02（データベース永続化）の完了が前提。
+
+> **対応結果（feature/postgresql-integration, 2026-05-12）：** `server/db/client.js` を新規作成（`postgres` ドライバー + Drizzle ORM）。`server/startupGuards.js` に `DATABASE_URL` 未設定時の起動失敗制御を追加。`server/index.js` を `DATABASE_URL` の有無で DB repository / in-memory repository を切り替える構造に全面改修。`server/app.js` に `db` パラメータを追加して `healthRoutes` に渡す。`createDbAuditLogRepository(db)` を新規実装。テスト 1404 件全通過。
+
+
+| #      | 実装内容                                                                                                                                                       |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 9-18-a | `server/db/client.js` の作成（`DATABASE_URL` から接続プールと Drizzle client を生成。本番 / 開発 / テストで接続先を切り替え）                                                              |
+| 9-18-b | `server/index.js` の repository 組み立てを環境別に切り替え（`NODE_ENV=production` または `DATABASE_URL` 設定時は DB repository を使用し、unit test では in-memory を維持）                  |
+| 9-18-c | `DATABASE_URL` 未設定時の明示的な起動失敗制御（`NODE_ENV=production` 時に `process.exit(1)`）                                                                               |
+| 9-18-d | 全 entity の DB repository 実装状況の棚卸し（user / customer / supplier / product / project / quotation / order / purchase-order / invoice / receipt / payment / delivery / approval-route / approval-history / notification / audit-log / session / sequence-counter / settings） |
+
+
+---
+
+### 9-19 Railway PostgreSQL サービス構成と接続設定 ★★★
+
+**対応要件：** 9.1, 9.2, 12.2  
+**現状：** Railway 上での PostgreSQL service 追加・環境変数設定・接続プール調整・migration 適用の具体的な手順が文書化されていない（`docs/postgresql-railway-plan.md` Section 6 参照）。  
+**前提条件：** 9-18（Railway 本番接続レイヤーの整備）・9-04（ヘルスチェック）の完了後に着手する。
+
+
+| #      | 実装内容                                                                              |
+| ------ | --------------------------------------------------------------------------------- |
+| 9-19-a | Railway project に PostgreSQL service を追加し、接続 URL を app service の `DATABASE_URL` 環境変数に設定 |
+| 9-19-b | 接続プールサイズの設定（Railway プランの `max_connections` に合わせた調整）— client.js に `max: 10` 設定済み（9-18） |
+| ✅ 9-19-c | 本番 DB への migration 実行手順の確立 — `scripts/migrate.js` + `railway.toml releaseCommand` 実装済み（2026-05-12） |
+| 9-19-d | `scripts/backup.sh` の Railway PostgreSQL 接続動作検証（pg_dump が Railway DB に対して正常動作することを実機確認） |
+| ✅ 9-19-e | `/api/health` エンドポイントに DB 接続確認を含める実装 — 9-18 コミットで実装済み（2026-05-12） |
 
 
 ---
@@ -1592,10 +1630,12 @@
 
 ---
 
-### 11-13 DBマイグレーション整合性テスト ★★
+### 11-13 DBマイグレーション整合性テスト ★★ △ 一部対応済
 
 **対応要件：** 9.3  
 **現状：** 1-02-bにDrizzle ORM のマイグレーション管理はあるが、マイグレーション自体のテストが未定義。
+
+> **対応結果（feature/postgresql-integration, 2026-05-12）：** `server/db/migrations/000_initial_schema.sql`（全23テーブルのベースライン CREATE TABLE IF NOT EXISTS）を新規作成。`000_initial_schema.test.js`（27件）で SQL の構造・冪等性・全テーブル存在・外部キー制約を検証。実 DB へのマイグレーション適用検証（11-13-a 本来の意味）および 11-13-b（ロールバック）は未着手。
 
 
 | #       | 実装内容                                          |
@@ -1631,13 +1671,15 @@
 | ✅ 9-01 DBバックアップ・障害復旧設計                | インフラ      | 対応済（第4期 INF-02）            |
 | ✅ 9-02 HTTPS/TLS設定と証明書管理              | インフラ      | 対応済（第4期 INF-03）            |
 | △ 9-03 アプリケーションログ収集・集約基盤              | インフラ      | 9-03-a のみ対応済（第4期 SRE-I）    |
-| 9-04 ヘルスチェック・死活監視・アラート                | インフラ      | **未着手**                    |
+| △ 9-04 ヘルスチェック・死活監視・アラート               | インフラ      | 9-04-a のみ対応済（9-18 コミット, 2026-05-12）。9-04-b/c は未着手 |
 | ✅ 9-05 CI/CDパイプライン構築                  | インフラ      | 対応済（第4期 INF-01）            |
 | ✅ 9-06 環境分離（開発・ステージング・本番）             | インフラ      | 対応済（第4期 INF-06）            |
 | ✅ 9-07 DBインデックス設計・クエリ最適化              | インフラ      | 対応済（第5期 INF-07）            |
 | ✅ 9-08 APIサーバー側ページネーションの実装            | インフラ      | 対応済（第5期 INF-08）            |
 | ✅ 9-09 番号自動採番の競合制御                    | インフラ      | 対応済（第2〜3期）                 |
 | ✅ 9-10 DBトランザクション境界の設計と実装             | インフラ      | 対応済（第5期 INF-10）            |
+| ✅ 9-18 Railway 本番接続レイヤーの整備              | インフラ      | 対応済（feature/postgresql-integration, 2026-05-12） |
+| △ 9-19 Railway PostgreSQL サービス構成と接続設定     | インフラ      | 9-19-b/c/e 対応済（2026-05-12）。9-19-a/d は手動作業・未実施 |
 | 10-01 全画面フィードバックUI（ローディング・トースト・エラー表示） | UX        | **未着手**                    |
 | ✅ 11-01 完全業務フロー E2E                   | テスト       | 対応済（第4期 RT-01）             |
 | ✅ 11-02 社長決裁ルートを含む完全承認フロー E2E         | テスト       | 対応済（第4期 RT-02）             |
