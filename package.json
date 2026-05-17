@@ -14,7 +14,9 @@
     "server": "node server/index.js",
     "server:dev": "node --watch server/index.js",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed:production": "node scripts/seed-production.js | psql $DATABASE_URL"
+    "db:seed:production": "node scripts/seed-production.js | psql $DATABASE_URL",
+    "db:test:create": "node scripts/create-test-db.js",
+    "test:integration": "vitest run --config vitest.integration.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",

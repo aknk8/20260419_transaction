@@ -26,6 +26,15 @@ DATABASE_URL="<Railway PostgreSQL の接続URL>" bash scripts/backup.sh
 Railway コンソールから `DATABASE_URL` を取得し、上記コマンドを手元で実行する。
 dump ファイルは `backups/transaction_db_YYYYMMDD_HHMMSS.sql.gz` に出力される。
 
+Railway 側の PostgreSQL より古い `pg_dump` ではバックアップできない。
+例えば Railway が PostgreSQL 18.x の場合、手元の `pg_dump` は 18 以上にする。
+Windows で PowerShell の `pg_dump` は新しくても、`bash scripts/backup.sh` を WSL/Ubuntu で実行すると WSL 側の古い `pg_dump` が使われることがあるため、実行する環境で次を確認する。
+
+```bash
+pg_dump --version
+psql --version
+```
+
 ### cron 設定例（CI/外部サーバーから実行する場合）
 
 ```bash
