@@ -25,7 +25,7 @@ BACKUP_PATH="${BACKUP_DIR}/${BACKUP_FILENAME}"
 DB_LABEL=$(echo "${DATABASE_URL}" | sed -E 's|^postgres(ql)?://[^@]+@||; s|[?].*$||')
 
 # ---- バックアップ実行 -----------------------------------------------------
-echo "[$(date -Iseconds)] バックアップ開始: ${DB_LABEL} → ${BACKUP_PATH}"
+echo "[$(date - seconds)] バックアップ開始: ${DB_LABEL} → ${BACKUP_PATH}"
 
 mkdir -p "${BACKUP_DIR}"
 
