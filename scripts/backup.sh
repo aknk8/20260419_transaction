@@ -21,24 +21,37 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILENAME="transaction_db_${TIMESTAMP}.sql.gz"
 BACKUP_PATH="${BACKUP_DIR}/${BACKUP_FILENAME}"
 
-# DATABASE_URL をパースして pg_dump の引数を組み立てる
-# 形式: postgres://user:password@host:port/dbname
-DB_USER=$(echo "${DATABASE_URL}" | sed -E 's|postgres://([^:]+):.*|\1|')
-DB_PASS=$(echo "${DATABASE_URL}" | sed -E 's|postgres://[^:]+:([^@]+)@.*|\1|')
-DB_HOST=$(echo "${DATABASE_URL}" | sed -E 's|postgres://[^@]+@([^:/]+).*|\1|')
-DB_PORT=$(echo "${DATABASE_URL}" | sed -E 's|postgres://[^@]+@[^:]+:([0-9]+)/.*|\1|')
-DB_NAME=$(echo "${DATABASE_URL}" | sed -E 's|postgres://[^@]+@[^/]+/(.+)|\1|')
+# ログ用に接続先だけを伏せ字なしで表示する。認証情報は表示しない。
+DB_LABEL=$(echo "${DATABASE_URL}" | sed -E 's|^postgres(ql)?://[^@]+@||; s|[?].*$||')
 
 # ---- バックアップ実行 -----------------------------------------------------
-echo "[$(date -Iseconds)] バックアップ開始: ${DB_NAME} → ${BACKUP_PATH}"
+echo "[$(date -Iseconds)] バックアップ開始: ${DB_LABEL} → ${BACKUP_PATH}"
 
 mkdir -p "${BACKUP_DIR}"
 
-PGPASSWORD="${DB_PASS}" pg_dump \
-  --host="${DB_HOST}" \
-  --port="${DB_PORT}" \
-  --username="${DB_USER}" \
-  --dbname="${DB_NAME}" \
+if ! command -v pg_dump >/dev/null 2>&1; then
+  echo "ERROR: pg_dump が見つかりません。PostgreSQL client をインストールしてください。" >&2
+  exit 1
+fi
+
+if command -v psql >/dev/null 2>&1; then
+  SERVER_VERSION_NUM=$(psql "${DATABASE_URL}" -Atc "SHOW server_version_num;" 2>/dev/null || true)
+  PG_DUMP_VERSION=$(pg_dump --version | sed -E 's/.* ([0-9]+)(\.[0-9]+)?.*/\1/')
+
+  if [[ "${SERVER_VERSION_NUM}" =~ ^[0-9]+$ && "${PG_DUMP_VERSION}" =~ ^[0-9]+$ ]]; then
+    SERVER_MAJOR=$((SERVER_VERSION_NUM / 10000))
+    if (( PG_DUMP_VERSION < SERVER_MAJOR )); then
+      echo "ERROR: pg_dump のメジャーバージョンが PostgreSQL server より古いためバックアップできません。" >&2
+      echo "  server major: ${SERVER_MAJOR}" >&2
+      echo "  pg_dump major: ${PG_DUMP_VERSION}" >&2
+      echo "PostgreSQL ${SERVER_MAJOR} 以上の client に更新してから再実行してください。" >&2
+      exit 1
+    fi
+  fi
+fi
+
+pg_dump \
+  --dbname="${DATABASE_URL}" \
   --format=plain \
   --no-owner \
   --no-acl \

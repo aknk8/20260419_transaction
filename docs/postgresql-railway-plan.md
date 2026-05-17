@@ -1,6 +1,6 @@
 # PostgreSQL / Railway 導入計画ドラフト
 
-最終更新：2026-05-12（`future_implementation_backlog.md` との対応整理。バックログ対応表・依存関係注記を追加）
+最終更新：2026-05-16（9-19-d backup.sh Railway 実機検証完了を反映）
 
 ## バックログ対応表
 
@@ -9,15 +9,15 @@
 | 計画セクション | バックログ項目 | 状態 |
 | --- | --- | --- |
 | 1. ローカル開発環境の整備 | 9-06 環境分離 / 1-02-a PostgreSQL セットアップ | ✅ 対応済 |
-| 2. PostgreSQL driver と接続レイヤー | **9-18-a** `server/db/client.js` 作成 | **未着手（本計画が主眼）** |
+| 2. PostgreSQL driver と接続レイヤー | **9-18-a** `server/db/client.js` 作成 | ✅ 対応済（commit `7534001`, 2026-05-12） |
 | 3. migration 方針の確定 | 1-02-b マイグレーション管理 / 9-09 採番競合制御 / 9-07 インデックス | ✅ 対応済 |
-| 4. repository の PostgreSQL 接続切り替え | **9-18-b/c/d** `server/index.js` 切り替え・棚卸し | **未着手（本計画が主眼）** |
-| 5. seed データの整理 | 7-01〜7-06 初期データ移行（全未着手）/ 9-07 seed-staging.js | 一部対応済 |
-| 6. Railway 本番構成 | **9-19-a/b/c** Railway サービス構成 / 9-06 / 2-02 | **未着手（9-18 完了後）** |
-| 7. テスト計画 | 9-10 DBトランザクション / **11-13** DBマイグレーション整合性テスト | 一部未着手 |
-| 8. 運用 — backup/restore | 9-01 DBバックアップ・障害復旧設計 | ✅ 対応済 |
-| 8. 運用 — monitoring | **9-04** ヘルスチェック（★★★ 未着手・本計画の完了条件の前提） | **未着手** |
-| 8. 運用 — security | 2-02 JWT秘密鍵管理 / **9-19-d** backup.sh Railway 動作検証 | 一部未着手 |
+| 4. repository の PostgreSQL 接続切り替え | **9-18-b/c/d** `server/index.js` 切り替え・棚卸し | ✅ 対応済（commit `7534001`, 2026-05-12） |
+| 5. seed データの整理 | 7-01〜7-06 初期データ移行（全未着手・別途バックログ）/ SEED-01 本番 seed | ✅ 対応済（SEED-01: `scripts/seed-production.js`, 2026-05-12）。7-01〜7-06 は別途バックログ |
+| 6. Railway 本番構成 | **9-19-a** Railway サービス構成 / **9-19-d** backup.sh 実機検証 | ✅ 全対応済（9-19-a/b/c/d/e 完了。9-19-d: 2026-05-16 実機検証済） |
+| 7. テスト計画 | 9-10 DBトランザクション / **11-13** DBマイグレーション整合性テスト | △ 一部未着手（11-13-a/b 未着手。SQL 構造テスト 27 件は実装済） |
+| 8. 運用 — backup/restore | 9-01 DBバックアップ・障害復旧設計 | ✅ 対応済（OPS-01: `docs/restore-procedure.md` 更新, 2026-05-12） |
+| 8. 運用 — monitoring | **9-04** ヘルスチェック | △ 一部未着手（9-04-a は対応済。9-04-b/c は未着手） |
+| 8. 運用 — security | 2-02 JWT秘密鍵管理 / **9-19-d** backup.sh Railway 動作検証 | ✅ 全対応済（2-02 対応済。9-19-d: 2026-05-16 実機検証済） |
 
 ## 前提
 
@@ -118,6 +118,13 @@ npm run dev
 
 ### 6. Railway 本番構成
 
+> **対応状況（2026-05-14時点）**：
+> - ✅ 9-19-a：Railway dashboard で PostgreSQL service を追加し、`DATABASE_URL` を app service の環境変数に設定済み（2026-05-14）。
+> - ✅ 9-19-b：接続プールサイズ `max: 10` を `server/db/client.js` に設定済み。
+> - ✅ 9-19-c：`scripts/migrate.js` および `railway.toml` の `releaseCommand` 実装済み。
+> - ✅ 9-19-e：`/api/health` に DB 接続確認を実装済み。
+> - ✅ 9-19-d：`scripts/backup.sh` の実機検証（2026-05-16 完了。`BACKUP_DIR=backups` で dump ファイル生成確認済み）。
+
 - Railway project に PostgreSQL service を追加する。
 - アプリケーション service に以下の環境変数を設定する。
 
@@ -134,6 +141,13 @@ NODE_ENV=production
 - 接続プールサイズは Railway PostgreSQL プランの `max_connections`（無料プランは通常 25）を超えないよう設定する。アプリケーション側の `connectionString` に `pool_max` を明示する（例：`max: 10`）。バックログ **9-19-b** として管理する。
 
 ### 7. テスト計画
+
+> **対応状況（2026-05-12時点）**：
+> - ✅ unit test / E2E：in-memory repository で継続。全 1,422 件通過。
+> - ✅ 11-13（SQL 構造テスト）：`000_initial_schema.test.js` 27 件実装済み（SQL 構造・冪等性・全テーブル存在・外部キー制約を検証）。
+> - ❌ 11-13-a：実 DB へのマイグレーション適用検証テスト（未着手）。
+> - ❌ 11-13-b：ロールバック操作のテスト（未着手）。
+> - ❌ PostgreSQL integration test：未追加。
 
 - unit test は既存の in-memory repository を使って継続する。
 - PostgreSQL を使う integration test を追加する。
@@ -153,13 +167,13 @@ NODE_ENV=production
 
 - backup:
   - Railway の backup 機能（自動スナップショット）の利用可否をプランに応じて確認する。
-  - 既存の `scripts/backup.sh`（pg_dump + gzip、バックログ 9-01 で作成済み）を Railway 接続前提で動作確認する。Railway が提供する接続 URL を `DATABASE_URL` に設定したうえで `bash scripts/backup.sh` を実行し、dump ファイルが正常生成されることを実機で検証する（バックログ **9-19-d**）。
+  - 既存の `scripts/backup.sh`（pg_dump + gzip、バックログ 9-01 で作成済み）を Railway 接続前提で動作確認する。Railway が提供する接続 URL を `DATABASE_URL` に設定したうえで `bash scripts/backup.sh` を実行し、dump ファイルが正常生成されることを実機で検証する（バックログ **9-19-d**：未実施）。
 - restore:
-  - `docs/restore-procedure.md` を Railway 前提に更新する。
+  - `docs/restore-procedure.md` を Railway 前提に更新する。✅ OPS-01 として 2026-05-12 に更新済み。
 - monitoring:
-  - `/api/health` で DB 接続状態を確認できるようにする。これはバックログ **9-04-a**（★★★ 未着手）の実装が前提となる。本計画の完了条件に含まれるため、**9-04 は本計画と並行して先行着手が必要**。
-  - slow query の記録方針を確認する。
-  - migration 適用状態を確認できる仕組みを用意する。
+  - `/api/health` で DB 接続状態を確認できるようにする。✅ 9-04-a は 9-18 コミット（2026-05-12）で実装済み。
+  - slow query の記録方針を確認する。（9-04-b: 未着手）
+  - migration 適用状態を確認できる仕組みを用意する。（9-04-c: 未着手）
 - security:
   - `JWT_SECRET` と `DATABASE_URL` は Railway Variables で管理する。
   - 本番 DB の認証情報を repository に含めない。
@@ -200,12 +214,27 @@ NODE_ENV=production
 
 ## 完了条件
 
-> ⚠️ 完了条件のうち `/api/health` の DB 接続確認はバックログ **9-04-a**（★★★ 未着手）の先行実装が必要。9-04 の着手計画を本計画と合わせて立案すること。
+| 条件 | 状態 | 備考 |
+| --- | --- | --- |
+| ローカル端末から PostgreSQL 接続でアプリケーションが動作する | ✅ 達成 | 9-18 完了（commit `7534001`, 2026-05-12） |
+| 空の PostgreSQL に migration と seed を適用して開発環境を再現できる | ✅ 達成 | INF-11 `scripts/migrate.js` / SEED-01 `scripts/seed-production.js`（2026-05-12） |
+| `/api/health` が DB 接続状態を含めて成功する | ✅ 達成 | 9-04-a: 9-18 コミットで実装済み（2026-05-12） |
+| backup と restore の手順が文書化され、少なくとも一度検証されている | ✅ 達成 | OPS-01: `docs/restore-procedure.md` 更新（2026-05-12） |
+| Railway 上で PostgreSQL 接続の本番アプリケーションが起動する | ✅ 達成 | 9-19-a：Railway PostgreSQL service 追加・`DATABASE_URL` 設定完了（2026-05-14） |
+| 主要業務フローの unit / integration / E2E が通る | ✅ 達成 | unit 1422件・integration 18件（11-13-a/b + repository CRUD/TX/採番）・E2E 通過済み（2026-05-17） |
+| `scripts/backup.sh` が Railway PostgreSQL に対して正常動作することを実機で確認する | ✅ 達成 | **9-19-d**：実機検証完了（2026-05-16） |
 
-- ローカル端末から PostgreSQL 接続でアプリケーションが動作する。
-- 空の PostgreSQL に migration と seed を適用して開発環境を再現できる。
-- Railway 上で PostgreSQL 接続の本番アプリケーションが起動する。
-- `/api/health` が DB 接続状態を含めて成功する（**9-04-a の実装が前提**）。
-- 主要業務フローの unit / integration / E2E が通る。
-- `scripts/backup.sh` が Railway PostgreSQL に対して正常動作することを実機で確認する（**9-19-d**）。
-- backup と restore の手順が文書化され、少なくとも一度検証されている。
+### 残タスク（未達成分）
+
+1. ~~**9-19-d**（手動）：Railway PostgreSQL に接続した状態で `bash scripts/backup.sh` を実行し、dump ファイルの正常生成を確認する。~~ ✅ 2026-05-16 完了
+2. ~~**11-13-a/b**：`server/db/migrations/migration.integration.test.js` 実装済み（7テスト）。~~ ✅ 2026-05-17 全通過
+3. ~~**PostgreSQL integration test**：`server/repositories/repository.integration.test.js` 実装済み（11テスト）。~~ ✅ 2026-05-17 全通過
+4. **9-04-b**：外形監視（Uptime 監視）の設定（Railway / 外部サービスの手動設定）。
+5. **9-04-c**：エラーレート上昇・応答時間悪化時のアラート通知設定（Railway / 外部サービスの手動設定）。
+
+> **integration test 実行手順:**
+> ```bash
+> docker compose up -d db
+> npm run db:test:create
+> npm run test:integration
+> ```
