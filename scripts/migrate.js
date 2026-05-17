@@ -9,7 +9,7 @@ if (!url) {
   process.exit(1);
 }
 
-const sql = postgres(url);
+const sql = postgres(url, { max: 1 });
 try {
   await runMigrations(sql);
   console.log('All migrations applied successfully');
