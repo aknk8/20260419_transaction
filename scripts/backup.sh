@@ -10,6 +10,8 @@
 #   BACKUP_RETENTION_DAYS — バックアップ保持日数（デフォルト: 7）
 #   BACKUP_S3_BUCKET      — S3バケットURI（例: s3://my-bucket/backups）空欄はローカル保存
 #   BACKUP_DIR            — ローカル保存先ディレクトリ（デフォルト: /var/backups/transaction）
+# メモ
+#  bash -lc 'DATABASE_URL="<Railway の DATABASE_PUBLIC_URL>" BACKUP_DIR="backups" bash scripts/backup.sh'
 
 set -euo pipefail
 
@@ -25,7 +27,7 @@ BACKUP_PATH="${BACKUP_DIR}/${BACKUP_FILENAME}"
 DB_LABEL=$(echo "${DATABASE_URL}" | sed -E 's|^postgres(ql)?://[^@]+@||; s|[?].*$||')
 
 # ---- バックアップ実行 -----------------------------------------------------
-echo "[$(date -Iseconds)] バックアップ開始: ${DB_LABEL} → ${BACKUP_PATH}"
+echo "[$(date - seconds)] バックアップ開始: ${DB_LABEL} → ${BACKUP_PATH}"
 
 mkdir -p "${BACKUP_DIR}"
 
