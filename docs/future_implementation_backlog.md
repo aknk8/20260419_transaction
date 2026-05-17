@@ -1,7 +1,7 @@
 # 取引管理システム 将来実装事項バックログ
 
 作成日：2026-05-06  
-最終更新：2026-05-12（9-04-a・9-19-e を対応済みに更新。INF-11: migrate.js / SEED-01: seed-production.js 実装完了。railway.toml releaseCommand 追加）  
+最終更新：2026-05-17（9-19-a/d・11-13-a/b・PostgreSQL integration test 全完了を反映）  
 作成根拠：現行実装状況（第1期完了）+ `requirements_definition.md` + 各実装計画書のギャップ分析 + チームレビュー
 
 ---
@@ -1202,19 +1202,21 @@
 
 ---
 
-### 9-19 Railway PostgreSQL サービス構成と接続設定 ★★★
+### 9-19 Railway PostgreSQL サービス構成と接続設定 ★★★ ✅ 対応済
 
 **対応要件：** 9.1, 9.2, 12.2  
 **現状：** Railway 上での PostgreSQL service 追加・環境変数設定・接続プール調整・migration 適用の具体的な手順が文書化されていない（`docs/postgresql-railway-plan.md` Section 6 参照）。  
 **前提条件：** 9-18（Railway 本番接続レイヤーの整備）・9-04（ヘルスチェック）の完了後に着手する。
 
+> **対応結果：** 9-19-a（2026-05-14）: Railway dashboard で PostgreSQL service 追加・`DATABASE_URL` を app service 環境変数に設定完了。9-19-b: `server/db/client.js` に `max: 10` 設定済み（9-18）。9-19-c（2026-05-12）: `scripts/migrate.js` + `railway.toml releaseCommand` 実装済み。9-19-d（2026-05-16）: `scripts/backup.sh` を Railway PostgreSQL に接続した実機検証完了（`BACKUP_DIR=backups` で dump ファイル生成確認済み）。9-19-e（2026-05-12）: `/api/health` に DB 接続確認実装済み。全サブタスク完了。
 
-| #      | 実装内容                                                                              |
-| ------ | --------------------------------------------------------------------------------- |
-| 9-19-a | Railway project に PostgreSQL service を追加し、接続 URL を app service の `DATABASE_URL` 環境変数に設定 |
-| 9-19-b | 接続プールサイズの設定（Railway プランの `max_connections` に合わせた調整）— client.js に `max: 10` 設定済み（9-18） |
+
+| #         | 実装内容                                                                              |
+| --------- | --------------------------------------------------------------------------------- |
+| ✅ 9-19-a | Railway project に PostgreSQL service を追加し、接続 URL を app service の `DATABASE_URL` 環境変数に設定（2026-05-14） |
+| ✅ 9-19-b | 接続プールサイズの設定（Railway プランの `max_connections` に合わせた調整）— client.js に `max: 10` 設定済み（9-18） |
 | ✅ 9-19-c | 本番 DB への migration 実行手順の確立 — `scripts/migrate.js` + `railway.toml releaseCommand` 実装済み（2026-05-12） |
-| 9-19-d | `scripts/backup.sh` の Railway PostgreSQL 接続動作検証（pg_dump が Railway DB に対して正常動作することを実機確認） |
+| ✅ 9-19-d | `scripts/backup.sh` の Railway PostgreSQL 接続動作検証 — 実機検証完了（2026-05-16）。`BACKUP_DIR=backups` で dump ファイル正常生成確認済み |
 | ✅ 9-19-e | `/api/health` エンドポイントに DB 接続確認を含める実装 — 9-18 コミットで実装済み（2026-05-12） |
 
 
@@ -1630,18 +1632,18 @@
 
 ---
 
-### 11-13 DBマイグレーション整合性テスト ★★ △ 一部対応済
+### 11-13 DBマイグレーション整合性テスト ★★ ✅ 対応済
 
 **対応要件：** 9.3  
 **現状：** 1-02-bにDrizzle ORM のマイグレーション管理はあるが、マイグレーション自体のテストが未定義。
 
-> **対応結果（feature/postgresql-integration, 2026-05-12）：** `server/db/migrations/000_initial_schema.sql`（全23テーブルのベースライン CREATE TABLE IF NOT EXISTS）を新規作成。`000_initial_schema.test.js`（27件）で SQL の構造・冪等性・全テーブル存在・外部キー制約を検証。実 DB へのマイグレーション適用検証（11-13-a 本来の意味）および 11-13-b（ロールバック）は未着手。
+> **対応結果（feature/postgresql-integration, 2026-05-12〜2026-05-17）：** `server/db/migrations/000_initial_schema.sql`（全23テーブルのベースライン CREATE TABLE IF NOT EXISTS）を新規作成。`000_initial_schema.test.js`（27件）で SQL の構造・冪等性・全テーブル存在・外部キー制約を検証。さらに `server/db/migrations/migration.integration.test.js`（7テスト）を実装（Docker 上の実 PostgreSQL に対して実行）。11-13-a（全マイグレーション適用後のスキーマ検証・テーブル存在・カラム・インデックス・初期シード）・11-13-b（冪等性確認・BEGIN/COMMIT トランザクション rollback 確認）を全通過確認（2026-05-17）。加えて `server/repositories/repository.integration.test.js`（11テスト）でリポジトリ CRUD・トランザクション rollback・採番（順次・10並行）を全通過確認（2026-05-17）。合計 integration 18件全 Green。
 
 
-| #       | 実装内容                                          |
-| ------- | --------------------------------------------- |
-| 11-13-a | 全マイグレーションファイルを順に適用した結果のスキーマが期待通りであることを確認するテスト |
-| 11-13-b | ロールバック操作のテスト（直前のマイグレーションを取り消して整合性が保たれること）     |
+| #         | 実装内容                                          |
+| --------- | --------------------------------------------- |
+| ✅ 11-13-a | 全マイグレーションファイルを順に適用した結果のスキーマが期待通りであることを確認するテスト（実 DB 対象、2026-05-17 全通過） |
+| ✅ 11-13-b | ロールバック操作のテスト（BEGIN/COMMIT トランザクション rollback 確認、2026-05-17 全通過） |
 
 
 ---
@@ -1679,7 +1681,7 @@
 | ✅ 9-09 番号自動採番の競合制御                    | インフラ      | 対応済（第2〜3期）                 |
 | ✅ 9-10 DBトランザクション境界の設計と実装             | インフラ      | 対応済（第5期 INF-10）            |
 | ✅ 9-18 Railway 本番接続レイヤーの整備              | インフラ      | 対応済（feature/postgresql-integration, 2026-05-12） |
-| △ 9-19 Railway PostgreSQL サービス構成と接続設定     | インフラ      | 9-19-b/c/e 対応済（2026-05-12）。9-19-a/d は手動作業・未実施 |
+| ✅ 9-19 Railway PostgreSQL サービス構成と接続設定     | インフラ      | 全対応済（9-19-a:2026-05-14, 9-19-d:2026-05-16, 9-19-b/c/e:2026-05-12） |
 | 10-01 全画面フィードバックUI（ローディング・トースト・エラー表示） | UX        | **未着手**                    |
 | ✅ 11-01 完全業務フロー E2E                   | テスト       | 対応済（第4期 RT-01）             |
 | ✅ 11-02 社長決裁ルートを含む完全承認フロー E2E         | テスト       | 対応済（第4期 RT-02）             |
@@ -1744,7 +1746,7 @@
 | 11-10 データ整合性テスト（状態・集計）         | テスト     |                                  |
 | 11-11 権限変更後の反映テスト              | テスト     |                                  |
 | 11-12 性能テスト                    | テスト     |                                  |
-| 11-13 DBマイグレーション整合性テスト         | テスト     |                                  |
+| ✅ 11-13 DBマイグレーション整合性テスト        | テスト     | 対応済（integration 18件全通過、2026-05-17） |
 
 
 ### ★ 通常（機能完全性）
