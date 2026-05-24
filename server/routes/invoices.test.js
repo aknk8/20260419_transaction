@@ -261,6 +261,38 @@ describe('POST /api/invoices/:code/reject (N-03通知)', () => {
   });
 });
 
+describe('GET /api/invoices/candidates - month boundary validation', () => {
+  it('should return 400 when month is 0 (below minimum 1)', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/invoices/candidates?year=2026&month=0',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('should return 400 when month is 13 (above maximum 12)', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/invoices/candidates?year=2026&month=13',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
+  });
+});
+
 describe('GET /api/invoices/candidates', () => {
   it('should return 200 with candidate orders when authenticated', async () => {
     // Arrange
@@ -303,6 +335,38 @@ describe('GET /api/invoices/candidates', () => {
 
     // Assert
     expect(res.statusCode).toBe(401);
+  });
+});
+
+describe('GET /api/reports/monthly-summary - month boundary validation', () => {
+  it('should return 400 when month is 0 (below minimum 1)', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/reports/monthly-summary?year=2026&month=0',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('should return 400 when month is 13 (above maximum 12)', async () => {
+    // Arrange
+    const { app } = await makeApp();
+
+    // Act
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/reports/monthly-summary?year=2026&month=13',
+      cookies: { token: makeToken(app) }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(400);
   });
 });
 

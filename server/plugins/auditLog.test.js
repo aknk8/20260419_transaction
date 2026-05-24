@@ -45,6 +45,22 @@ async function buildTestApp(auditLogRepo) {
     config: { entityType: 'auth', action: 'LOGOUT' }
   }, async () => ({ message: 'ログアウト' }));
 
+  app.patch('/api/test-entity/:id', {
+    config: { entityType: 'testEntity' },
+    preHandler: [app.authenticate]
+  }, async (req, reply) => {
+    reply.header('x-entity-id', req.params.id);
+    return { id: req.params.id, updated: true };
+  });
+
+  app.delete('/api/test-entity/:id', {
+    config: { entityType: 'testEntity' },
+    preHandler: [app.authenticate]
+  }, async (req, reply) => {
+    reply.header('x-entity-id', req.params.id);
+    return reply.code(204).send();
+  });
+
   return app;
 }
 
@@ -191,5 +207,62 @@ describe('auditLogPlugin', () => {
     const logs = await auditLogRepo.findAll();
     expect(logs[0].userId).toBe('user-002');
     expect(logs[0].userName).toBe('鈴木 花子');
+  });
+
+  it('should record UPDATE action when PATCH request succeeds', async () => {
+    // Arrange
+    const auditLogRepo = createAuditLogRepository([]);
+    const app = await buildTestApp(auditLogRepo);
+    const token = makeToken(app);
+
+    // Act
+    await app.inject({
+      method: 'PATCH', url: '/api/test-entity/ENT-001',
+      cookies: { token },
+      payload: { name: '更新後' }
+    });
+
+    // Assert
+    const logs = await auditLogRepo.findAll();
+    expect(logs).toHaveLength(1);
+    expect(logs[0].action).toBe('UPDATE');
+    expect(logs[0].result).toBe('SUCCESS');
+  });
+
+  it('should record DELETE action when DELETE request succeeds', async () => {
+    // Arrange
+    const auditLogRepo = createAuditLogRepository([]);
+    const app = await buildTestApp(auditLogRepo);
+    const token = makeToken(app);
+
+    // Act
+    await app.inject({
+      method: 'DELETE', url: '/api/test-entity/ENT-001',
+      cookies: { token }
+    });
+
+    // Assert
+    const logs = await auditLogRepo.findAll();
+    expect(logs).toHaveLength(1);
+    expect(logs[0].action).toBe('DELETE');
+  });
+
+  it('should return 500 when auditLogRepository.save throws (ログ保存失敗の業務整合性確認)', async () => {
+    // Arrange
+    // onSendフックでawaitしているため、saveが失敗するとFastifyがエラーハンドリングに移り500を返す
+    // 業務処理は実行済みだがHTTPレスポンスが変わる（整合性崩壊リスクの文書化）
+    const failingRepo = { save: vi.fn().mockRejectedValue(new Error('DB write failed')) };
+    const app = await buildTestApp(failingRepo);
+    const token = makeToken(app);
+
+    // Act
+    const res = await app.inject({
+      method: 'POST', url: '/api/test-entity',
+      cookies: { token },
+      payload: { name: 'テスト' }
+    });
+
+    // Assert
+    expect(res.statusCode).toBe(500);
   });
 });
