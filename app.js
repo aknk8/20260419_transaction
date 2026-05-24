@@ -1697,20 +1697,20 @@ function metricCardsHtml() {
     '</li>';
   }).join('');
   const approvalCard =
-    '<article class="metric-card metric-card--approval" data-metric-route="approval" style="cursor:pointer">' +
+    '<article class="metric-card metric-card--warning" data-metric-route="approval">' +
       '<div class="metric-label">承認待ち</div>' +
       '<div class="metric-value">' + String(m.pendingApprovals).padStart(2, '0') + '</div>' +
       '<ul class="approval-type-list">' + approvalTypeListHtml + '</ul>' +
     '</article>';
 
   const otherMetrics = [
-    { label: "未請求", value: String(m.unbilled).padStart(2, "0"), note: "請求対象化済みの未請求受注", route: "invoice" },
-    { label: "未収", value: String(m.uncollected).padStart(2, "0"), note: "送付済・一部入金の請求", route: "invoice" },
-    { label: "未払", value: String(m.unpaid).padStart(2, "0"), note: "承認済みの支払依頼", route: "payment" }
+    { label: "未請求", value: String(m.unbilled).padStart(2, "0"), note: "請求対象化済みの未請求受注", route: "invoice", variant: "metric-card--info" },
+    { label: "未収", value: String(m.uncollected).padStart(2, "0"), note: "送付済・一部入金の請求", route: "invoice", variant: "metric-card--danger" },
+    { label: "未払", value: String(m.unpaid).padStart(2, "0"), note: "承認済みの支払依頼", route: "payment", variant: "" }
   ];
   const otherCardsHtml = otherMetrics.map(function (metric) {
     return (
-      '<article class="metric-card" data-metric-route="' + metric.route + '" style="cursor:pointer">' +
+      '<article class="metric-card ' + metric.variant + '" data-metric-route="' + metric.route + '">' +
         '<div class="metric-label">' + metric.label + "</div>" +
         '<div class="metric-value">' + metric.value + "</div>" +
         '<div class="metric-note">' + escapeHtml(metric.note) + "</div>" +
@@ -1786,53 +1786,383 @@ function permissionCardHtml(title, copy) {
   );
 }
 
-function dashboardHtml(user) {
-  const pending = getPendingApprovals(quotations, purchaseOrders, payments, orders, invoices);
-  const canApprove = hasPermission(user, "approval:view");
+// Chart instances kept across toggle interactions (destroyed on full re-render)
+var dashboardCharts = {};
 
-  const pendingListHtml = canApprove && pending.length > 0
-    ? pending.slice(0, 5).map(function(item) {
-        var typeCls = item.type === '見積' ? 'is-open' : item.type === '発注' ? 'is-pending' : 'is-draft';
+function approvalTypeStatusClass(type) {
+  if (type === '見積') return 'is-open';
+  if (type === '受注') return 'is-info';
+  if (type === '発注') return 'is-pending';
+  return 'is-pending';
+}
+
+function prepareDashboardChartData() {
+  var allRows = getSalesCostReport(invoices, payments);
+  var fiscalEndMonth = viewState.settings.fiscalEndMonth;
+
+  var availableYears = getAvailableFiscalYears(allRows, fiscalEndMonth);
+  var latestYear = availableYears.length > 0 ? availableYears[availableYears.length - 1] : null;
+  var rows = latestYear
+    ? filterReportByFiscalYear(allRows, String(latestYear), fiscalEndMonth)
+    : allRows.slice(-12);
+
+  var labels = rows.map(function(r) {
+    return parseInt(r.yearMonth.split('-')[1], 10) + '月';
+  });
+  var revenue = rows.map(function(r) { return r.sales; });
+  var profit  = rows.map(function(r) { return r.grossProfit; });
+  // Budget: 110% of actual revenue (sample — no budget data in system)
+  var budget = revenue.map(function(v) { return Math.round(v * 1.1); });
+
+  function cumulate(arr) {
+    var acc = 0;
+    return arr.map(function(v) { acc += v; return acc; });
+  }
+
+  // Department breakdown via invoice → customer → department
+  var custMap = {};
+  customers.forEach(function(c) { custMap[c.code] = c; });
+  var confirmed = invoices.filter(function(inv) {
+    return inv.status !== '下書き' && inv.status !== 'キャンセル';
+  });
+  var byDept = {};
+  confirmed.forEach(function(inv) {
+    var cust = custMap[inv.customerId];
+    var dept = cust ? cust.department : '不明';
+    byDept[dept] = (byDept[dept] || 0) + inv.total;
+  });
+  var deptLabels  = Object.keys(byDept);
+  var deptRevenue = deptLabels.map(function(d) { return byDept[d]; });
+  var deptProfit  = deptRevenue.map(function(v) { return Math.round(v * 0.3); });
+
+  // Project breakdown via invoice → projectCode (top 5)
+  var byProject = {};
+  confirmed.forEach(function(inv) {
+    var key = inv.projectCode || '直接売上';
+    byProject[key] = (byProject[key] || 0) + inv.total;
+  });
+  var sortedProj = Object.keys(byProject)
+    .map(function(k) { return { code: k, sales: byProject[k] }; })
+    .sort(function(a, b) { return b.sales - a.sales; })
+    .slice(0, 5);
+  var projectLabels  = sortedProj.map(function(p) { return p.code; });
+  var projectRevenue = sortedProj.map(function(p) { return p.sales; });
+  var projectProfit  = projectRevenue.map(function(v) { return Math.round(v * 0.3); });
+
+  var cumulativeRevenue = cumulate(revenue);
+  var cumulativeBudget  = cumulate(budget);
+
+  return {
+    labels: labels,
+    revenue: revenue,
+    profit: profit,
+    budget: budget,
+    cumulativeRevenue: cumulativeRevenue,
+    cumulativeProfit: cumulate(profit),
+    cumulativeBudget: cumulativeBudget,
+    totalBudget: cumulativeBudget[cumulativeBudget.length - 1] || 0,
+    dept:    { labels: deptLabels,    revenue: deptRevenue,    profit: deptProfit },
+    project: { labels: projectLabels, revenue: projectRevenue, profit: projectProfit }
+  };
+}
+
+function createMonthlyChart(canvas, d, mode, type) {
+  var useCumulative = mode === 'cumulative';
+  var datasets = [
+    {
+      label: useCumulative ? '累計売上' : '売上',
+      data: useCumulative ? d.cumulativeRevenue : d.revenue,
+      borderColor: '#2f8e62',
+      backgroundColor: type === 'line' ? 'rgba(47,142,98,0.1)' : 'rgba(47,142,98,0.8)',
+      borderWidth: 2.5, tension: 0.3, fill: type === 'line'
+    },
+    {
+      label: useCumulative ? '累計粗利' : '粗利',
+      data: useCumulative ? d.cumulativeProfit : d.profit,
+      borderColor: '#3b82f6',
+      backgroundColor: type === 'line' ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.8)',
+      borderWidth: 2.5, tension: 0.3, fill: type === 'line'
+    }
+  ];
+  return new Chart(canvas, {
+    type: type,
+    data: { labels: d.labels, datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } },
+        tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ¥' + ctx.parsed.y.toLocaleString('ja-JP'); } } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: function(v) { return '¥' + (v / 1000000).toFixed(1) + 'M'; }, font: { size: 11 } }, grid: { color: '#e6e5e0' } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function createBudgetChart(canvas, d) {
+  var rates = d.cumulativeRevenue.map(function(actual, i) {
+    return d.cumulativeBudget[i] > 0 ? (actual / d.cumulativeBudget[i]) * 100 : 0;
+  });
+  return new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: d.labels,
+      datasets: [
+        { label: '目標未達', data: rates.map(function(r) { return Math.max(0, 100 - r); }), backgroundColor: '#e57373', stack: 's' },
+        { label: '達成済',   data: rates.map(function(r) { return Math.min(r, 100); }),       backgroundColor: '#9e9e9e', stack: 's' },
+        { label: '超過達成', data: rates.map(function(r) { return Math.max(0, r - 100); }),   backgroundColor: '#66bb6a', stack: 's' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            afterBody: function(ctxs) {
+              var i = ctxs[0].dataIndex;
+              var actual = d.cumulativeRevenue[i];
+              var budget = d.cumulativeBudget[i];
+              var diff = actual - budget;
+              return [
+                '累積実績: ¥' + actual.toLocaleString('ja-JP'),
+                '累積予算: ¥' + budget.toLocaleString('ja-JP'),
+                '達成率: ' + rates[i].toFixed(1) + '%',
+                '差異: ¥' + diff.toLocaleString('ja-JP')
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          stacked: true, beginAtZero: true, max: 130,
+          ticks: { callback: function(v) { return v + '%'; }, font: { size: 11 } },
+          grid: {
+            color: function(ctx) { return ctx.tick.value === 100 ? '#d17b2c' : '#e6e5e0'; },
+            lineWidth: function(ctx) { return ctx.tick.value === 100 ? 2 : 1; }
+          }
+        },
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function createDeptChart(canvas, d, type) {
+  var colors = ['rgba(47,142,98,0.8)', 'rgba(59,130,246,0.8)', 'rgba(139,92,246,0.8)', 'rgba(209,123,44,0.8)', 'rgba(198,90,90,0.8)'];
+  var isDoughnut = type === 'doughnut';
+  return new Chart(canvas, {
+    type: isDoughnut ? 'doughnut' : 'bar',
+    data: {
+      labels: d.dept.labels,
+      datasets: isDoughnut
+        ? [{ label: '売上', data: d.dept.revenue, backgroundColor: colors }]
+        : [
+            { label: '売上', data: d.dept.revenue, backgroundColor: 'rgba(47,142,98,0.8)', borderColor: '#2f8e62', borderWidth: 1 },
+            { label: '粗利', data: d.dept.profit,  backgroundColor: 'rgba(59,130,246,0.8)', borderColor: '#3b82f6', borderWidth: 1 }
+          ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, padding: 14, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var val = ctx.parsed.y !== undefined ? ctx.parsed.y : (ctx.parsed || 0);
+              return (ctx.dataset.label || ctx.label) + ': ¥' + val.toLocaleString('ja-JP');
+            }
+          }
+        }
+      },
+      scales: isDoughnut ? undefined : {
+        y: { beginAtZero: true, ticks: { callback: function(v) { return '¥' + (v / 1000000).toFixed(0) + 'M'; }, font: { size: 11 } }, grid: { color: '#e6e5e0' } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function createProjectChart(canvas, d) {
+  return new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: d.project.labels,
+      datasets: [
+        { label: '売上', data: d.project.revenue, backgroundColor: 'rgba(47,142,98,0.8)', borderColor: '#2f8e62', borderWidth: 1 },
+        { label: '粗利', data: d.project.profit,  backgroundColor: 'rgba(59,130,246,0.8)', borderColor: '#3b82f6', borderWidth: 1 }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, padding: 14, font: { size: 11 } } },
+        tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ¥' + ctx.parsed.x.toLocaleString('ja-JP'); } } }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { callback: function(v) { return '¥' + (v / 1000000).toFixed(0) + 'M'; }, font: { size: 11 } }, grid: { color: '#e6e5e0' } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function initDashboardCharts() {
+  var dataEl = document.getElementById('dashboard-chart-data');
+  if (!dataEl || typeof Chart === 'undefined') return;
+  var d = JSON.parse(dataEl.textContent);
+
+  var monthlyCanvas = document.getElementById('dashboard-monthly-chart');
+  if (monthlyCanvas) {
+    if (dashboardCharts.monthly) dashboardCharts.monthly.destroy();
+    var modeEl = document.querySelector('[data-chart-toggle="monthly-mode"].active');
+    var typeEl = document.querySelector('[data-chart-toggle="monthly-type"].active');
+    var mode = modeEl ? modeEl.getAttribute('data-value') : 'single';
+    var type = typeEl ? typeEl.getAttribute('data-value') : 'line';
+    dashboardCharts.monthly = createMonthlyChart(monthlyCanvas, d, mode, type);
+  }
+
+  var budgetCanvas = document.getElementById('dashboard-budget-chart');
+  if (budgetCanvas) {
+    if (dashboardCharts.budget) dashboardCharts.budget.destroy();
+    dashboardCharts.budget = createBudgetChart(budgetCanvas, d);
+  }
+
+  var deptCanvas = document.getElementById('dashboard-dept-chart');
+  if (deptCanvas) {
+    if (dashboardCharts.dept) dashboardCharts.dept.destroy();
+    var deptTypeEl = document.querySelector('[data-chart-toggle="dept-type"].active');
+    var deptType = deptTypeEl ? deptTypeEl.getAttribute('data-value') : 'bar';
+    dashboardCharts.dept = createDeptChart(deptCanvas, d, deptType);
+  }
+
+  var projCanvas = document.getElementById('dashboard-project-chart');
+  if (projCanvas) {
+    if (dashboardCharts.project) dashboardCharts.project.destroy();
+    dashboardCharts.project = createProjectChart(projCanvas, d);
+  }
+}
+
+function dashboardHtml(user) {
+  var pending = getPendingApprovals(quotations, purchaseOrders, payments, orders, invoices);
+  var userNotifs = getNotificationsForUser(notifications, user.id)
+    .filter(function(n) { return !n.isRead; })
+    .slice(0, 5);
+  var chartData = prepareDashboardChartData();
+
+  var approvalRowsHtml = pending.length > 0
+    ? pending.slice(0, 10).map(function(item) {
         return (
-          '<article class="list-item">' +
-            '<div class="list-item-title">' +
-              '<span class="status-badge ' + typeCls + '">' + escapeHtml(item.type) + '</span> ' +
-              escapeHtml(item.code) +
-            '</div>' +
-            '<div class="list-item-copy">' + escapeHtml(item.title) + '</div>' +
-          '</article>'
+          '<div class="dash-approval-row" data-metric-route="approval">' +
+            '<div><span class="status ' + approvalTypeStatusClass(item.type) + '">' + escapeHtml(item.type) + '</span></div>' +
+            '<div class="cell-code">' + escapeHtml(item.code) + '</div>' +
+            '<div>' + escapeHtml(item.title) + '</div>' +
+            '<div>' + escapeHtml(item.submittedBy || '') + '</div>' +
+            '<div class="cell-amount">¥' + Number(item.amount || 0).toLocaleString('ja-JP') + '</div>' +
+          '</div>'
         );
-      }).join("")
-    : '<div class="empty-card"><div class="empty-copy">承認待ちの案件はありません。</div></div>';
+      }).join('')
+    : '<div style="padding:20px;color:var(--text-muted);font-size:14px">承認待ちの伝票はありません。</div>';
+
+  var notifsHtml = userNotifs.length > 0
+    ? userNotifs.map(function(n) {
+        return (
+          '<div class="list-item">' +
+            '<div class="list-item-title">' +
+              '<span class="status is-pending">' + escapeHtml(n.type) + '</span> ' +
+              escapeHtml(n.message) +
+            '</div>' +
+            '<div class="list-item-copy">' + escapeHtml(n.createdAt || '') + '</div>' +
+          '</div>'
+        );
+      }).join('')
+    : '<div style="padding:16px;color:var(--text-muted);font-size:14px">未読の通知はありません。</div>';
 
   return (
     '<section class="dashboard-grid">' +
-      '<div class="metrics-row">' + metricCardsHtml() + "</div>" +
-      '<section class="panel wide-panel">' +
+
+      '<div class="metrics-row">' + metricCardsHtml() + '</div>' +
+
+      // 承認待ち伝票テーブル
+      '<section class="panel" style="grid-column:1/-1">' +
         '<div class="panel-header">' +
-          "<div>" +
-            '<div class="panel-label">S-02</div>' +
-            '<div class="panel-title-text">ダッシュボード</div>' +
-          "</div>" +
-          '<span class="menu-tag">' + escapeHtml(user.name) + "</span>" +
-        "</div>" +
-        '<div class="permissions-grid">' +
-          permissionCardHtml("利用者区分", escapeHtml(user.userType) + " としてログイン中です。") +
-          permissionCardHtml("所属部門", escapeHtml(user.department) + " に基づく画面導線を表示しています。") +
-          permissionCardHtml("役職", escapeHtml(user.position) + " のため承認表示とダッシュボード内容が調整されます。") +
-          permissionCardHtml("ユーザ個別権限", "付与数: " + user.permissions.length + "件。") +
-        "</div>" +
-      "</section>" +
+          '<div class="panel-title-text">承認待ち伝票</div>' +
+          '<div class="toolbar">' +
+            '<button class="button button-secondary button-sm" type="button" data-route="approval">すべて表示</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dash-approval-table">' +
+          '<div class="dash-approval-head">' +
+            '<div>種別</div><div>伝票番号</div><div>件名</div><div>申請者</div><div style="text-align:right">金額</div>' +
+          '</div>' +
+          approvalRowsHtml +
+        '</div>' +
+      '</section>' +
+
+      // 月次売上・粗利推移グラフ
+      '<section class="panel" style="grid-column:1/-1">' +
+        '<div class="chart-header">' +
+          '<div class="chart-title">月次売上・粗利推移（当期）</div>' +
+          '<div class="chart-controls">' +
+            '<button class="chart-btn active" data-chart-toggle="monthly-mode" data-value="single">単月</button>' +
+            '<button class="chart-btn" data-chart-toggle="monthly-mode" data-value="cumulative">累計</button>' +
+            '<span style="width:6px"></span>' +
+            '<button class="chart-btn active" data-chart-toggle="monthly-type" data-value="line">折れ線</button>' +
+            '<button class="chart-btn" data-chart-toggle="monthly-type" data-value="bar">棒グラフ</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="chart-container"><canvas id="dashboard-monthly-chart"></canvas></div>' +
+      '</section>' +
+
+      // 予算達成率グラフ
+      '<section class="panel" style="grid-column:1/-1">' +
+        '<div class="chart-header">' +
+          '<div class="chart-title">予算達成率（当期・累積）</div>' +
+          '<div style="font-size:11px;color:var(--text-muted)">予算は参考値（実績の110%換算）</div>' +
+        '</div>' +
+        '<div class="chart-container"><canvas id="dashboard-budget-chart"></canvas></div>' +
+      '</section>' +
+
+      // 部門別 + 案件別（2カラム）
       '<section class="panel narrow-panel">' +
+        '<div class="chart-header">' +
+          '<div class="chart-title">部門別売上</div>' +
+          '<div class="chart-controls">' +
+            '<button class="chart-btn active" data-chart-toggle="dept-type" data-value="bar">棒</button>' +
+            '<button class="chart-btn" data-chart-toggle="dept-type" data-value="doughnut">円</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="chart-container chart-small"><canvas id="dashboard-dept-chart"></canvas></div>' +
+      '</section>' +
+      '<section class="panel wide-panel">' +
+        '<div class="chart-header">' +
+          '<div class="chart-title">案件別売上（TOP5）</div>' +
+        '</div>' +
+        '<div class="chart-container chart-small"><canvas id="dashboard-project-chart"></canvas></div>' +
+      '</section>' +
+
+      // 通知パネル
+      '<section class="panel" style="grid-column:1/-1">' +
         '<div class="panel-header">' +
-          "<div>" +
-            '<div class="panel-label">承認待ち</div>' +
-            '<div class="panel-title-text">要承認の伝票</div>' +
-          "</div>" +
-        "</div>" +
-        '<div class="list">' + pendingListHtml + "</div>" +
-      "</section>" +
-    "</section>"
+          '<div class="panel-title-text">通知</div>' +
+          '<div class="toolbar">' +
+            '<button class="button button-secondary button-sm" type="button" data-route="notification">すべて表示</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="list">' + notifsHtml + '</div>' +
+      '</section>' +
+
+      // チャートデータ埋め込み
+      '<script id="dashboard-chart-data" type="application/json">' +
+        JSON.stringify(chartData).replace(/</g, '\\u003c') +
+      '</' + 'script>' +
+
+    '</section>'
   );
 }
 
@@ -5548,6 +5878,51 @@ function bindAppEvents() {
       window.location.hash = "#/" + link.getAttribute("data-route");
     });
   });
+
+  // Metric card routing (dashboard)
+  Array.prototype.forEach.call(document.querySelectorAll("[data-metric-route]"), function (card) {
+    card.addEventListener("click", function () {
+      window.location.hash = "#/" + card.getAttribute("data-metric-route");
+    });
+  });
+
+  // Dashboard chart toggle buttons
+  Array.prototype.forEach.call(document.querySelectorAll("[data-chart-toggle]"), function (btn) {
+    btn.addEventListener("click", function () {
+      var group = btn.getAttribute("data-chart-toggle");
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-chart-toggle="' + group + '"]'),
+        function (b) { b.classList.remove("active"); }
+      );
+      btn.classList.add("active");
+      var dataEl = document.getElementById("dashboard-chart-data");
+      if (!dataEl || typeof Chart === "undefined") return;
+      var d = JSON.parse(dataEl.textContent);
+      if (group === "monthly-mode" || group === "monthly-type") {
+        var canvas = document.getElementById("dashboard-monthly-chart");
+        if (!canvas) return;
+        if (dashboardCharts.monthly) dashboardCharts.monthly.destroy();
+        var modeEl = document.querySelector('[data-chart-toggle="monthly-mode"].active');
+        var typeEl = document.querySelector('[data-chart-toggle="monthly-type"].active');
+        dashboardCharts.monthly = createMonthlyChart(
+          canvas, d,
+          modeEl ? modeEl.getAttribute("data-value") : "single",
+          typeEl ? typeEl.getAttribute("data-value") : "line"
+        );
+      } else if (group === "dept-type") {
+        var deptCanvas = document.getElementById("dashboard-dept-chart");
+        if (!deptCanvas) return;
+        if (dashboardCharts.dept) dashboardCharts.dept.destroy();
+        var deptTypeEl = document.querySelector('[data-chart-toggle="dept-type"].active');
+        dashboardCharts.dept = createDeptChart(deptCanvas, d, deptTypeEl ? deptTypeEl.getAttribute("data-value") : "bar");
+      }
+    });
+  });
+
+  // Initialize charts if on dashboard
+  if (document.getElementById("dashboard-monthly-chart")) {
+    initDashboardCharts();
+  }
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-table-input='search']"), function (input) {
     var composing = false;
