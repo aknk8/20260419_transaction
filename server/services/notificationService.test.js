@@ -191,6 +191,25 @@ describe('createNotificationService', () => {
     });
   });
 
+  describe('notifyApprovalRequest (N-01) - 部分失敗', () => {
+    it('should reject when any repo.save fails (Promise.all partial failure)', async () => {
+      // Arrange
+      // Promise.all で2件中1件が失敗した場合、全体がrejectされる
+      const saveError = new Error('DB write failed');
+      const repo = makeRepo({
+        save: vi.fn()
+          .mockResolvedValueOnce({ id: 'uuid-001', type: 'N-01' })
+          .mockRejectedValueOnce(saveError)
+      });
+      const svc = createNotificationService();
+
+      // Act & Assert
+      await expect(
+        svc.notifyApprovalRequest('見積', 'QUO-00001', ['mgr01', 'mgr02'], { repository: repo })
+      ).rejects.toThrow('DB write failed');
+    });
+  });
+
   describe('notifyStaleApprovals (N-04)', () => {
     it('should save N-04 notification for each stale pending document', async () => {
       // Arrange
@@ -267,6 +286,27 @@ describe('createNotificationService', () => {
 
       // Assert
       expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ docCode: 'ORD-00001' }));
+    });
+
+    it('should reject when any repo.save fails during Promise.all (partial failure)', async () => {
+      // Arrange
+      // 複数通知の一部のsaveが失敗した場合、Promise.allが全体をrejectする
+      const saveError = new Error('DB write failed');
+      const repo = makeRepo({
+        save: vi.fn()
+          .mockResolvedValueOnce({ id: 'uuid-001', type: 'N-04' })
+          .mockRejectedValueOnce(saveError)
+      });
+      const svc = createNotificationService();
+      const pendingDocuments = [
+        { code: 'QUO-00001', docType: 'quotation', submittedAt: '2026-04-01', submittedBy: 'user01' },
+        { code: 'ORD-00001', docType: 'order', submittedAt: '2026-04-01', submittedBy: 'user02' }
+      ];
+
+      // Act & Assert
+      await expect(
+        svc.notifyStaleApprovals(3, '2026-05-05', { pendingDocuments, repository: repo })
+      ).rejects.toThrow('DB write failed');
     });
   });
 });

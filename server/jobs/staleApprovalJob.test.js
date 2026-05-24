@@ -189,5 +189,56 @@ describe('createStaleApprovalJob', () => {
       // Assert
       expect(count).toBe(0);
     });
+
+    it('should notify when pending document reaches exactly staleDays threshold (boundary)', async () => {
+      // Arrange
+      // staleDays=3, TODAY='2026-05-05', submittedAt='2026-05-02' → diff=3日 → 通知される（diffDays >= staleDays）
+      const repos = makeRepos({
+        quotationRepository: {
+          findAll: vi.fn().mockResolvedValue([
+            { code: 'QUO-00001', status: '承認依頼中', submittedAt: '2026-05-02', submittedBy: 'user01', updatedAt: '2026-05-02' }
+          ])
+        }
+      });
+      const job = createStaleApprovalJob({ ...repos, staleDays: 3 });
+
+      // Act
+      const count = await job.run(TODAY);
+
+      // Assert
+      expect(count).toBe(1);
+    });
+
+    it('should not notify when pending document is one day short of staleDays threshold (boundary-1)', async () => {
+      // Arrange
+      // staleDays=3, TODAY='2026-05-05', submittedAt='2026-05-03' → diff=2日 → 通知されない
+      const repos = makeRepos({
+        quotationRepository: {
+          findAll: vi.fn().mockResolvedValue([
+            { code: 'QUO-00001', status: '承認依頼中', submittedAt: '2026-05-03', submittedBy: 'user01', updatedAt: '2026-05-03' }
+          ])
+        }
+      });
+      const job = createStaleApprovalJob({ ...repos, staleDays: 3 });
+
+      // Act
+      const count = await job.run(TODAY);
+
+      // Assert
+      expect(count).toBe(0);
+    });
+
+    it('should reject when a repository findAll throws DB connection error', async () => {
+      // Arrange
+      // Promise.all内のfindAllが失敗するとジョブ全体がrejectされる（連携先停止シナリオ）
+      const dbError = new Error('DB connection refused');
+      const repos = makeRepos({
+        quotationRepository: { findAll: vi.fn().mockRejectedValue(dbError) }
+      });
+      const job = createStaleApprovalJob({ ...repos, staleDays: 3 });
+
+      // Act & Assert
+      await expect(job.run(TODAY)).rejects.toThrow('DB connection refused');
+    });
   });
 });
