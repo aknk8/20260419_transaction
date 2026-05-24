@@ -534,7 +534,38 @@ a {
 .metric-card {
   padding: 20px;
   background: linear-gradient(180deg, #fff 0%, #fbfbf8 100%);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.metric-card--warning::before { background: var(--warning); }
+.metric-card--danger::before  { background: var(--danger); }
+.metric-card--info::before    { background: var(--info, #3b82f6); }
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.metric-card:hover::before { opacity: 1; }
+
+.metric-card--warning .metric-value { color: var(--warning); }
+.metric-card--danger  .metric-value { color: var(--danger); }
+.metric-card--info    .metric-value { color: var(--info, #3b82f6); }
 
 .metric-value {
   margin-top: 14px;
@@ -1531,5 +1562,116 @@ a {
   background: var(--surface-muted);
   color: var(--text);
   border-left: 4px solid var(--text-muted);
+}
+
+/* ── Dashboard charts ────────────────────────────────────────────────────── */
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.chart-container.chart-small { height: 220px; }
+.chart-container.chart-large { height: 400px; }
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chart-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.chart-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.chart-btn {
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+.chart-btn:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+.chart-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ── Dashboard approval table ─────────────────────────────────────────── */
+
+.dash-approval-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.dash-approval-head,
+.dash-approval-row {
+  display: grid;
+  grid-template-columns: 0.65fr 1fr 2fr 1fr 1fr;
+}
+
+.dash-approval-head {
+  background: var(--surface-muted);
+}
+
+.dash-approval-head > div {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.dash-approval-row {
+  border-top: 1px solid var(--border);
+  transition: background 0.1s;
+  cursor: pointer;
+}
+
+.dash-approval-row:hover { background: var(--surface-accent); }
+
+.dash-approval-row > div {
+  padding: 12px 14px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.dash-approval-row .cell-code {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.dash-approval-row .cell-amount {
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
 }
 
