@@ -108,13 +108,18 @@ jobs:
 
       - name: DBスキーマ確認
         run: |
-          node -e "
-            const { Client } = require('pg');
-            const c = new Client(process.env.DATABASE_URL);
-            c.connect()
-              .then(() => c.query('SELECT 1 FROM users LIMIT 1'))
-              .then(() => { console.log('schema OK'); c.end(); })
-              .catch(e => { console.error(e.message); process.exit(1); });
+          node --input-type=module -e "
+            import postgres from 'postgres';
+            const sql = postgres(process.env.DATABASE_URL, { max: 1 });
+            try {
+              await sql\`SELECT 1 FROM users LIMIT 1\`;
+              console.log('schema OK');
+            } catch (e) {
+              console.error(e.message);
+              process.exitCode = 1;
+            } finally {
+              await sql.end();
+            }
           "
         env:
           DATABASE_URL: postgres://app_user:ci_test_password@localhost:5432/transaction_db_test
