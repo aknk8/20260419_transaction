@@ -32,7 +32,7 @@ test.describe('S-12 承認操作（承認/却下+コメント）', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 

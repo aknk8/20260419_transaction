@@ -31,8 +31,8 @@ test('check console errors after login', async ({ page }) => {
   await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
   await page.waitForTimeout(3000);
   console.log('BROWSER ERRORS AFTER LOGIN:', JSON.stringify(errors));
-  await expect(page.locator('[data-route="approval"]')).toBeVisible({ timeout: 10000 });
-  await page.locator('[data-route="approval"]').click();
+  await expect(page.locator('.sidebar [data-route="approval"]')).toBeVisible({ timeout: 10000 });
+  await page.locator('.sidebar [data-route="approval"]').click();
   await page.waitForTimeout(2000);
   console.log('BROWSER ERRORS AFTER APPROVAL CLICK:', JSON.stringify(errors));
 });

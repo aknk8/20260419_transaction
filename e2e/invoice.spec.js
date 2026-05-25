@@ -6,7 +6,7 @@ test.describe('S-08 請求一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -51,7 +51,7 @@ test.describe('S-08 請求一覧', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await expect(page.locator('[data-route="invoice"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="invoice"]')).toBeVisible();
   });
 });
 
@@ -61,7 +61,7 @@ test.describe('S-08 請求対象抽出', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -138,7 +138,7 @@ test.describe('S-08 請求詳細', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -214,7 +214,7 @@ test.describe('P10-RT-02 請求起票 バリデーション', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('#invoice-extract-btn');
     await expect(page.locator('[data-billable-order]')).toBeVisible();
@@ -255,7 +255,7 @@ test.describe('RT-05 伝票状態遷移制御 - 確定済み請求', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 

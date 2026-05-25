@@ -52,7 +52,7 @@ test.beforeEach(async ({ page }) => {
   await page.fill('#user-id', 'admin');
   await page.fill('#password', 'admin123');
   await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-  await page.locator('[data-route="purchase-order"]').click();
+  await page.locator('.sidebar [data-route="purchase-order"]').click();
   await expect(page.locator('.data-table')).toBeVisible();
 });
 
@@ -290,7 +290,7 @@ test.describe('P10-RT-04 発注→納品→請求 データ連鎖整合性', () 
     // Chain: POD-00003 (納品済) → ORD-00003 (billingTarget: true) → appears in billable list
 
     // Act: navigate to invoice extract
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('#invoice-extract-btn');
 
@@ -302,7 +302,7 @@ test.describe('P10-RT-04 発注→納品→請求 データ連鎖整合性', () 
     // Invoice amount integrity: billable list must show the order total (132,000 円)
 
     // Act
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('#invoice-extract-btn');
 
@@ -315,7 +315,7 @@ test.describe('P10-RT-04 発注→納品→請求 データ連鎖整合性', () 
     // POD-00005 is 納品済 and links to ORD-00002, but ORD-00002 has billingTarget: false
 
     // Act
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('#invoice-extract-btn');
 

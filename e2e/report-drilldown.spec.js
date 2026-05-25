@@ -6,7 +6,7 @@ test.describe('レポート ドリルダウン（顧客別→案件別）', () =
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="report"]').click();
+    await page.locator('.sidebar [data-route="report"]').click();
     await expect(page.locator('#report-customer-section')).toBeVisible();
   });
 

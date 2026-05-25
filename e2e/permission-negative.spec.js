@@ -53,7 +53,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'sales01', 'sales123');
 
       // Act: 承認一覧に移動して承認依頼中の見積をクリック
-      await page.locator('[data-route="approval"]').click();
+      await page.locator('.sidebar [data-route="approval"]').click();
       await page.locator('[data-action-detail-approval^="受注:"]').first().click();
 
       // Assert: 承認ボタンが非表示
@@ -76,7 +76,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'sales01', 'sales123');
 
       // Act: 承認一覧に移動して承認依頼中の受注をクリック
-      await page.locator('[data-route="approval"]').click();
+      await page.locator('.sidebar [data-route="approval"]').click();
       await page.locator('[data-action-detail-approval^="受注:"]').first().click();
 
       // Assert: 却下ボタンも非表示
@@ -99,11 +99,11 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'sales01', 'sales123');
 
       // Act: 承認一覧へ移動
-      await page.locator('[data-route="approval"]').click();
+      await page.locator('.sidebar [data-route="approval"]').click();
 
       // Assert: 一覧は表示されるが承認操作はできない（見る権限のみ）
       await expect(page.locator('.data-table')).toBeVisible();
-      await expect(page.locator('[data-route="approval"]')).toBeVisible();
+      await expect(page.locator('.sidebar [data-route="approval"]')).toBeVisible();
     });
 
   });
@@ -125,7 +125,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'sales01', 'sales123');
 
       // Act: 請求一覧へ移動
-      await page.locator('[data-route="invoice"]').click();
+      await page.locator('.sidebar [data-route="invoice"]').click();
       await expect(page.locator('.data-table')).toBeVisible();
 
       // Assert: 請求対象抽出ボタン（新規作成相当）が非表示
@@ -147,7 +147,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'sales01', 'sales123');
 
       // Act: マスタ管理へ移動
-      await page.locator('[data-route="master"]').click();
+      await page.locator('.sidebar [data-route="master"]').click();
       await expect(page.locator('.data-table')).toBeVisible();
 
       // Assert: 新規登録ボタンが非表示
@@ -169,7 +169,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'sales01', 'sales123');
 
       // Act: マスタ管理（顧客一覧）へ移動
-      await page.locator('[data-route="master"]').click();
+      await page.locator('.sidebar [data-route="master"]').click();
       await expect(page.locator('.data-table')).toBeVisible();
 
       // Assert: 編集ボタンが表示されない
@@ -195,7 +195,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'viewer', 'viewer123');
 
       // Assert: マスタ管理（S-11）メニューが非表示
-      await expect(page.locator('[data-route="master"]')).not.toBeVisible();
+      await expect(page.locator('.sidebar [data-route="master"]')).not.toBeVisible();
     });
 
     test('should not expose master route when user lacks master:view permission', async ({ page }) => {
@@ -214,7 +214,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
 
       // Assert: マスタ管理のデータテーブルにアクセスできない（メニュー非表示のため）
       // サイドバーに存在しないことを確認
-      const masterMenuCount = await page.locator('[data-route="master"]').count();
+      const masterMenuCount = await page.locator('.sidebar [data-route="master"]').count();
       expect(masterMenuCount).toBe(0);
     });
 
@@ -234,7 +234,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'approver-readonly', 'password123');
 
       // Assert: 承認メニューは表示される（閲覧可）
-      await expect(page.locator('[data-route="approval"]')).toBeVisible();
+      await expect(page.locator('.sidebar [data-route="approval"]')).toBeVisible();
     });
 
     test('should not show quotation menu when user lacks quotation:view permission', async ({ page }) => {
@@ -253,7 +253,7 @@ test.describe('RT-06 UI層権限ネガティブテスト', () => {
       await loginAs(page, 'finance01', 'finance123');
 
       // Assert: 見積メニューが非表示
-      await expect(page.locator('[data-route="quotation"]')).not.toBeVisible();
+      await expect(page.locator('.sidebar [data-route="quotation"]')).not.toBeVisible();
     });
 
   });

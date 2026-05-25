@@ -6,7 +6,7 @@ test.describe('S-03 案件一覧・詳細', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="project"]').click();
+    await page.locator('.sidebar [data-route="project"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -59,7 +59,7 @@ test.describe('S-03 案件登録・編集', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="project"]').click();
+    await page.locator('.sidebar [data-route="project"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -145,7 +145,7 @@ test.describe('S-03 案件 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="project"]').click();
+    await page.locator('.sidebar [data-route="project"]').click();
 
     await expect(page.locator('.data-table')).toBeVisible();
     await expect(page.locator('#new-project-btn')).toBeVisible();
@@ -157,6 +157,6 @@ test.describe('S-03 案件 権限制御', () => {
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
-    await expect(page.locator('[data-route="project"]')).not.toBeVisible();
+    await expect(page.locator('.sidebar [data-route="project"]')).not.toBeVisible();
   });
 });

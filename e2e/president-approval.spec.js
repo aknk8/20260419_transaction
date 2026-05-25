@@ -148,7 +148,7 @@ test.describe('RT-02 社長決裁条件設定', () => {
     await setupBaseMock(page);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="settings"]').click();
+    await page.locator('.sidebar [data-route="settings"]').click();
     await page.locator('[data-settings-tab="approval-condition"]').click();
   });
 
@@ -209,7 +209,7 @@ test.describe('RT-02 社長決裁ルート設定確認', () => {
     await setupBaseMock(page);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="settings"]').click();
+    await page.locator('.sidebar [data-route="settings"]').click();
     await page.locator('[data-settings-tab="approval-route"]').click();
   });
 
@@ -236,9 +236,9 @@ test.describe('RT-02 高額見積 社長決裁ルート 承認フロー', () => 
     await setupHighValueApprovalMock(page, highValueQuotation);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -278,7 +278,7 @@ test.describe('RT-02 高額見積 社長決裁ルート 承認フロー', () => 
     await page.locator('#approval-confirm-approve').click();
 
     // Act: 見積一覧で確認
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-quotation="QUO-HIGH"]').click();
 
@@ -296,7 +296,7 @@ test.describe('RT-02 高額見積 社長決裁ルート 承認フロー', () => 
     await page.locator('#approval-confirm-reject').click();
 
     // Assert: 却下後に見積ステータスが却下に変化
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-quotation="QUO-HIGH"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('却下');
@@ -313,7 +313,7 @@ test.describe('RT-02 社長決裁閾値境界値テスト', () => {
     await setupBaseMock(page);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="settings"]').click();
+    await page.locator('.sidebar [data-route="settings"]').click();
     await page.locator('[data-settings-tab="approval-condition"]').click();
 
     // Assert: デフォルト閾値が境界値（10,000,000円）に設定されている
@@ -326,9 +326,9 @@ test.describe('RT-02 社長決裁閾値境界値テスト', () => {
     await setupHighValueApprovalMock(page, aboveThresholdQuotation);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
 
     // Assert: 閾値1円超の見積が承認一覧に表示される
     await expect(page.locator('.data-table')).toContainText('QUO-ABOVE');
@@ -341,9 +341,9 @@ test.describe('RT-02 社長決裁閾値境界値テスト', () => {
     await setupHighValueApprovalMock(page, belowThresholdQuotation);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
 
     // Assert: 閾値1円未満の見積も承認一覧に表示される（承認ルートは同じ）
     await expect(page.locator('.data-table')).toContainText('QUO-BELOW');
@@ -355,9 +355,9 @@ test.describe('RT-02 社長決裁閾値境界値テスト', () => {
     await setupHighValueApprovalMock(page, thresholdQuotation);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
 
     // Assert: 閾値ちょうどの見積も承認一覧に表示される
     await expect(page.locator('.data-table')).toContainText('QUO-THRESHOLD');
@@ -368,7 +368,7 @@ test.describe('RT-02 社長決裁閾値境界値テスト', () => {
     await setupBaseMock(page);
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="settings"]').click();
+    await page.locator('.sidebar [data-route="settings"]').click();
     await page.locator('[data-settings-tab="approval-condition"]').click();
 
     // Act: 閾値を1円に設定（全見積が社長決裁対象）

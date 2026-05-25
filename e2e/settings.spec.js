@@ -6,7 +6,7 @@ test.describe('システム設定', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="settings"]').click();
+    await page.locator('.sidebar [data-route="settings"]').click();
     await expect(page.locator('.master-tabs')).toBeVisible();
   });
 

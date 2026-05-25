@@ -32,7 +32,7 @@ test.describe('P0-11 S-15 承認ルート設定タブ', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="settings"]').click();
+    await page.locator('.sidebar [data-route="settings"]').click();
   });
 
   test('should show 承認ルート設定 tab in settings screen', async ({ page }) => {

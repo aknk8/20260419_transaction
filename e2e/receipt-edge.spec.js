@@ -53,7 +53,7 @@ async function loginAndOpenInvoiceDetail(page) {
   await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
   // Act
-  await page.locator('[data-route="invoice"]').click();
+  await page.locator('.sidebar [data-route="invoice"]').click();
   await expect(page.locator('.data-table')).toBeVisible();
   await page.click(`[data-action-detail-invoice="${INV_CODE}"]`);
 

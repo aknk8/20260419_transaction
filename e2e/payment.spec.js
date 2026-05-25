@@ -6,7 +6,7 @@ test.describe('S-10 支払依頼作成', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -101,7 +101,7 @@ test.describe('S-10 支払依頼一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -135,7 +135,7 @@ test.describe('S-10 支払依頼一覧', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await expect(page.locator('[data-route="payment"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="payment"]')).toBeVisible();
   });
 });
 
@@ -145,7 +145,7 @@ test.describe('S-10 支払承認', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -208,7 +208,7 @@ test.describe('S-10 支払承認', () => {
     await page.click('#payment-approve-btn');
     await page.locator('#approval-confirm-approve').click();
     // After approval, navigateBackToApproval() fires; navigate back to verify status
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await page.click('[data-action-detail-payment="PMT-00003"]');
     await expect(page.locator('.status-badge')).toHaveText('承認済');
   });
@@ -224,7 +224,7 @@ test.describe('S-10 支払承認', () => {
     await page.locator('#approval-comment-input').fill('テスト却下理由');
     await page.locator('#approval-confirm-reject').click();
     // After rejection, navigateBackToApproval() fires; navigate back to verify status
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await page.click('[data-action-detail-payment="PMT-00003"]');
     await expect(page.locator('.status-badge')).toHaveText('却下');
   });
@@ -242,7 +242,7 @@ test.describe('S-10 支払登録', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     // 支払依頼を作成して承認済にする
     await page.click('#payment-create-btn');
@@ -254,7 +254,7 @@ test.describe('S-10 支払登録', () => {
     await page.click('#payment-approve-btn');
     await page.locator('#approval-confirm-approve').click();
     // After approval, navigateBackToApproval() fires; navigate back to payment detail
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await page.click('[data-action-detail-payment="PMT-00003"]');
   });
 
@@ -318,7 +318,7 @@ test.describe('P10-RT-01 支払却下フロー', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     // Create PMT-00003 and submit for approval
     await page.click('#payment-create-btn');
@@ -335,7 +335,7 @@ test.describe('P10-RT-01 支払却下フロー', () => {
     await page.locator('#approval-comment-input').fill('支払金額を確認してください');
     await page.locator('#approval-confirm-reject').click();
     // Navigate back to payment and open detail
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await page.click('[data-action-detail-payment="PMT-00003"]');
 
     await expect(page.locator('.status-badge')).toHaveText('却下');
@@ -347,7 +347,7 @@ test.describe('P10-RT-01 支払却下フロー', () => {
     await page.locator('#approval-comment-input').fill('支払金額を確認してください');
     await page.locator('#approval-confirm-reject').click();
     // Navigate back to payment list
-    await page.locator('[data-route="payment"]').click();
+    await page.locator('.sidebar [data-route="payment"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
 
     await expect(

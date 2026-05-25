@@ -5,7 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-
+  workflow_dispatch:
+  
 env:
   NODE_VERSION: '20'
 
@@ -68,7 +69,7 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: unit-test
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
 
     services:
       postgres:
@@ -99,6 +100,24 @@ jobs:
 
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
+
+      - name: データベースマイグレーション実行
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: postgres://app_user:ci_test_password@localhost:5432/transaction_db_test
+
+      - name: DBスキーマ確認
+        run: |
+          node -e "
+            const { Client } = require('pg');
+            const c = new Client(process.env.DATABASE_URL);
+            c.connect()
+              .then(() => c.query('SELECT 1 FROM users LIMIT 1'))
+              .then(() => { console.log('schema OK'); c.end(); })
+              .catch(e => { console.error(e.message); process.exit(1); });
+          "
+        env:
+          DATABASE_URL: postgres://app_user:ci_test_password@localhost:5432/transaction_db_test
 
       - name: バックエンドサーバー起動
         run: node server/index.js &

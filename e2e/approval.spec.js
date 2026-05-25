@@ -32,7 +32,7 @@ test.describe('S-12 承認一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -89,6 +89,6 @@ test.describe('S-12 承認一覧', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await expect(page.locator('[data-route="approval"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="approval"]')).toBeVisible();
   });
 });

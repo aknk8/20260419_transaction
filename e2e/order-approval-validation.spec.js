@@ -60,7 +60,7 @@ test.describe('RT-04 受注承認依頼バリデーション', () => {
     // Arrange: ORD-00001 はハードコードデータで attachments 未設定（添付なし）
     await setupPage(page);
     await login(page);
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('[data-action-detail-order="ORD-00001"]');
     await expect(page.locator('.panel-label').filter({ hasText: 'S-05 受注詳細' })).toBeVisible();
@@ -100,7 +100,7 @@ test.describe('RT-04 受注承認依頼バリデーション', () => {
     };
     await setupPage(page, [orderWithoutQuotation]);
     await login(page);
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('[data-action-detail-order="ORD-00001"]');
     await expect(page.locator('.panel-label').filter({ hasText: 'S-05 受注詳細' })).toBeVisible();
@@ -140,7 +140,7 @@ test.describe('RT-04 受注承認依頼バリデーション', () => {
     };
     await setupPage(page, [orderWithMismatchedTotal]);
     await login(page);
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('[data-action-detail-order="ORD-00001"]');
     await expect(page.locator('.panel-label').filter({ hasText: 'S-05 受注詳細' })).toBeVisible();
@@ -162,7 +162,7 @@ test.describe('RT-04 受注承認依頼バリデーション', () => {
     // QUO-00001（承認済み）ハードコードデータから受注作成を試みる
     await setupPage(page);
     await login(page);
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('[data-action-detail-quotation="QUO-00001"]');
     await expect(page.locator('.panel-label').filter({ hasText: 'S-04 見積詳細' })).toBeVisible();
@@ -187,7 +187,7 @@ test.describe('RT-04 受注承認依頼バリデーション', () => {
     // 添付なしエラーのみ確認
     await setupPage(page);
     await login(page);
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('[data-action-detail-order="ORD-00001"]');
     await expect(page.locator('.panel-label').filter({ hasText: 'S-05 受注詳細' })).toBeVisible();

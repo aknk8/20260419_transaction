@@ -6,7 +6,7 @@ test.describe('S-09 入金登録', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -110,7 +110,7 @@ test.describe('S-09 入金一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="receipt"]').click();
+    await page.locator('.sidebar [data-route="receipt"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -139,6 +139,6 @@ test.describe('S-09 入金一覧', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await expect(page.locator('[data-route="receipt"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="receipt"]')).toBeVisible();
   });
 });

@@ -88,6 +88,6 @@ test.describe('S-02 ダッシュボード', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await expect(page.locator('[data-route="dashboard"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="dashboard"]')).toBeVisible();
   });
 });

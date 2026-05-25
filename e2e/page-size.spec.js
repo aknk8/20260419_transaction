@@ -6,7 +6,7 @@ test.describe('表示件数選択', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 

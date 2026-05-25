@@ -58,7 +58,7 @@ test.describe('P10-RT-04 発注→納品→請求のデータ連鎖整合性', (
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -136,7 +136,7 @@ test.describe('P10-RT-04 発注→納品→請求のデータ連鎖整合性', (
     await page.locator('button[type="submit"]').click();
 
     // Act: navigate to INV-00003 (same order ORD-00002 as POD-00002)
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await page.locator('[data-action-detail-invoice="INV-00003"]').click();
 
     // Assert: invoice total is unchanged and consistent (385,000 = 350,000 + 35,000 tax)
@@ -215,7 +215,7 @@ test.describe('P10-RT-04 入金登録→消込のデータ連鎖整合性', () =
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('[data-action-detail-invoice="INV-00001"]');
     await page.click('[data-action-register-receipt="INV-00001"]');
@@ -236,7 +236,7 @@ test.describe('P10-RT-04 入金登録→消込のデータ連鎖整合性', () =
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('[data-action-detail-invoice="INV-00001"]');
     await page.click('[data-action-register-receipt="INV-00001"]');
