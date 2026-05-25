@@ -6197,6 +6197,8 @@ function bindAppEvents() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
           }, { button: submitBtn, successMsg: '顧客を更新しました' });
+          var editIdx = customers.findIndex(function(c) { return c.code === viewState.customerForm.editCode; });
+          if (editIdx !== -1) Object.assign(customers[editIdx], data);
           viewState.customerForm.editCode = null;
         } else {
           await withFeedback('/api/customers', {
@@ -6204,6 +6206,7 @@ function bindAppEvents() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
           }, { button: submitBtn, successMsg: '顧客を登録しました' });
+          customers.push(data);
         }
         await refreshCustomers();
         viewState.tables.customerMaster.page = Math.ceil(customers.length / (viewState.tables.customerMaster.pageSize || PAGE_SIZE));
