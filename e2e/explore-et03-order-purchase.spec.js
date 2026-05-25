@@ -38,7 +38,7 @@ test.describe('ET-03: 受注→発注引き継ぎ探索', () => {
   test('受注一覧が表示され、件数を確認する', async ({ page }) => {
     await login(page, 'admin', 'admin123');
     await navigateTo(page, '受注');
-    const rows = await page.locator('table tbody tr').count();
+    const rows = await page.locator('.data-table-body-row').count();
     console.log(`[ET-03] 受注一覧の行数: ${rows}`);
     expect(rows).toBeGreaterThan(0);
   });
@@ -76,7 +76,7 @@ test.describe('ET-03: 受注→発注引き継ぎ探索', () => {
   test('発注一覧が表示され、既存件数を確認する', async ({ page }) => {
     await login(page, 'admin', 'admin123');
     await navigateTo(page, '発注');
-    const rows = await page.locator('table tbody tr').count();
+    const rows = await page.locator('.data-table-body-row').count();
     console.log(`[ET-03] 発注一覧の行数: ${rows}`);
     expect(rows).toBeGreaterThan(0);
   });

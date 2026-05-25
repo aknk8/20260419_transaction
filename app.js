@@ -7554,7 +7554,14 @@ function bindAppEvents() {
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-delivery-register]"), function(btn) {
     btn.addEventListener("click", function() {
       const podCode = btn.getAttribute("data-action-delivery-register");
+      var nums = deliveries.map(function(d) {
+        var m = /^DLV-(\d+)$/.exec(d.code || '');
+        return m ? parseInt(m[1], 10) : 0;
+      });
+      var maxNum = nums.length > 0 ? Math.max.apply(Math, nums) : 0;
+      var nextCode = 'DLV-' + String(maxNum + 1).padStart(5, '0');
       viewState.deliveryForm.data = {
+        code: nextCode,
         purchaseOrderCode: podCode,
         deliveryDate: "",
         notes: ""

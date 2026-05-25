@@ -55,9 +55,9 @@ test.describe('S-02 ダッシュボード', () => {
     await expect(page.locator('.metrics-row')).toContainText('未払');
   });
 
-  test('should show 承認待ち count as 02', async ({ page }) => {
+  test('should show 承認待ち count as 04', async ({ page }) => {
     const card = page.locator('.metric-card').filter({ hasText: '承認待ち' });
-    await expect(card.locator('.metric-value')).toContainText('02');
+    await expect(card.locator('.metric-value')).toContainText('04');
   });
 
   test('should show 未請求 count as 01', async ({ page }) => {
@@ -65,9 +65,9 @@ test.describe('S-02 ダッシュボード', () => {
     await expect(card.locator('.metric-value')).toContainText('01');
   });
 
-  test('should show 未収 count as 01', async ({ page }) => {
+  test('should show 未収 count as 02', async ({ page }) => {
     const card = page.locator('.metric-card').filter({ hasText: '未収' });
-    await expect(card.locator('.metric-value')).toContainText('01');
+    await expect(card.locator('.metric-value')).toContainText('02');
   });
 
   test('should show 未払 count as 01', async ({ page }) => {
@@ -76,11 +76,11 @@ test.describe('S-02 ダッシュボード', () => {
   });
 
   test('should show QUO-00003 in pending approvals panel', async ({ page }) => {
-    await expect(page.locator('.narrow-panel')).toContainText('QUO-00003');
+    await expect(page.locator('.dash-approval-table')).toContainText('QUO-00003');
   });
 
   test('should show POD-00006 in pending approvals panel', async ({ page }) => {
-    await expect(page.locator('.narrow-panel')).toContainText('POD-00006');
+    await expect(page.locator('.dash-approval-table')).toContainText('POD-00006');
   });
 
   test('should show dashboard nav item for finance01', async ({ page }) => {

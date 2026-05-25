@@ -130,7 +130,6 @@ jobs:
           NODE_ENV: test
           PORT: 3000
           JWT_SECRET: ci-test-secret-not-for-production
-          DATABASE_URL: postgres://app_user:ci_test_password@localhost:5432/transaction_db_test
           CORS_ORIGIN: http://localhost:5173
           RATE_LIMIT_MAX: 1000
           LOG_LEVEL: warn
