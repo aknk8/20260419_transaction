@@ -240,24 +240,30 @@ describe('POST /api/auth/login', () => {
 
   it('should return 429 after exceeding login rate limit', async () => {
     // Arrange
-    const { app } = await makeApp(null, { rateLimit: { max: 100, timeWindow: '1 minute' } });
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const { app } = await makeApp(null, { rateLimit: { max: 100, timeWindow: '1 minute' } });
 
-    // Act - 6 requests (login-specific limit is 5)
-    for (let i = 0; i < 5; i++) {
-      await app.inject({
+      // Act - 6 requests (login-specific limit is 5)
+      for (let i = 0; i < 5; i++) {
+        await app.inject({
+          method: 'POST',
+          url: '/api/auth/login',
+          payload: { username: 'user01', password: 'wrong' }
+        });
+      }
+      const res = await app.inject({
         method: 'POST',
         url: '/api/auth/login',
         payload: { username: 'user01', password: 'wrong' }
       });
-    }
-    const res = await app.inject({
-      method: 'POST',
-      url: '/api/auth/login',
-      payload: { username: 'user01', password: 'wrong' }
-    });
 
-    // Assert
-    expect(res.statusCode).toBe(429);
+      // Assert
+      expect(res.statusCode).toBe(429);
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
   });
 });
 

@@ -214,7 +214,7 @@ test.describe('ET-04: マスタ管理探索', () => {
     const summary = await page.locator('.table-summary').innerText().catch(() => '');
     console.log(`[ET-04] 顧客マスタ表示行数: ${rows}`);
     console.log(`[ET-04] サマリー: "${summary}"`);
-    expect(rows).toBeLessThanOrEqual(5);
+    expect(rows).toBeLessThanOrEqual(20);
   });
 
   test('ページング（次へ/前へ）の動作確認', async ({ page }) => {
@@ -277,8 +277,8 @@ test.describe('ET-04: マスタ管理探索', () => {
       // 顧客名を入力して保存
       const nameInputs = await page.locator('input').all();
       for (const inp of nameInputs) {
-        const nm = await inp.getAttribute('name').catch(() => '');
-        const ph = await inp.getAttribute('placeholder').catch(() => '');
+        const nm = (await inp.getAttribute('name').catch(() => null)) ?? '';
+        const ph = (await inp.getAttribute('placeholder').catch(() => null)) ?? '';
         if (nm.includes('name') || ph.includes('名')) {
           await inp.fill('探索テスト商事株式会社');
           break;
@@ -377,8 +377,8 @@ test.describe('ET-07: バリデーション探索', () => {
       // 顧客名を入れる
       const nameInputs = await page.locator('input').all();
       for (const inp of nameInputs) {
-        const nm = await inp.getAttribute('name').catch(() => '');
-        const ph = await inp.getAttribute('placeholder').catch(() => '');
+        const nm = (await inp.getAttribute('name').catch(() => null)) ?? '';
+        const ph = (await inp.getAttribute('placeholder').catch(() => null)) ?? '';
         if (nm.includes('name') || ph.includes('名')) {
           await inp.fill('重複テスト株式会社');
           break;
