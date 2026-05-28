@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // 7件の見積データを使用。ページサイズ5で2ページになることを確認する。
 // 本番環境では21件以上のデータでも同様の動作を確認すること。

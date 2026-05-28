@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // P1移行後: 認証はAPIを通じて行われるため、Playwrightのルートインターセプトでモック
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };

@@ -31,6 +31,7 @@ export function createAuditLogRepository(store = []) {
   let nextId = 1;
 
   return {
+    reset() { nextId = 1; store.length = 0; },
     async save(entry) {
       const record = {
         id: nextId++,

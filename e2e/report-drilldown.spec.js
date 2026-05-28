@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('レポート ドリルダウン（顧客別→案件別）', () => {
   test.beforeEach(async ({ page }) => {

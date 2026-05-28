@@ -1,5 +1,5 @@
 // ET-04: マスタ管理の登録・編集・検索・ページング
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function login(page, id, pass) {
   const userMap = {

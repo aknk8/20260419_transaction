@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // RT-02: 社長決裁ルートを含む完全承認フロー E2E
 // シナリオ:

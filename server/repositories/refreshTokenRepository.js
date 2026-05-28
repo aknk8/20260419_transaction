@@ -28,6 +28,7 @@ export function createRefreshTokenRepository(db) {
 export function createInMemoryRefreshTokenRepository() {
   const store = new Map();
   return {
+    reset() { store.clear(); },
     async save({ id, userId, tokenHash, expiresAt }) {
       const record = { id, userId, tokenHash, expiresAt, revoked: false, createdAt: new Date() };
       store.set(id, record);

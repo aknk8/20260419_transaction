@@ -2,9 +2,10 @@ import { eq } from 'drizzle-orm';
 import { quotations, quotationDetails } from '../db/schema.js';
 
 export function createInMemoryQuotationRepository(initialData = []) {
-  const store = initialData.map(({ details, ...h }) => ({ header: { ...h }, details: (details ?? []).map(d => ({ ...d })) }));
+  let store = initialData.map(({ details, ...h }) => ({ header: { ...h }, details: (details ?? []).map(d => ({ ...d })) }));
 
   return {
+    reset() { store = initialData.map(({ details, ...h }) => ({ header: { ...h }, details: (details ?? []).map(d => ({ ...d })) })); },
     async findAll() { return store.map(({ header, details }) => ({ ...header, details: details.map(d => ({ ...d })) })); },
     async findByCode(code) {
       const entry = store.find(e => e.header.code === code);

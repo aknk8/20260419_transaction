@@ -1,6 +1,6 @@
 // RT-03: 入金消込異常系 E2E テスト
 // INV-00001 のハードコードデータ: total=528,000、status='送付済'
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const INV_CODE = 'INV-00001';
 const INV_TOTAL = 528000;

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-09 入金登録', () => {
   test.beforeEach(async ({ page }) => {

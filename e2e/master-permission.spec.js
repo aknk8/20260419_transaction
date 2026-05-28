@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-11 マスタ管理 権限制御', () => {
   test('should show master menu and customer list for sales01 user', async ({ page }) => {

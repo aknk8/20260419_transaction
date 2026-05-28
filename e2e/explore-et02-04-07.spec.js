@@ -1,5 +1,5 @@
 // ET-02/03/04/07: 正しいセレクタ（.data-table-body-row）で再実行
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function login(page, id, pass) {
   const userMap = {

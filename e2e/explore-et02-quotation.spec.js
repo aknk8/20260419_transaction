@@ -1,5 +1,5 @@
 // ET-02: 見積作成から承認依頼までの一気通貫
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function login(page, id, pass) {
   const userMap = {

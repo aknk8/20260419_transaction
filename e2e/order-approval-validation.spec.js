@@ -1,7 +1,7 @@
 // RT-04: 受注承認依頼バリデーション E2E テスト
 // validateOrderApprovalSubmit でクライアント側検証を実施する
 // BL-04 相当の検証（添付・見積紐付け・金額一致）が alert() で表示されることを確認する
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const adminUser = {
   id: 'admin',

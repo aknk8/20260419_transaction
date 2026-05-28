@@ -2,9 +2,10 @@ import { and, eq } from 'drizzle-orm';
 import { notifications } from '../db/schema.js';
 
 export function createInMemoryNotificationRepository(initialData = []) {
-  const store = initialData.map(r => ({ ...r }));
+  let store = initialData.map(r => ({ ...r }));
 
   return {
+    reset() { store = initialData.map(r => ({ ...r })); },
     async findByRecipientId(userId) {
       return store
         .filter(n => n.recipientId === userId)

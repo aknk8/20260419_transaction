@@ -2,13 +2,15 @@ import { eq } from 'drizzle-orm';
 import { orders, orderDetails, orderAttachments } from '../db/schema.js';
 
 export function createInMemoryOrderRepository(initialData = []) {
-  const store = initialData.map(({ details, attachments, ...h }) => ({
+  const toStore = (d) => initialData.map(({ details, attachments, ...h }) => ({
     header: { ...h },
-    details: (details ?? []).map(d => ({ ...d })),
+    details: (details ?? []).map(x => ({ ...x })),
     attachments: (attachments ?? []).map(a => ({ ...a }))
   }));
+  let store = toStore(initialData);
 
   return {
+    reset() { store = toStore(initialData); },
     async findAll() { return store.map(({ header }) => ({ ...header })); },
     async findByCode(code) {
       const entry = store.find(e => e.header.code === code);

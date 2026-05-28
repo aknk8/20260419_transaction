@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // RT-01: 完全業務フロー E2E
 // シナリオ: 見積(下書き→承認依頼中→承認済み) → 受注(受注済み→承認依頼中→承認済み) →

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-11 商品マスタ', () => {
   test.beforeEach(async ({ page }) => {

@@ -1,5 +1,5 @@
 // ET-03: 受注→発注起票への金額引き継ぎ確認
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function login(page, id, pass) {
   const userMap = {

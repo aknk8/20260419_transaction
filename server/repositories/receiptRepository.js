@@ -2,9 +2,10 @@ import { eq } from 'drizzle-orm';
 import { receipts } from '../db/schema.js';
 
 export function createInMemoryReceiptRepository(initialData = []) {
-  const store = initialData.map(r => ({ ...r }));
+  let store = initialData.map(r => ({ ...r }));
 
   return {
+    reset() { store = initialData.map(r => ({ ...r })); },
     async findAll() { return [...store]; },
     async findAllCodes() { return store.map(r => r.code); },
     async save(data) {

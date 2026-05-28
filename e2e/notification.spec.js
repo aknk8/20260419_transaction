@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-14 通知一覧', () => {
   test.beforeEach(async ({ page }) => {

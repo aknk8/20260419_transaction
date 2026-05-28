@@ -1,6 +1,6 @@
 // RT-06: UI層権限ネガティブテスト E2E
 // 各ユーザ権限に応じて UI 要素が正しく非表示になることを検証する
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function setupWithPermissions(page, user) {
   await page.route('/api/**', (route) => {

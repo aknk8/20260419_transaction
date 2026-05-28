@@ -3,9 +3,10 @@ import { approvalRoutes } from '../db/schema.js';
 
 export function createInMemoryApprovalRouteRepository(initialData = []) {
   let nextId = 1;
-  const store = initialData.map(r => ({ ...r, id: r.id ?? nextId++ }));
+  let store = initialData.map(r => ({ ...r, id: r.id ?? nextId++ }));
 
   return {
+    reset() { nextId = 1; store = initialData.map(r => ({ ...r, id: r.id ?? nextId++ })); },
     async findAll() { return [...store]; },
     async findByDocumentType(documentType) {
       return store

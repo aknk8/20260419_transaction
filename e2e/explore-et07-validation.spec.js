@@ -1,5 +1,5 @@
 // ET-07: エラー入力とバリデーションの振る舞い
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function login(page, id, pass) {
   const userMap = {

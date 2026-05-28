@@ -117,6 +117,18 @@ const sessionRepo        = createSessionRepository();
 
 const notificationSvc    = createNotificationService();
 
+function resetAll() {
+  const repos = [
+    userRepo, customerRepo, supplierRepo, productRepo, projectRepo,
+    quotationRepo, orderRepo, purchaseOrderRepo, invoiceRepo, receiptRepo,
+    paymentRepo, approvalRouteRepo, deliveryRepo, notificationRepo,
+    seqRepo, auditLogRepo, refreshTokenRepo, sessionRepo, settingsRepo
+  ];
+  for (const repo of repos) {
+    if (typeof repo.reset === 'function') repo.reset();
+  }
+}
+
 const bindRepo = (svc, repo) =>
   Object.fromEntries(
     Object.entries(svc).map(([k, fn]) => [
@@ -130,6 +142,7 @@ const app = await buildApp({
   sessionRepository:      sessionRepo,
   refreshTokenRepository: refreshTokenRepo,
   userRepository:         userRepo,
+  testResetFn:            process.env.NODE_ENV !== 'production' ? resetAll : undefined,
   customerService:        bindRepo(customerService, customerRepo),
   supplierService:        bindRepo(supplierService, supplierRepo),
   productService:         bindRepo(productService, productRepo),

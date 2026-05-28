@@ -2,9 +2,10 @@ import { eq } from 'drizzle-orm';
 import { customers } from '../db/schema.js';
 
 export function createInMemoryCustomerRepository(initialData = []) {
-  const store = initialData.map(r => ({ ...r }));
+  let store = initialData.map(r => ({ ...r }));
 
   return {
+    reset() { store = initialData.map(r => ({ ...r })); },
     async findAll() { return [...store]; },
     async findByCode(code) { return store.find(r => r.code === code) ?? null; },
     async findAllCodes() { return store.map(r => r.code); },

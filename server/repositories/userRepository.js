@@ -2,9 +2,10 @@ import { eq } from 'drizzle-orm';
 import { users } from '../db/schema.js';
 
 export function createInMemoryUserRepository(initialUsers = []) {
-  const store = initialUsers.map(u => ({ ...u }));
+  let store = initialUsers.map(u => ({ ...u }));
 
   return {
+    reset() { store = initialUsers.map(u => ({ ...u })); },
     async findByUsername(username) {
       return store.find(u => u.id === username) ?? null;
     },
