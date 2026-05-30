@@ -10,6 +10,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
+    "test:uat": "playwright test --config playwright.uat.config.js",
+    "test:uat:headed": "playwright test --config playwright.uat.config.js --headed",
     "test:e2e:show-report": "playwright show-report e2e-report/html",
     "server": "node server/index.js",
     "server:dev": "node --watch server/index.js",

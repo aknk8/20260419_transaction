@@ -18,8 +18,8 @@ test.describe('表示件数選択', () => {
     await expect(page.locator('[data-table-pagesize]')).toHaveValue('20');
   });
 
-  test('should show all 7 quotations by default with page size 20', async ({ page }) => {
-    await expect(page.locator('.data-table-body-row')).toHaveCount(7);
+  test('should show all 11 quotations by default with page size 20', async ({ page }) => {
+    await expect(page.locator('.data-table-body-row')).toHaveCount(11);
   });
 
   test('should show 5 rows when page size 5 is selected', async ({ page }) => {
@@ -31,14 +31,14 @@ test.describe('表示件数選択', () => {
   test('should update summary text when page size is changed to 5', async ({ page }) => {
     await page.selectOption('[data-table-pagesize]', '5');
 
-    await expect(page.locator('.table-summary')).toContainText('全 7 件中 1 - 5 件を表示');
+    await expect(page.locator('.table-summary')).toContainText('全 11 件中 1 - 5 件を表示');
   });
 
   test('should reset to page 1 when page size is changed', async ({ page }) => {
     // まず5件表示にしてページ2へ移動
     await page.selectOption('[data-table-pagesize]', '5');
     await page.locator('[data-table-action="next"]').click();
-    await expect(page.locator('.pagination-text')).toContainText('2 / 2 ページ');
+    await expect(page.locator('.pagination-text')).toContainText('2 / 3 ページ');
 
     // 20件に変更するとページ1に戻る
     await page.selectOption('[data-table-pagesize]', '20');

@@ -731,6 +731,27 @@ const orders = [
       { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 12, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 528000 },
       { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 12, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 132000 }
     ]
+  },
+  {
+    code: "ORD-00007",
+    quotationCode: "QUO-00001",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "承認済み受注 発注起票テスト用",
+    orderDate: "2026-05-10",
+    deliveryDate: "2026-12-31",
+    status: "承認済み",
+    subtotal: 600000,
+    taxAmount: 60000,
+    total: 660000,
+    notes: "",
+    billingTarget: false,
+    paidAmount: 0,
+    attachments: [],
+    details: [
+      { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 12, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 528000 },
+      { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 12, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 132000 }
+    ]
   }
 ];
 

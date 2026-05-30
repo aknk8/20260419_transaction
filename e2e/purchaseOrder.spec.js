@@ -50,15 +50,15 @@ test.describe('S-06 発注起票', () => {
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
     await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-action-detail-order="ORD-00001"]').click();
+    await page.locator('[data-action-detail-order="ORD-00007"]').click();
     await expect(page.locator('.detail-grid')).toBeVisible();
-    await page.locator('[data-action-create-purchase-order="ORD-00001"]').click();
+    await page.locator('[data-action-create-purchase-order="ORD-00007"]').click();
     await expect(page.locator('#purchase-order-register-form')).toBeVisible();
   });
 
   test('should open purchase order form pre-filled with order data', async ({ page }) => {
-    await expect(page.locator('#f-pod-order-code')).toHaveValue('ORD-00001');
-    await expect(page.locator('#f-pod-title')).toHaveValue('新規保守案件 初回見積');
+    await expect(page.locator('#f-pod-order-code')).toHaveValue('ORD-00007');
+    await expect(page.locator('#f-pod-title')).toHaveValue('承認済み受注 発注起票テスト用');
   });
 
   test('should auto-fill purchase order code with next sequential value', async ({ page }) => {
@@ -179,8 +179,8 @@ test.describe('S-06 仕入先別分割', () => {
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
     await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-action-detail-order="ORD-00001"]').click();
-    await page.locator('[data-action-create-purchase-order="ORD-00001"]').click();
+    await page.locator('[data-action-detail-order="ORD-00007"]').click();
+    await page.locator('[data-action-create-purchase-order="ORD-00007"]').click();
     await expect(page.locator('#purchase-order-register-form')).toBeVisible();
   });
 

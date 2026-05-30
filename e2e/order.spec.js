@@ -81,8 +81,8 @@ test.describe('S-05 受注作成', () => {
     await page.locator('[data-action-detail-quotation="QUO-00001"]').click();
     await page.locator('[data-action-create-order="QUO-00001"]').click();
 
-    // 既存6件の次は ORD-00007
-    await expect(page.locator('#f-order-code')).toHaveValue('ORD-00007');
+    // 既存7件の次は ORD-00008
+    await expect(page.locator('#f-order-code')).toHaveValue('ORD-00008');
   });
 
   test('should show validation error when order date is empty', async ({ page }) => {
@@ -116,7 +116,7 @@ test.describe('S-05 受注作成', () => {
     await page.getByRole('button', { name: '受注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('ORD-00007');
+    await expect(page.locator('.data-table')).toContainText('ORD-00008');
   });
 
   test('should return to quotation detail when キャンセル is clicked', async ({ page }) => {
@@ -185,7 +185,7 @@ test.describe('S-05 受注添付', () => {
     await page.getByRole('button', { name: '受注登録' }).click();
 
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table')).toContainText('ORD-00007');
+    await expect(page.locator('.data-table')).toContainText('ORD-00008');
   });
 });
 
@@ -255,10 +255,10 @@ test.describe('S-05 発注起票・請求対象化', () => {
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
-  test('should show 発注起票 button when order status is 受注済み', async ({ page }) => {
-    await page.locator('[data-action-detail-order="ORD-00001"]').click();
+  test('should show 発注起票 button when order status is 承認済み', async ({ page }) => {
+    await page.locator('[data-action-detail-order="ORD-00007"]').click();
 
-    await expect(page.locator('[data-action-create-purchase-order="ORD-00001"]')).toBeVisible();
+    await expect(page.locator('[data-action-create-purchase-order="ORD-00007"]')).toBeVisible();
   });
 
   test('should not show 発注起票 button when order status is 完了', async ({ page }) => {
@@ -267,15 +267,15 @@ test.describe('S-05 発注起票・請求対象化', () => {
     await expect(page.locator('[data-action-create-purchase-order]')).not.toBeVisible();
   });
 
-  test('should show 請求対象化 button when order status is 受注済み and not yet billing target', async ({ page }) => {
-    await page.locator('[data-action-detail-order="ORD-00001"]').click();
+  test('should show 請求対象化 button when order status is 承認済み and not yet billing target', async ({ page }) => {
+    await page.locator('[data-action-detail-order="ORD-00007"]').click();
 
-    await expect(page.locator('[data-action-billing-target="ORD-00001"]')).toBeVisible();
+    await expect(page.locator('[data-action-billing-target="ORD-00007"]')).toBeVisible();
   });
 
   test('should show 請求対象 badge and hide 請求対象化 button after clicking 請求対象化', async ({ page }) => {
-    await page.locator('[data-action-detail-order="ORD-00001"]').click();
-    await page.locator('[data-action-billing-target="ORD-00001"]').click();
+    await page.locator('[data-action-detail-order="ORD-00007"]').click();
+    await page.locator('[data-action-billing-target="ORD-00007"]').click();
 
     await expect(page.locator('[data-action-billing-target]')).not.toBeVisible();
     await expect(page.locator('.panel-actions')).toContainText('請求対象');

@@ -249,6 +249,16 @@ export const seedOrders = [
       { lineNo: 1, productCode: 'PRD-001', productName: 'サーバー保守サービス', quantity: 12, unit: '月', unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 528000 },
       { lineNo: 2, productCode: 'PRD-002', productName: 'ネットワーク機器保守', quantity: 12, unit: '月', unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 132000 }
     ]
+  },
+  {
+    code: 'ORD-00007', quotationCode: 'QUO-00001', projectCode: 'PJ-00001', customerId: 'CUS-001',
+    title: '承認済み受注 発注起票テスト用', orderDate: '2026-05-10', deliveryDate: '2026-12-31',
+    status: '承認済み', subtotal: 600000, taxAmount: 60000, total: 660000,
+    notes: '', billingTarget: false, paidAmount: 0, attachments: [],
+    details: [
+      { lineNo: 1, productCode: 'PRD-001', productName: 'サーバー保守サービス', quantity: 12, unit: '月', unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 528000 },
+      { lineNo: 2, productCode: 'PRD-002', productName: 'ネットワーク機器保守', quantity: 12, unit: '月', unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 132000 }
+    ]
   }
 ];
 
@@ -336,6 +346,12 @@ export const seedInvoices = [
     title: '新規保守案件 第3四半期 確定済', invoiceDate: '2026-06-30', dueDate: '2026-07-31',
     status: '確定', subtotal: 150000, taxAmount: 15000, total: 165000, notes: '',
     details: [{ lineNo: 1, productName: 'サーバー保守サービス', quantity: 3, unit: '月', unitPrice: 50000, taxRate: 0.10, amount: 165000 }]
+  },
+  {
+    code: 'INV-00007', orderCode: 'ORD-00007', projectCode: 'PJ-00001', customerId: 'CUS-001',
+    title: '承認済み請求 確定前テスト用', invoiceDate: '2026-05-10', dueDate: '2026-05-31',
+    status: '承認済み', subtotal: 600000, taxAmount: 60000, total: 660000, notes: '',
+    details: [{ lineNo: 1, productName: 'サーバー保守サービス', quantity: 12, unit: '月', unitPrice: 50000, taxRate: 0.10, amount: 660000 }]
   }
 ];
 

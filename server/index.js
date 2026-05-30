@@ -51,6 +51,7 @@ import {
   seedQuotations, seedOrders, seedPurchaseOrders, seedInvoices,
   seedReceipts, seedPayments, seedNotifications, seedDeliveries
 } from './db/seedData.js';
+import { resetDb } from './db/resetDb.js';
 
 import * as customerService from './services/customerService.js';
 import * as supplierService from './services/supplierService.js';
@@ -101,9 +102,9 @@ const deliveryRepo       = useDb ? createDeliveryRepository(db)                 
 const notificationRepo   = useDb ? createNotificationRepository(db)              : createInMemoryNotificationRepository(seedNotifications);
 const seqRepo            = useDb ? createSequenceCounterRepository(db)           : createInMemorySequenceCounterRepository({
   quotation:     11,
-  order:         6,
+  order:         7,
   purchaseOrder: 6,
-  invoice:       6,
+  invoice:       7,
   receipt:       1,
   payment:       2,
   delivery:      1
@@ -117,7 +118,14 @@ const sessionRepo        = createSessionRepository();
 
 const notificationSvc    = createNotificationService();
 
-function resetAll() {
+async function resetAll() {
+  if (useDb) {
+    await resetDb(db);
+    // セッション・設定はインメモリのため個別にリセット
+    sessionRepo.reset?.();
+    settingsRepo.reset?.();
+    return;
+  }
   const repos = [
     userRepo, customerRepo, supplierRepo, productRepo, projectRepo,
     quotationRepo, orderRepo, purchaseOrderRepo, invoiceRepo, receiptRepo,

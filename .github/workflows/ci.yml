@@ -124,6 +124,11 @@ jobs:
         env:
           DATABASE_URL: postgres://app_user:ci_test_password@localhost:5432/transaction_db_test
 
+      - name: DBシードデータ投入
+        run: node scripts/seed-e2e.js
+        env:
+          DATABASE_URL: postgres://app_user:ci_test_password@localhost:5432/transaction_db_test
+
       - name: バックエンドサーバー起動
         run: node server/index.js &
         env:
@@ -133,6 +138,7 @@ jobs:
           CORS_ORIGIN: http://localhost:5173
           RATE_LIMIT_MAX: 1000
           LOG_LEVEL: warn
+          DATABASE_URL: postgres://app_user:ci_test_password@localhost:5432/transaction_db_test
 
       - name: バックエンドの起動待機
         run: |
