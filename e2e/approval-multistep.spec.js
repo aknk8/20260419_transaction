@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
 
@@ -104,7 +104,7 @@ test.describe('P10-RT-03 複数ステップ承認ルート設定確認（UI）',
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="settings"]').click();
+    await page.locator('.sidebar [data-route="settings"]').click();
     await page.locator('[data-settings-tab="approval-route"]').click();
   });
 
@@ -119,7 +119,7 @@ test.describe('P10-RT-03 複数ステップ承認ルート設定確認（UI）',
 
   test('should show approve and reject buttons for 承認依頼中 quotation when 2-step route is configured', async ({ page }) => {
     // Arrange
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
 
     // Act: open QUO-00003 (承認依頼中, 2-step route configured)
@@ -132,7 +132,7 @@ test.describe('P10-RT-03 複数ステップ承認ルート設定確認（UI）',
 
   test('should show comment panel when reject is clicked on 2-step pending quotation', async ({ page }) => {
     // Arrange
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval="見積:QUO-00003"]').click();
 
     // Act
@@ -145,7 +145,7 @@ test.describe('P10-RT-03 複数ステップ承認ルート設定確認（UI）',
 
   test('should return to approval list after approving quotation in 2-step route', async ({ page }) => {
     // Arrange
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval="見積:QUO-00003"]').click();
 
     // Act: approve step 1
@@ -164,7 +164,7 @@ test.describe('P10-RT-03 複数ステップ承認 途中却下フロー', () => 
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -178,7 +178,7 @@ test.describe('P10-RT-03 複数ステップ承認 途中却下フロー', () => 
     await page.locator('#approval-confirm-reject').click();
 
     // Assert: navigate to quotation and verify 却下 status
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('却下');
   });
@@ -191,7 +191,7 @@ test.describe('P10-RT-03 複数ステップ承認 途中却下フロー', () => 
     await page.locator('#approval-confirm-reject').click();
 
     // Navigate to quotation detail
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
 
     // Assert: 下書きに戻す available to re-submit through the full 2-step route
@@ -206,7 +206,7 @@ test.describe('P10-RT-03 複数ステップ承認 途中却下フロー', () => 
     await page.locator('#approval-confirm-reject').click();
 
     // Step 2: Return to draft
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('却下');
     await page.locator('#quotation-return-draft-btn').click();
@@ -226,7 +226,7 @@ test.describe('P10-RT-03 複数ステップ承認 途中却下フロー', () => 
     await page.locator('#approval-confirm-approve').click();
 
     // Navigate to approved quotation
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation="QUO-00003"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('承認済み');
 

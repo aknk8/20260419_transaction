@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-14 通知一覧', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,7 +6,7 @@ test.describe('S-14 通知一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="notification"]').click();
+    await page.locator('.sidebar [data-route="notification"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -56,6 +56,6 @@ test.describe('S-14 通知一覧', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await expect(page.locator('[data-route="notification"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="notification"]')).toBeVisible();
   });
 });

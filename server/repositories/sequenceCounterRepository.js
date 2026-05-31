@@ -4,6 +4,7 @@ import { sequenceCounters } from '../db/schema.js';
 export function createInMemorySequenceCounterRepository(initial = {}) {
   const counters = new Map(Object.entries(initial));
   return {
+    reset() { counters.clear(); for (const [k, v] of Object.entries(initial)) counters.set(k, v); },
     async nextVal(entityType) {
       const current = counters.get(entityType) ?? 0;
       const next = current + 1;

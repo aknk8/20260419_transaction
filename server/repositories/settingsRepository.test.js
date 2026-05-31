@@ -21,7 +21,8 @@ describe('createSettingsRepository', () => {
       const result = await repo.findOne();
 
       // Assert
-      expect(result.fiscalEndMonth).toBe(3);
+      expect(result.name).toBe('株式会社サンプル商事');
+      expect(result.fiscalEndMonth).toBe(12);
       expect(result.approvalStaleDays).toBe(3);
     });
 

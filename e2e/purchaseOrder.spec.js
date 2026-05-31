@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-06 発注一覧', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,7 +6,7 @@ test.describe('S-06 発注一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -48,17 +48,17 @@ test.describe('S-06 発注起票', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-action-detail-order="ORD-00001"]').click();
+    await page.locator('[data-action-detail-order="ORD-00007"]').click();
     await expect(page.locator('.detail-grid')).toBeVisible();
-    await page.locator('[data-action-create-purchase-order="ORD-00001"]').click();
+    await page.locator('[data-action-create-purchase-order="ORD-00007"]').click();
     await expect(page.locator('#purchase-order-register-form')).toBeVisible();
   });
 
   test('should open purchase order form pre-filled with order data', async ({ page }) => {
-    await expect(page.locator('#f-pod-order-code')).toHaveValue('ORD-00001');
-    await expect(page.locator('#f-pod-title')).toHaveValue('新規保守案件 初回見積');
+    await expect(page.locator('#f-pod-order-code')).toHaveValue('ORD-00007');
+    await expect(page.locator('#f-pod-title')).toHaveValue('承認済み受注 発注起票テスト用');
   });
 
   test('should auto-fill purchase order code with next sequential value', async ({ page }) => {
@@ -102,7 +102,7 @@ test.describe('S-06 発注新規作成', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -136,7 +136,7 @@ test.describe('S-06 発注添付', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-purchase-order-btn').click();
     await expect(page.locator('#purchase-order-register-form')).toBeVisible();
@@ -177,10 +177,10 @@ test.describe('S-06 仕入先別分割', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
-    await page.locator('[data-action-detail-order="ORD-00001"]').click();
-    await page.locator('[data-action-create-purchase-order="ORD-00001"]').click();
+    await page.locator('[data-action-detail-order="ORD-00007"]').click();
+    await page.locator('[data-action-create-purchase-order="ORD-00007"]').click();
     await expect(page.locator('#purchase-order-register-form')).toBeVisible();
   });
 
@@ -223,7 +223,7 @@ test.describe('S-06 発注詳細', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
     await expect(page.locator('.detail-grid')).toBeVisible();
@@ -291,7 +291,7 @@ test.describe('S-06 発注承認依頼', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -327,7 +327,7 @@ test.describe('S-06 発注承認依頼', () => {
     await page.locator('#approval-comment-input').fill('テスト却下理由');
     await page.locator('#approval-confirm-reject').click();
     // After rejection, navigateBackToApproval() fires; navigate back to verify status
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('却下');
   });
@@ -369,7 +369,7 @@ test.describe('S-06 契約書類出力', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -411,7 +411,7 @@ test.describe('S-06 契約処理方法', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-purchase-order-btn').click();
     await expect(page.locator('#purchase-order-register-form')).toBeVisible();
@@ -445,7 +445,7 @@ test.describe('P10-RT-02 発注バリデーション', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-purchase-order-btn').click();
     await expect(page.locator('#purchase-order-register-form')).toBeVisible();
@@ -497,7 +497,7 @@ test.describe('S-06 発注 権限制御', () => {
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
-    await expect(page.locator('[data-route="purchase-order"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="purchase-order"]')).toBeVisible();
   });
 
   test('should not show 発注 nav item for finance01 who lacks purchase-order:view', async ({ page }) => {
@@ -506,7 +506,7 @@ test.describe('S-06 発注 権限制御', () => {
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
-    await expect(page.locator('[data-route="purchase-order"]')).not.toBeVisible();
+    await expect(page.locator('.sidebar [data-route="purchase-order"]')).not.toBeVisible();
   });
 });
 
@@ -516,7 +516,7 @@ test.describe('P10-RT-01 発注却下フロー', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -528,7 +528,7 @@ test.describe('P10-RT-01 発注却下フロー', () => {
     await page.locator('#approval-comment-input').fill('発注内容を修正してください');
     await page.locator('#approval-confirm-reject').click();
     // After rejection, navigateBackToApproval fires; navigate back to purchase-order list
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
 
     await expect(
       page.locator('[data-action-detail-purchase-order="POD-00001"]')
@@ -544,7 +544,7 @@ test.describe('P10-RT-01 発注却下フロー', () => {
     await page.locator('#approval-comment-input').fill('発注内容を修正してください');
     await page.locator('#approval-confirm-reject').click();
     // Navigate back to the rejected PO detail
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00001"]').click();
 
     await expect(page.locator('.status-badge').first()).toContainText('却下');
@@ -557,7 +557,7 @@ test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フ�
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -572,7 +572,7 @@ test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フ�
     await page.locator('#approval-confirm-reject').click();
 
     // Assert
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('却下');
   });
@@ -583,7 +583,7 @@ test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フ�
     await page.locator('#pod-reject-btn').click();
     await page.locator('#approval-comment-input').fill('金額を見直してください');
     await page.locator('#approval-confirm-reject').click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
 
     // Assert: 下書きに戻す is visible
@@ -596,7 +596,7 @@ test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フ�
     await page.locator('#pod-reject-btn').click();
     await page.locator('#approval-comment-input').fill('金額を見直してください');
     await page.locator('#approval-confirm-reject').click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
 
     // Act
@@ -612,7 +612,7 @@ test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フ�
     await page.locator('#pod-reject-btn').click();
     await page.locator('#approval-comment-input').fill('金額を見直してください');
     await page.locator('#approval-confirm-reject').click();
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
     await page.locator('#pod-return-draft-btn').click();
     await expect(page.locator('.status-badge').first()).toContainText('下書き');
@@ -632,7 +632,7 @@ test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フ�
     await page.locator('#approval-confirm-reject').click();
 
     // Return to 下書き
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
     await page.locator('#pod-return-draft-btn').click();
     await expect(page.locator('.status-badge').first()).toContainText('下書き');
@@ -646,7 +646,7 @@ test.describe('P10-RT-01 発注却下→修正→再申請フロー（完全フ�
     await page.locator('#approval-confirm-approve').click();
 
     // Assert: final status is 承認済・発注待ち
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await page.locator('[data-action-detail-purchase-order="POD-00006"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('承認済・発注待ち');
   });

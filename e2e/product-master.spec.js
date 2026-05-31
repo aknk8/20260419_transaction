@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-11 商品マスタ', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,7 +6,7 @@ test.describe('S-11 商品マスタ', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="product"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
@@ -119,14 +119,14 @@ test.describe('S-11 商品マスタ 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
 
     // Act
     await page.locator('[data-master-tab="product"]').click();
 
     // Assert: 商品一覧が参照できる
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table-body-row')).toHaveCount(6);
+    await expect(page.locator('.data-table-body-row')).toHaveCount(5);
   });
 
   test('should not show edit button or new registration button for sales01 user on product tab', async ({ page }) => {
@@ -135,7 +135,7 @@ test.describe('S-11 商品マスタ 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="product"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
 

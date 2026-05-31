@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('サイドバー折りたたみ', () => {
   test.beforeEach(async ({ page }) => {
@@ -49,14 +49,14 @@ test.describe('サイドバー折りたたみ', () => {
 
   test('should navigate to screen when collapsed menu item is clicked', async ({ page }) => {
     await page.locator('#sidebar-toggle').click();
-    await page.locator('[data-route="project"]').click();
+    await page.locator('.sidebar [data-route="project"]').click();
 
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
   test('should preserve collapsed state after navigation', async ({ page }) => {
     await page.locator('#sidebar-toggle').click();
-    await page.locator('[data-route="project"]').click();
+    await page.locator('.sidebar [data-route="project"]').click();
 
     await expect(page.locator('.sidebar')).toHaveClass(/is-collapsed/);
   });

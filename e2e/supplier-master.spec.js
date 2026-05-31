@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-11 仕入先マスタ', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,7 +6,7 @@ test.describe('S-11 仕入先マスタ', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="supplier"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
@@ -122,7 +122,7 @@ test.describe('P10-RT-02 仕入先マスタ バリデーション', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="supplier"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-supplier-btn').click();
@@ -170,7 +170,7 @@ test.describe('S-11 仕入先マスタ 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
 
     // Act
     await page.locator('[data-master-tab="supplier"]').click();
@@ -186,7 +186,7 @@ test.describe('S-11 仕入先マスタ 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="supplier"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
 

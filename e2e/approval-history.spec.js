@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
 
@@ -35,14 +35,14 @@ test.describe('P0-10 承認ステップ表示＋承認履歴テーブル', () =>
   });
 
   test('should show approval history section on order detail with 承認依頼中 status', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
 
     await expect(page.locator('#approval-history-section')).toBeVisible();
   });
 
   test('should show 承認依頼中 status badge in approval history section', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
 
     await expect(page.locator('#approval-history-section .status-badge')).toBeVisible();
@@ -50,7 +50,7 @@ test.describe('P0-10 承認ステップ表示＋承認履歴テーブル', () =>
   });
 
   test('should record history entry when order approval is submitted', async ({ page }) => {
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await page.locator('[data-action-detail-order="ORD-00001"]').click();
 
     page.once('dialog', async dialog => { await dialog.dismiss(); });
@@ -60,12 +60,12 @@ test.describe('P0-10 承認ステップ表示＋承認履歴テーブル', () =>
   });
 
   test('should record 承認 history entry after approving from approval list', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
     await page.locator('#order-approve-btn').click();
     await page.locator('#approval-confirm-approve').click();
 
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await page.locator('[data-action-detail-order="ORD-00006"]').click();
 
     await expect(page.locator('#approval-history-section')).toBeVisible();
@@ -73,13 +73,13 @@ test.describe('P0-10 承認ステップ表示＋承認履歴テーブル', () =>
   });
 
   test('should record 却下 history entry with reason after rejecting', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
     await page.locator('#order-reject-btn').click();
     await page.locator('#approval-comment-input').fill('添付書類不備のため却下します');
     await page.locator('#approval-confirm-reject').click();
 
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await page.locator('[data-action-detail-order="ORD-00006"]').click();
 
     await expect(page.locator('#approval-history-section .detail-table-row')).toContainText('却下');
@@ -87,14 +87,14 @@ test.describe('P0-10 承認ステップ表示＋承認履歴テーブル', () =>
   });
 
   test('should show approval history section on invoice detail with 承認依頼中 status', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="請求:"]').first().click();
 
     await expect(page.locator('#approval-history-section')).toBeVisible();
   });
 
   test('should show approval history section on purchase order detail with 承認依頼中 status', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="発注:"]').first().click();
 
     await expect(page.locator('#approval-history-section')).toBeVisible();

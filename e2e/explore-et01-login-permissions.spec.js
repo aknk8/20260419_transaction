@@ -1,5 +1,5 @@
 // ET-01: ログインと権限制御の全体探索
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const USERS = [
   { id: 'admin',     pass: 'admin123',   label: 'admin（システム管理者）' },

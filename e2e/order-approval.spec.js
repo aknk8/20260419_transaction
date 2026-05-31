@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
 
@@ -35,7 +35,7 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should show 承認する and 却下 buttons on order detail when status is 承認依頼中', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
 
     await expect(page.locator('#order-approve-btn')).toBeVisible();
@@ -43,7 +43,7 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should expand comment panel when 承認する is clicked on order detail', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
     await page.locator('#order-approve-btn').click();
 
@@ -52,7 +52,7 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should approve order and return to approval list', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
     await page.locator('#order-approve-btn').click();
     await page.locator('#approval-confirm-approve').click();
@@ -62,7 +62,7 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should expand comment panel when 却下 is clicked on order detail', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
     await page.locator('#order-reject-btn').click();
 
@@ -71,7 +71,7 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should show error when 却下 is confirmed without comment', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
     await page.locator('#order-reject-btn').click();
     await page.locator('#approval-confirm-reject').click();
@@ -80,7 +80,7 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should reject order with comment and return to approval list', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
     await page.locator('#order-reject-btn').click();
     await page.locator('#approval-comment-input').fill('添付書類不備のため却下');
@@ -91,14 +91,14 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should show 承認依頼 button on order detail when status is 受注済み', async ({ page }) => {
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await page.locator('[data-action-detail-order="ORD-00001"]').click();
 
     await expect(page.locator('#order-submit-approval-btn')).toBeVisible();
   });
 
   test('should show error when submitting approval without attachment', async ({ page }) => {
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await page.locator('[data-action-detail-order="ORD-00001"]').click();
 
     page.once('dialog', async dialog => {
@@ -109,7 +109,7 @@ test.describe('P0-08 受注承認フロー', () => {
   });
 
   test('should show 承認一覧に戻る button when navigating from approval list', async ({ page }) => {
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval^="受注:"]').first().click();
 
     await expect(page.locator('#order-detail-back')).toBeVisible();

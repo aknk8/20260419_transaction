@@ -1,5 +1,5 @@
 // ET-02: 見積作成から承認依頼までの一気通貫
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function login(page, id, pass) {
   const userMap = {
@@ -38,7 +38,7 @@ test.describe('ET-02: 見積フロー探索', () => {
   test('見積一覧が表示され、既存件数を確認する', async ({ page }) => {
     await login(page, 'admin', 'admin123');
     await navigateTo(page, '見積');
-    const rows = await page.locator('table tbody tr').count();
+    const rows = await page.locator('.data-table-body-row').count();
     console.log(`[ET-02] 見積一覧の行数: ${rows}`);
     expect(rows).toBeGreaterThan(0);
   });

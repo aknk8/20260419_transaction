@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-08 請求一覧', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,7 +6,7 @@ test.describe('S-08 請求一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -51,7 +51,7 @@ test.describe('S-08 請求一覧', () => {
     await page.fill('#user-id', 'finance01');
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await expect(page.locator('[data-route="invoice"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="invoice"]')).toBeVisible();
   });
 });
 
@@ -61,7 +61,7 @@ test.describe('S-08 請求対象抽出', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -105,7 +105,7 @@ test.describe('S-08 請求対象抽出', () => {
     await page.locator('[data-action-create-invoice]').first().click();
     await page.click('#invoice-back-to-list');
     await expect(page.locator('.data-table')).toBeVisible();
-    await expect(page.locator('.data-table-body-row')).toHaveCount(7);
+    await expect(page.locator('.data-table-body-row')).toHaveCount(8);
   });
 
   test('should not show invoiced order in billable list after invoice creation', async ({ page }) => {
@@ -138,7 +138,7 @@ test.describe('S-08 請求詳細', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -162,25 +162,25 @@ test.describe('S-08 請求詳細', () => {
     await expect(page.locator('.detail-section-label').filter({ hasText: '請求明細' })).toBeVisible();
   });
 
-  test('should show 確定する button for 下書き invoice', async ({ page }) => {
-    await page.click('[data-action-detail-invoice="INV-00003"]');
+  test('should show 確定する button for 承認済み invoice', async ({ page }) => {
+    await page.click('[data-action-detail-invoice="INV-00007"]');
     await expect(page.locator('[data-action-invoice-status="確定"]')).toBeVisible();
   });
 
   test('should update status to 確定 when 確定する is clicked', async ({ page }) => {
-    await page.click('[data-action-detail-invoice="INV-00003"]');
+    await page.click('[data-action-detail-invoice="INV-00007"]');
     await page.click('[data-action-invoice-status="確定"]');
     await expect(page.locator('.status-badge')).toHaveText('確定');
   });
 
   test('should show 送付済にする button when status is 確定', async ({ page }) => {
-    await page.click('[data-action-detail-invoice="INV-00003"]');
+    await page.click('[data-action-detail-invoice="INV-00007"]');
     await page.click('[data-action-invoice-status="確定"]');
     await expect(page.locator('[data-action-invoice-status="送付済"]')).toBeVisible();
   });
 
   test('should update status to 送付済 when 送付済にする is clicked', async ({ page }) => {
-    await page.click('[data-action-detail-invoice="INV-00003"]');
+    await page.click('[data-action-detail-invoice="INV-00007"]');
     await page.click('[data-action-invoice-status="確定"]');
     await page.click('[data-action-invoice-status="送付済"]');
     await expect(page.locator('.status-badge')).toHaveText('送付済');
@@ -191,8 +191,8 @@ test.describe('S-08 請求詳細', () => {
     await expect(page.locator('[data-action-invoice-status="確定"]')).not.toBeVisible();
   });
 
-  test('should show キャンセル button for 下書き invoice', async ({ page }) => {
-    await page.click('[data-action-detail-invoice="INV-00003"]');
+  test('should show キャンセル button for 確定 invoice', async ({ page }) => {
+    await page.click('[data-action-detail-invoice="INV-00006"]');
     await expect(page.locator('[data-action-invoice-status="キャンセル"]')).toBeVisible();
   });
 
@@ -214,7 +214,7 @@ test.describe('P10-RT-02 請求起票 バリデーション', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.click('#invoice-extract-btn');
     await expect(page.locator('[data-billable-order]')).toBeVisible();
@@ -255,7 +255,7 @@ test.describe('RT-05 伝票状態遷移制御 - 確定済み請求', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 

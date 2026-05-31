@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-11 マスタ管理 権限制御', () => {
   test('should show master menu and customer list for sales01 user', async ({ page }) => {
@@ -9,7 +9,7 @@ test.describe('S-11 マスタ管理 権限制御', () => {
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
     // Act
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
 
     // Assert: 顧客一覧が参照できる
     await expect(page.locator('.data-table')).toBeVisible();
@@ -22,7 +22,7 @@ test.describe('S-11 マスタ管理 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
 
     // Assert: 新規登録ボタンが表示されない
@@ -39,7 +39,7 @@ test.describe('S-11 マスタ管理 権限制御', () => {
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
     // Act
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
 
     // Assert: 顧客一覧が参照できる
     await expect(page.locator('.data-table')).toBeVisible();

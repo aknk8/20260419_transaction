@@ -17,6 +17,7 @@ coverage/
 
 # バックアップファイル
 backups/
+archive/
 
 # ログ
 *.log

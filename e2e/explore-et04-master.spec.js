@@ -1,5 +1,5 @@
 // ET-04: マスタ管理の登録・編集・検索・ページング
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 async function login(page, id, pass) {
   const userMap = {
@@ -40,9 +40,9 @@ test.describe('ET-04: マスタ管理探索', () => {
     await navigateTo(page, 'マスタ管理');
     await page.waitForTimeout(300);
     const rows = await page.locator('table tbody tr').count();
-    console.log(`[ET-04] 顧客マスタ一覧の表示行数: ${rows}（PAGE_SIZE=5）`);
-    // 9件存在→1ページ目は5件のはず
-    expect(rows).toBeLessThanOrEqual(5);
+    console.log(`[ET-04] 顧客マスタ一覧の表示行数: ${rows}（pageSize=20）`);
+    // 9件存在→pageSize=20なので1ページ目は9件
+    expect(rows).toBeLessThanOrEqual(20);
   });
 
   test('ページングで2ページ目に遷移できるか確認', async ({ page }) => {

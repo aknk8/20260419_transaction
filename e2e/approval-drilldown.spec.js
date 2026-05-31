@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
 
@@ -32,7 +32,7 @@ test.describe('S-12 承認一覧 行ドリルダウン', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -93,7 +93,7 @@ test.describe('S-12 承認一覧 行ドリルダウン', () => {
   });
 
   test('should not show 承認一覧に戻る when navigating to quotation detail directly', async ({ page }) => {
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation]').first().click();
 
     await expect(page.locator('#quotation-detail-back')).toContainText('一覧へ戻る');

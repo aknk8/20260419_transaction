@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // P1移行後: 認証はAPIを通じて行われるため、Playwrightのルートインターセプトでモック
 const adminUser = { id: 'admin', name: '中村 管理者', userType: 'システム管理者' };
@@ -54,10 +54,10 @@ test.describe('S-01 ログイン', () => {
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
     // Assert: admin に許可された全メニューが表示される
-    await expect(page.locator('[data-route="dashboard"]')).toBeVisible();
-    await expect(page.locator('[data-route="master"]')).toBeVisible();
-    await expect(page.locator('[data-route="approval"]')).toBeVisible();
-    await expect(page.locator('[data-route="report"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="dashboard"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="master"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="approval"]')).toBeVisible();
+    await expect(page.locator('.sidebar [data-route="report"]')).toBeVisible();
   });
 
   test('should return to login screen when logout button is clicked', async ({ page }) => {

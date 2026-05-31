@@ -29,10 +29,11 @@ import approvalRoutes from './routes/approvals.js';
 import deliveryRoutes from './routes/deliveries.js';
 import settingsRoutes from './routes/settings.js';
 import healthRoutes from './routes/health.js';
+import testResetRoutes from './routes/testReset.js';
 
 const distPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 
-export async function buildApp({ userRepository, customerService, supplierService, productService, userService, projectService, quotationService, orderService, approvalRouteRepository, purchaseOrderService, invoiceService, receiptService, paymentService, notificationService, deliveryService, settingsService, auditLogRepository, sessionRepository, refreshTokenRepository, corsOrigin, rateLimit, allowedOrigins, db } = {}) {
+export async function buildApp({ userRepository, customerService, supplierService, productService, userService, projectService, quotationService, orderService, approvalRouteRepository, purchaseOrderService, invoiceService, receiptService, paymentService, notificationService, deliveryService, settingsService, auditLogRepository, sessionRepository, refreshTokenRepository, corsOrigin, rateLimit, allowedOrigins, db, testResetFn } = {}) {
   const app = Fastify({
     logger: false,
     ajv: { customOptions: { removeAdditional: false } }
@@ -137,6 +138,10 @@ export async function buildApp({ userRepository, customerService, supplierServic
   }
   if (deliveryService) await app.register(deliveryRoutes, { deliveryService });
   if (settingsService) await app.register(settingsRoutes, { settingsService });
+
+  if (testResetFn && process.env.NODE_ENV !== 'production') {
+    await app.register(testResetRoutes, { onReset: testResetFn });
+  }
 
   if (existsSync(distPath)) {
     await app.register(fstatic, { root: distPath, wildcard: false });

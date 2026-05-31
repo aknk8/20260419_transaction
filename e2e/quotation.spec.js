@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-04 見積一覧', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,7 +6,7 @@ test.describe('S-04 見積一覧', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -52,7 +52,7 @@ test.describe('S-04 見積ヘッダ登録', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-quotation-btn').click();
     await expect(page.locator('#quotation-register-form')).toBeVisible();
@@ -130,7 +130,7 @@ test.describe('S-04 見積明細登録', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-quotation-btn').click();
     await expect(page.locator('#quotation-register-form')).toBeVisible();
@@ -203,7 +203,7 @@ test.describe('S-04 見積詳細表示', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -265,7 +265,7 @@ test.describe('S-04 見積ワークフロー', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -338,7 +338,7 @@ test.describe('S-04 見積改版', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -390,7 +390,7 @@ test.describe('S-04 見積PDF出力', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -443,7 +443,7 @@ test.describe('S-04 見積 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
 
     await expect(page.locator('.data-table')).toBeVisible();
     await expect(page.locator('#new-quotation-btn')).toBeVisible();
@@ -455,7 +455,7 @@ test.describe('S-04 見積 権限制御', () => {
     await page.fill('#password', 'finance123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
-    await expect(page.locator('[data-route="quotation"]')).not.toBeVisible();
+    await expect(page.locator('.sidebar [data-route="quotation"]')).not.toBeVisible();
   });
 });
 
@@ -465,19 +465,19 @@ test.describe('P10-RT-01 見積却下→修正→再申請', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
   test('should show 下書きに戻す button on quotation detail after rejection', async ({ page }) => {
     // Reject QUO-00011 (承認依頼中) from approval screen（QUO-00003はtest 280で承認済みになる）
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval="見積:QUO-00011"]').click();
     await page.locator('#quotation-reject-btn').click();
     await page.locator('#approval-comment-input').fill('金額を修正してください');
     await page.locator('#approval-confirm-reject').click();
     // Navigate to quotation detail to verify
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation="QUO-00011"]').click();
 
     await expect(page.locator('#quotation-return-draft-btn')).toBeVisible();
@@ -486,7 +486,7 @@ test.describe('P10-RT-01 見積却下→修正→再申請', () => {
   test('should complete full reject→return-to-draft→resubmit→approve flow', async ({ page }) => {
     // QUO-00011 was already rejected (却下) by the previous test
     // Step 2: Verify QUO-00011 is 却下
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation="QUO-00011"]').click();
     await expect(page.locator('.status').first()).toContainText('却下');
 
@@ -501,13 +501,13 @@ test.describe('P10-RT-01 見積却下→修正→再申請', () => {
     await expect(page.locator('[data-action-edit-quotation="QUO-00011"]').locator('xpath=ancestor::div[contains(@class,"data-table-body-row")]')).toContainText('承認依頼中');
 
     // Step 5: Approve from approval screen
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await page.locator('[data-action-detail-approval="見積:QUO-00011"]').click();
     await page.locator('#quotation-approve-btn').click();
     await page.locator('#approval-confirm-approve').click();
 
     // Step 6: Verify final approved status
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await page.locator('[data-action-detail-quotation="QUO-00011"]').click();
     await expect(page.locator('.status').first()).toContainText('承認済み');
   });
@@ -519,7 +519,7 @@ test.describe('P10-RT-05 大量データ・ページネーション動作確認'
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -605,7 +605,7 @@ test.describe('P10-RT-02 見積バリデーション', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-quotation-btn').click();
     await expect(page.locator('#quotation-register-form')).toBeVisible();
@@ -653,7 +653,7 @@ test.describe('RT-05 伝票状態遷移制御 - 取消済み見積', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 

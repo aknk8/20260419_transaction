@@ -2,6 +2,7 @@ export function createSessionRepository() {
   const sessions = new Map();
 
   return {
+    reset() { sessions.clear(); },
     save(session) {
       sessions.set(session.jti, { ...session });
     },

@@ -731,6 +731,27 @@ const orders = [
       { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 12, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 528000 },
       { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 12, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 132000 }
     ]
+  },
+  {
+    code: "ORD-00007",
+    quotationCode: "QUO-00001",
+    projectCode: "PJ-00001",
+    customerId: "CUS-001",
+    title: "承認済み受注 発注起票テスト用",
+    orderDate: "2026-05-10",
+    deliveryDate: "2026-12-31",
+    status: "承認済み",
+    subtotal: 600000,
+    taxAmount: 60000,
+    total: 660000,
+    notes: "",
+    billingTarget: false,
+    paidAmount: 0,
+    attachments: [],
+    details: [
+      { lineNo: 1, productCode: "PRD-001", productName: "サーバー保守サービス", quantity: 12, unit: "月", unitPrice: 40000, discount: 0, taxRate: 0.10, amount: 528000 },
+      { lineNo: 2, productCode: "PRD-002", productName: "ネットワーク機器保守", quantity: 12, unit: "月", unitPrice: 10000, discount: 0, taxRate: 0.10, amount: 132000 }
+    ]
   }
 ];
 
@@ -6197,6 +6218,8 @@ function bindAppEvents() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
           }, { button: submitBtn, successMsg: '顧客を更新しました' });
+          var editIdx = customers.findIndex(function(c) { return c.code === viewState.customerForm.editCode; });
+          if (editIdx !== -1) Object.assign(customers[editIdx], data);
           viewState.customerForm.editCode = null;
         } else {
           await withFeedback('/api/customers', {
@@ -6204,6 +6227,7 @@ function bindAppEvents() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
           }, { button: submitBtn, successMsg: '顧客を登録しました' });
+          customers.push(data);
         }
         await refreshCustomers();
         viewState.tables.customerMaster.page = Math.ceil(customers.length / (viewState.tables.customerMaster.pageSize || PAGE_SIZE));
@@ -7554,7 +7578,14 @@ function bindAppEvents() {
   Array.prototype.forEach.call(document.querySelectorAll("[data-action-delivery-register]"), function(btn) {
     btn.addEventListener("click", function() {
       const podCode = btn.getAttribute("data-action-delivery-register");
+      var nums = deliveries.map(function(d) {
+        var m = /^DLV-(\d+)$/.exec(d.code || '');
+        return m ? parseInt(m[1], 10) : 0;
+      });
+      var maxNum = nums.length > 0 ? Math.max.apply(Math, nums) : 0;
+      var nextCode = 'DLV-' + String(maxNum + 1).padStart(5, '0');
       viewState.deliveryForm.data = {
+        code: nextCode,
         purchaseOrderCode: podCode,
         deliveryDate: "",
         notes: ""

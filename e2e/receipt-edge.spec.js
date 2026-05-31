@@ -1,6 +1,6 @@
 // RT-03: 入金消込異常系 E2E テスト
 // INV-00001 のハードコードデータ: total=528,000、status='送付済'
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 const INV_CODE = 'INV-00001';
 const INV_TOTAL = 528000;
@@ -53,7 +53,7 @@ async function loginAndOpenInvoiceDetail(page) {
   await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
 
   // Act
-  await page.locator('[data-route="invoice"]').click();
+  await page.locator('.sidebar [data-route="invoice"]').click();
   await expect(page.locator('.data-table')).toBeVisible();
   await page.click(`[data-action-detail-invoice="${INV_CODE}"]`);
 

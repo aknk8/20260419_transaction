@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 // RT-01: 完全業務フロー E2E
 // シナリオ: 見積(下書き→承認依頼中→承認済み) → 受注(受注済み→承認依頼中→承認済み) →
@@ -212,7 +212,7 @@ async function login(page) {
   await page.fill('#user-id', 'admin');
   await page.fill('#password', 'admin123');
   await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-  await page.waitForSelector('[data-route="quotation"]', { timeout: 15000 });
+  await page.waitForSelector('.sidebar [data-route="quotation"]', { timeout: 15000 });
 }
 
 // ─────────────────────────────────────────────
@@ -229,7 +229,7 @@ test.describe('RT-01 Step 1: 見積承認フロー（下書き→承認依頼中
 
   test('should show 承認依頼 button on 下書き quotation and correct total', async ({ page }) => {
     // Arrange
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-edit-quotation="QUO-00002"]').click();
 
@@ -240,7 +240,7 @@ test.describe('RT-01 Step 1: 見積承認フロー（下書き→承認依頼中
 
   test('should change quotation status to 承認依頼中 after submitting for approval', async ({ page }) => {
     // Arrange
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-edit-quotation="QUO-00002"]').click();
 
@@ -258,10 +258,10 @@ test.describe('RT-01 Step 1: 見積承認フロー（下書き→承認依頼中
     await page.goto('/');
     await login(page);
     // 見積一覧へ移動してローカルデータを更新
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     // 承認一覧へ移動
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-approval="見積:QUO-00002"]').click();
 
@@ -270,7 +270,7 @@ test.describe('RT-01 Step 1: 見積承認フロー（下書き→承認依頼中
     await page.locator('#approval-confirm-approve').click();
 
     // Assert: 見積一覧で承認済みを確認
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-quotation="QUO-00002"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('承認済み');
@@ -282,7 +282,7 @@ test.describe('RT-01 Step 1: 見積承認フロー（下書き→承認依頼中
     await setupQuotationMock(page, '承認済み');
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="quotation"]').click();
+    await page.locator('.sidebar [data-route="quotation"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-quotation="QUO-00002"]').click();
 
@@ -305,7 +305,7 @@ test.describe('RT-01 Step 2: 受注承認フロー（受注済み→承認依頼
 
   test('should show 承認依頼 button on 受注済み order and correct total', async ({ page }) => {
     // Arrange
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-order="ORD-00001"]').click();
 
@@ -316,7 +316,7 @@ test.describe('RT-01 Step 2: 受注承認フロー（受注済み→承認依頼
 
   test('should show quotationCode QUO-00002 in order detail confirming quotation linkage', async ({ page }) => {
     // Arrange
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-order="ORD-00001"]').click();
 
@@ -331,10 +331,10 @@ test.describe('RT-01 Step 2: 受注承認フロー（受注済み→承認依頼
     await page.goto('/');
     await login(page);
     // 受注一覧へ移動してローカルデータを更新
-    await page.locator('[data-route="sales-order"]').click();
+    await page.locator('.sidebar [data-route="sales-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     // 承認一覧へ移動
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-approval="受注:ORD-00001"]').click();
 
@@ -410,7 +410,7 @@ test.describe('RT-01 Step 3: 発注・納品フロー（承認済→発注済→
 
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="purchase-order"]').click();
+    await page.locator('.sidebar [data-route="purchase-order"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -454,7 +454,7 @@ test.describe('RT-01 Step 4: 請求承認フロー（下書き→承認依頼中
     await setupInvoiceMock(page, '下書き');
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 
@@ -493,10 +493,10 @@ test.describe('RT-01 Step 4: 請求承認フロー（下書き→承認依頼中
     await page.goto('/');
     await login(page);
     // 請求一覧へ移動してローカルデータを更新
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     // 承認一覧へ移動
-    await page.locator('[data-route="approval"]').click();
+    await page.locator('.sidebar [data-route="approval"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-approval="請求:INV-00003"]').click();
 
@@ -505,7 +505,7 @@ test.describe('RT-01 Step 4: 請求承認フロー（下書き→承認依頼中
     await page.locator('#approval-confirm-approve').click();
 
     // Assert: 請求一覧で承認済みを確認
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-invoice="INV-00003"]').click();
     await expect(page.locator('.status-badge').first()).toContainText('承認済み');
@@ -517,7 +517,7 @@ test.describe('RT-01 Step 4: 請求承認フロー（下書き→承認依頼中
     await setupInvoiceMock(page, '確定');
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('[data-action-detail-invoice="INV-00003"]').click();
 
@@ -586,7 +586,7 @@ test.describe('RT-01 Step 5: 入金登録・消込フロー', () => {
 
     await page.goto('/');
     await login(page);
-    await page.locator('[data-route="invoice"]').click();
+    await page.locator('.sidebar [data-route="invoice"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
 

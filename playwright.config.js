@@ -5,7 +5,7 @@ const reportRoot = process.env.CI ? 'e2e-report' : 'C:/tmp/playwright-report';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
-  workers: 4,
+  workers: process.env.CI ? 1 : 4,
   reporter: [
     ['list'],
     ['html', { outputFolder: `${reportRoot}/html`, open: 'never' }],

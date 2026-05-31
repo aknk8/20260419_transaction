@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('S-11 ユーザ管理', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,7 +6,7 @@ test.describe('S-11 ユーザ管理', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="user"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
   });
@@ -103,7 +103,7 @@ test.describe('S-11 支払条件・税率マスタ', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
   });
 
   test('should display payment term list on payment-term tab', async ({ page }) => {
@@ -134,7 +134,7 @@ test.describe('S-11 ユーザ管理 権限制御', () => {
     await page.fill('#user-id', 'sales01');
     await page.fill('#password', 'sales123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
 
     // Assert: ユーザ管理タブが表示されない
     await expect(page.locator('[data-master-tab="user"]')).not.toBeVisible();
@@ -146,7 +146,7 @@ test.describe('S-11 ユーザ管理 権限制御', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="user"]').click();
     await page.locator('[data-action-edit-user="sales01"]').click();
     await page.selectOption('#f-user-status', '停止');
@@ -169,7 +169,7 @@ test.describe('P10-RT-02 ユーザ管理 バリデーション', () => {
     await page.fill('#user-id', 'admin');
     await page.fill('#password', 'admin123');
     await page.locator('#login-form').getByRole('button', { name: 'ログイン' }).click();
-    await page.locator('[data-route="master"]').click();
+    await page.locator('.sidebar [data-route="master"]').click();
     await page.locator('[data-master-tab="user"]').click();
     await expect(page.locator('.data-table')).toBeVisible();
     await page.locator('#new-user-btn').click();
