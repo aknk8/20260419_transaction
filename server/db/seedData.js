@@ -95,11 +95,11 @@ export const seedSuppliers = [
 ];
 
 export const seedProducts = [
-  { code: 'PRD-001', name: 'サーバー保守サービス', unit: '月', unitPrice: '50000', tax: '課税', status: '有効' },
-  { code: 'PRD-002', name: 'ネットワーク機器 導入支援', unit: '式', unitPrice: '200000', tax: '課税', status: '有効' },
-  { code: 'PRD-003', name: 'ソフトウェアライセンス', unit: '年', unitPrice: '120000', tax: '課税', status: '有効' },
-  { code: 'PRD-004', name: '技術支援 スポット対応', unit: '時間', unitPrice: '15000', tax: '課税', status: '有効' },
-  { code: 'PRD-005', name: '消耗品セット', unit: '個', unitPrice: '3000', tax: '課税', status: '停止' }
+  { code: 'PRD-001', name: 'サーバー保守サービス', unit: '月', unitPrice: '50000', tax: 10, status: '有効' },
+  { code: 'PRD-002', name: 'ネットワーク機器 導入支援', unit: '式', unitPrice: '200000', tax: 10, status: '有効' },
+  { code: 'PRD-003', name: 'ソフトウェアライセンス', unit: '年', unitPrice: '120000', tax: 10, status: '有効' },
+  { code: 'PRD-004', name: '技術支援 スポット対応', unit: '時間', unitPrice: '15000', tax: 10, status: '有効' },
+  { code: 'PRD-005', name: '消耗品セット', unit: '個', unitPrice: '3000', tax: 10, status: '停止' }
 ];
 
 export const seedProjects = [

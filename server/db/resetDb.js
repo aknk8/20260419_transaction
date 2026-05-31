@@ -71,7 +71,7 @@ export async function resetDb(db) {
 
   await db.insert(products).values(
     seedProducts.map(p => ({
-      code: p.code, name: p.name, unit: p.unit, unitPrice: String(p.unitPrice), tax: p.tax, status: p.status
+      code: p.code, name: p.name, unit: p.unit, unitPrice: String(p.unitPrice), tax: String(p.tax), status: p.status
     }))
   );
 

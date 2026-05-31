@@ -19,6 +19,7 @@ try {
   console.log('E2E seed: DB reset and seed completed');
 } catch (err) {
   console.error(`E2E seed failed: ${err.message}`);
+  if (err.cause) console.error('cause:', err.cause);
   process.exit(1);
 } finally {
   await sql.end();
